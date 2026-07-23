@@ -1,4 +1,4 @@
-package com.example.bulkretail
+package com.lovelynk.app
 
 import io.flutter.embedding.android.FlutterActivity
 
