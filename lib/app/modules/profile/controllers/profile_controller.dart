@@ -1,35 +1,27 @@
-import 'package:bulkretail/app/core/network/handle_exceptions.dart';
-import 'package:bulkretail/app/data/models/products_model.dart';
-import 'package:bulkretail/app/data/repositories/product_repository.dart';
 import 'package:get/get.dart';
 
 class ProfileController extends GetxController {
-  //TODO: Implement ProfileController
-  final IProductRepository _productRepo = Get.find<IProductRepository>();
+  final userName = 'Jasper'.obs;
+  final isPremium = true.obs;
+  final anniversary = '12 Oct 2022'.obs;
+  final language = 'English'.obs;
+  final locationPermission = 'Always'.obs;
+  final syncStatus = 'All Good'.obs;
+  final avatarUrl = ''.obs;
 
-  final productList = <Product>[].obs;
-  final isLoading = false.obs;
-
-  Future<void> fetchData() async {
-    try {
-      isLoading.value = true;
-      final response = await _productRepo.getProducts(limit: 20, skip: 0);
-
-      ///   simple validation according to your API response
-      if (response.products != null) {
-        productList.value = response.products!;
-      }
-    } catch (e) {
-      handleException(e);
-    } finally {
-      isLoading.value = false;
-    }
+  void onProfileTap() {
+    // TODO: open edit profile
   }
 
-  @override
-  void onInit() {
-    // TODO: implement onInit
-    fetchData();
-    super.onInit();
+  void onMenuTap(String key) {
+    // TODO: navigate per menu item
+  }
+
+  void onReferTap() {
+    // TODO: open referral
+  }
+
+  void onRateTap() {
+    // TODO: open App Store rating
   }
 }

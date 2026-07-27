@@ -21,7 +21,7 @@ class SplashController extends GetxController {
       await HelperUtils.initMainControllers();
       Get.offAllNamed(Routes.MAIN_PAGE);
     } else {
-      Get.offAllNamed(Routes.MAIN_PAGE);
+      Get.offAllNamed(Routes.ONBOARDING);
     }
   }
 

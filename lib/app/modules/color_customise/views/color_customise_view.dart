@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
-import '../controllers/login_controller.dart';
+import '../controllers/color_customise_controller.dart';
 
-class LoginView extends GetView<LoginController> {
-  const LoginView({super.key});
+class ColorCustomiseView extends GetView<ColorCustomiseController> {
+  const ColorCustomiseView({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('LoginView'),
+        title: const Text('ColorCustomiseView'),
         centerTitle: true,
       ),
       body: const Center(
         child: Text(
-          'LoginView is working',
+          'ColorCustomiseView is working',
           style: TextStyle(fontSize: 20),
         ),
       ),

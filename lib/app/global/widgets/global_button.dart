@@ -27,6 +27,7 @@ class GlobalButton extends StatelessWidget {
     this.isDisabled = false,
     this.widget,
     this.textStyle,
+    this.isOutlined = false,
   });
 
   final VoidCallback onTap;
@@ -47,29 +48,43 @@ class GlobalButton extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final bool isDisabled;
   final TextStyle? textStyle;
+  final bool isOutlined;
 
   Color _resolveColor() {
     if (isDisabled) return AppColor.primaryDisable;
+    if (isOutlined) return Colors.transparent;
     return color ?? AppColor.primary;
+  }
+
+  Color _resolveTextColor() {
+    if (isOutlined) return textColor ?? AppColor.primary;
+    return textColor ?? AppColor.white;
   }
 
   @override
   Widget build(BuildContext context) {
+    final resolvedHeight = height ?? 48.h;
+    final resolvedRadius =
+        borderRadius ?? BorderRadius.circular(resolvedHeight / 2);
+
     return CupertinoButton(
       onPressed: isDisabled ? null : onTap,
       padding: padding ?? EdgeInsets.zero,
       child: Container(
-        height: height ?? 45.h,
+        height: resolvedHeight,
         width: width ?? double.infinity,
         decoration: BoxDecoration(
           color: gradient == null ? _resolveColor() : null,
           gradient: isDisabled ? null : gradient,
-          borderRadius: borderRadius ?? BorderRadius.circular(12.r),
-          border: Border.all(color: borderColor ?? Colors.transparent),
+          borderRadius: resolvedRadius,
+          border: Border.all(
+            color: borderColor ??
+                (isOutlined ? AppColor.primary : Colors.transparent),
+            width: isOutlined ? 1.5 : 1,
+          ),
           boxShadow: isDisabled ? null : boxShadow,
         ),
-        child:
-            widget ??
+        child: widget ??
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -78,12 +93,11 @@ class GlobalButton extends StatelessWidget {
                 Expanded(
                   child: AppText(
                     text,
-                    style:
-                        textStyle ??
+                    style: textStyle ??
                         context.titleSmall.copyWith(
-                          color: textColor ?? Colors.white,
-                          fontSize: fontSize,
-                          fontWeight: fontWeight,
+                          color: _resolveTextColor(),
+                          fontSize: fontSize ?? 15.sp,
+                          fontWeight: fontWeight ?? FontWeight.w600,
                         ),
                     textAlign: TextAlign.center,
                   ),

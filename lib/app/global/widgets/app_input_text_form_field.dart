@@ -15,15 +15,15 @@ InputDecoration buildAppInputDecoration({
   Widget? prefixIcon,
   Color? fillColor,
   EdgeInsetsGeometry? contentPadding,
-  double borderRadius = 10,
+  double borderRadius = 16,
   bool showBorder = true,
   Color? enabledBorderColor,
-  double focusedBorderWidth = 0.8,
+  double focusedBorderWidth = 1.2,
 }) {
-  final radius = BorderRadius.circular(borderRadius);
-  final enabledColor = enabledBorderColor ?? AppColor.hintText;
+  final radius = BorderRadius.circular(borderRadius.r);
+  final enabledColor = enabledBorderColor ?? AppColor.inputBorder;
 
-  OutlineInputBorder borderFor(Color color, {double width = 0.5}) {
+  OutlineInputBorder borderFor(Color color, {double width = 1}) {
     return OutlineInputBorder(
       borderRadius: radius,
       borderSide: showBorder
@@ -42,14 +42,18 @@ InputDecoration buildAppInputDecoration({
     ).textTheme.bodyMedium?.copyWith(color: AppColor.hintText),
     hintText: hintText?.tr,
     filled: true,
-    fillColor: fillColor ?? Colors.white,
-    contentPadding: contentPadding,
+    fillColor: fillColor ?? AppColor.inputFill,
+    contentPadding:
+        contentPadding ??
+        EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
     hintStyle: Theme.of(
       context,
     ).textTheme.bodyMedium?.copyWith(color: AppColor.hintText),
-    border: borderFor(Colors.black),
+    border: borderFor(AppColor.inputBorder),
     enabledBorder: borderFor(enabledColor),
     focusedBorder: borderFor(AppColor.primary, width: focusedBorderWidth),
+    errorBorder: borderFor(AppColor.error),
+    focusedErrorBorder: borderFor(AppColor.error, width: focusedBorderWidth),
   );
 }
 
@@ -75,7 +79,7 @@ class AppInputTextFormField extends StatelessWidget {
     this.onTap,
     this.fillColor,
     this.contentPadding,
-    this.borderRadius = 10,
+    this.borderRadius = 16,
     this.showBorder = true,
     this.enabledBorderColor,
     this.textAlign,
@@ -160,7 +164,7 @@ class AppInputTextFormField extends StatelessWidget {
               AppText(
                 label!,
                 style: context.titleSmall.copyWith(
-                  color: labelColor ?? Colors.black,
+                  color: labelColor ?? AppColor.textPrimary,
                 ),
               ),
               if (validator != null)
@@ -172,7 +176,7 @@ class AppInputTextFormField extends StatelessWidget {
                 ),
             ],
           ),
-        SizedBox(height: labelSpacing),
+        SizedBox(height: labelSpacing.h),
         field,
       ],
     );
@@ -185,20 +189,22 @@ typedef InputFieldWithLabel = AppInputTextFormField;
 class PasswordInputField extends StatefulWidget {
   const PasswordInputField({
     super.key,
-    this.label = 'Password',
+    this.label,
     this.hintText,
     this.controller,
     this.validator,
     this.onChanged,
     this.errorText,
+    this.prefixIcon,
   });
 
-  final String label;
+  final String? label;
   final String? hintText;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final String? errorText;
+  final Widget? prefixIcon;
 
   @override
   State<PasswordInputField> createState() => _PasswordInputFieldState();
@@ -218,6 +224,7 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
       errorText: widget.errorText,
       obscureText: _obscure,
       keyboardType: TextInputType.visiblePassword,
+      prefixIcon: widget.prefixIcon,
       suffixIcon: IconButton(
         onPressed: () => setState(() => _obscure = !_obscure),
         icon: Icon(

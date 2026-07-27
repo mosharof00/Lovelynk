@@ -32,14 +32,18 @@ class _BottomNav extends GetView<MainPageController> {
       label: 'Home',
     ),
     _NavTab(
-      outlineIcon: Assets.icons.blockIcon,
-      fillIcon: Assets.icons.blockFillIcon,
-      label: 'Products',
+      outlineIcon: Assets.icons.widgetIcon,
+      fillIcon: Assets.icons.widgetFillIcon,
+      label: 'Widgets',
+    ),    _NavTab(
+      outlineIcon: Assets.icons.colorCustomizeIcon,
+      fillIcon: Assets.icons.colorCustomizeFillIcon,
+      label: 'Customise',
     ),
     _NavTab(
       outlineIcon: Assets.icons.profileIcon,
       fillIcon: Assets.icons.profileFillIcon,
-      label: 'SimpleProducts',
+      label: 'Profile',
     ),
   ];
 

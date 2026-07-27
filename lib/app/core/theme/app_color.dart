@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 class AppColor {
   AppColor._();
 
-  // ── Brand ────────────────────────────────────────────
-  static const Color primary = Color(0xFF2E3A83);
-  static const Color primaryDisable = Color(0xFFABB0CD);
-  static const Color secondary = Color(0xFF58619C);
+  // ── Brand (Lovelynk) ─────────────────────────────────
+  static const Color primary = Color(0xFFFF4FA3);
+  static const Color primaryDisable = Color(0xFFFFB8DC);
+  static const Color primaryLight = Color(0xFFFFE0EF);
+  static const Color secondary = Color(0xFF42C2FF);
 
   // ── Semantic ─────────────────────────────────────────
   static const Color error = Color(0xFFDF1C41);
   static const Color amber = Color(0xFFFFBF00);
+  static const Color success = Color(0xFF22C55E);
 
   // ── Light theme surfaces ──────────────────────────────
-  static const Color background = Color(0xFFF6F8FA);
-  static const Color background2 = Color(0xFFF7F8FC);
+  static const Color background = Color(0xFFFFF8FB);
+  static const Color background2 = Color(0xFFFFF1F6);
   static const Color white = Color(0xFFFFFFFF);
+  static const Color inputFill = Color(0xFFFAFAFC);
+  static const Color inputBorder = Color(0xFFE6E2EA);
 
   // ── Dark theme surfaces ───────────────────────────────
   static const Color darkBackground = Color(0xFF121212);
@@ -23,6 +27,8 @@ class AppColor {
   static const Color darkSurface = Color(0xFF2C2C2C);
 
   // ── Text / Neutral ────────────────────────────────────
-  static const Color hintText = Color(0xFF818898);
+  static const Color textPrimary = Color(0xFF1A1530);
+  static const Color textSecondary = Color(0xFF6B667A);
+  static const Color hintText = Color(0xFF9A96A8);
   static const Color grey410 = Color(0xFF979797);
 }

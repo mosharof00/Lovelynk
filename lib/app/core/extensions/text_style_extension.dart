@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 extension AppTextStyles on BuildContext {
-  /// Poppins • 32sp • w700
+  /// Playfair Display • 32sp • w700
   TextStyle get displayLarge => Theme.of(this).textTheme.displayLarge!;
 
-  /// Poppins • 28sp • w700
+  /// Playfair Display • 28sp • w700
   TextStyle get displayMedium => Theme.of(this).textTheme.displayMedium!;
 
   /// Poppins • 24sp • w600

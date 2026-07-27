@@ -23,11 +23,24 @@ class $AssetsIconsGen {
   /// File path: assets/icons/block_icon.svg
   String get blockIcon => 'assets/icons/block_icon.svg';
 
+  /// File path: assets/icons/color_customize_fill_icon.svg
+  String get colorCustomizeFillIcon =>
+      'assets/icons/color_customize_fill_icon.svg';
+
+  /// File path: assets/icons/color_customize_icon.svg
+  String get colorCustomizeIcon => 'assets/icons/color_customize_icon.svg';
+
   /// File path: assets/icons/home_fill_icon.svg
   String get homeFillIcon => 'assets/icons/home_fill_icon.svg';
 
   /// File path: assets/icons/home_icon.svg
   String get homeIcon => 'assets/icons/home_icon.svg';
+
+  /// File path: assets/icons/love_icon.svg
+  String get loveIcon => 'assets/icons/love_icon.svg';
+
+  /// File path: assets/icons/love_multi.svg
+  String get loveMulti => 'assets/icons/love_multi.svg';
 
   /// File path: assets/icons/profile_fill_icon.svg
   String get profileFillIcon => 'assets/icons/profile_fill_icon.svg';
@@ -35,31 +48,61 @@ class $AssetsIconsGen {
   /// File path: assets/icons/profile_icon.svg
   String get profileIcon => 'assets/icons/profile_icon.svg';
 
+  /// File path: assets/icons/widget_fill_icon.svg
+  String get widgetFillIcon => 'assets/icons/widget_fill_icon.svg';
+
+  /// File path: assets/icons/widget_icon.svg
+  String get widgetIcon => 'assets/icons/widget_icon.svg';
+
   /// List of all assets
   List<String> get values => [
     backArrowIcon,
     blockFillIcon,
     blockIcon,
+    colorCustomizeFillIcon,
+    colorCustomizeIcon,
     homeFillIcon,
     homeIcon,
+    loveIcon,
+    loveMulti,
     profileFillIcon,
     profileIcon,
+    widgetFillIcon,
+    widgetIcon,
   ];
 }
 
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/connect_with_partner_image.png
+  AssetGenImage get connectWithPartnerImage =>
+      const AssetGenImage('assets/images/connect_with_partner_image.png');
+
   /// File path: assets/images/empty_box.png
   AssetGenImage get emptyBox =>
       const AssetGenImage('assets/images/empty_box.png');
+
+  /// File path: assets/images/onboard_image.png
+  AssetGenImage get onboardImage =>
+      const AssetGenImage('assets/images/onboard_image.png');
+
+  /// File path: assets/images/onboard_image_2.png
+  AssetGenImage get onboardImage2 =>
+      const AssetGenImage('assets/images/onboard_image_2.png');
 
   /// File path: assets/images/placeholder_image.jpg
   AssetGenImage get placeholderImage =>
       const AssetGenImage('assets/images/placeholder_image.jpg');
 
   /// List of all assets
-  List<AssetGenImage> get values => [emptyBox, placeholderImage];
+  List<AssetGenImage> get values => [
+    connectWithPartnerImage,
+    emptyBox,
+    onboardImage,
+    onboardImage2,
+    placeholderImage,
+  ];
 }
 
 class $AssetsLogosGen {
@@ -68,13 +111,14 @@ class $AssetsLogosGen {
   /// File path: assets/logos/app_icon.png
   AssetGenImage get appIcon => const AssetGenImage('assets/logos/app_icon.png');
 
+  /// File path: assets/logos/app_logo.png
+  AssetGenImage get appLogo => const AssetGenImage('assets/logos/app_logo.png');
+
   /// List of all assets
-  List<AssetGenImage> get values => [appIcon];
+  List<AssetGenImage> get values => [appIcon, appLogo];
 }
 
-class Assets {
-  const Assets._();
-
+abstract final class Assets {
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
   static const $AssetsLogosGen logos = $AssetsLogosGen();
