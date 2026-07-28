@@ -1,35 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:bulkretail/app/core/config/app_config.dart';
-import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
-import 'package:bulkretail/app/core/extensions/text_style_extension.dart';
-import 'package:bulkretail/app/core/theme/app_color.dart';
-import 'package:bulkretail/app/global/widgets/app_text.dart';
-import 'package:bulkretail/app/global/widgets/appbar_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'package:get/get.dart';
 
+import '../../../core/theme/app_color.dart';
 import '../controllers/home_controller.dart';
+import '../widgets/home_affirmation_card.dart';
+import '../widgets/home_header.dart';
+import '../widgets/home_how_to_tips.dart';
+import '../widgets/home_recent_activity.dart';
+import '../widgets/home_stats_row.dart';
+import '../widgets/partner_distance_card.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: AppBarTitle("Home"), centerTitle: true),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(child: Image.asset(AppConfig.appLogo, width: 200.w,)),
-
-          20.height,
-          AppText(
-            "Welcome to Flutter Boilerplate with GetX CLI\n by Mosharof Khan",
-            style: context.titleMedium.copyWith(fontSize: 25.sp,color: AppColor.primary),
-            textAlign: TextAlign.center,
-
+      backgroundColor: AppColor.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const HomeHeader(),
+              16.verticalSpace,
+              const PartnerDistanceCard(),
+              12.verticalSpace,
+              const HomeStatsRow(),
+              12.verticalSpace,
+              const HomeAffirmationCard(),
+              12.verticalSpace,
+              const HomeRecentActivity(),
+              20.verticalSpace,
+              const HomeHowToTips(),
+              // Long-press header area helper: double-tap avatar via debug in controller.
+              // Temporary UI switch for solo ↔ connected preview:
+              16.verticalSpace,
+              Center(
+                child: TextButton(
+                  onPressed: controller.toggleConnectedPreview,
+                  child: Text(
+                    'Preview: toggle solo / connected',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: AppColor.hintText,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

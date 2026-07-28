@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:bulkretail/app/core/network/api_client.dart';
+import 'package:bulkretail/app/core/services/subscription_service.dart';
 import 'auth_repository.dart';
 import 'product_repository.dart';
 
@@ -8,6 +9,10 @@ class AppRepositoryBinding extends Bindings {
   void dependencies() {
     // ApiClient — permanent, created immediately, shared by all repositories
     Get.put<ApiClient>(ApiClient(), permanent: true);
+
+    if (!Get.isRegistered<SubscriptionService>()) {
+      Get.put<SubscriptionService>(SubscriptionService(), permanent: true);
+    }
 
     // Repositories — lazy, created only when first Get.find() is called
     Get.lazyPut<IAuthRepository>(

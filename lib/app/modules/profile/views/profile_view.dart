@@ -143,9 +143,58 @@ class ProfileView extends GetView<ProfileController> {
                   onReferTap: controller.onReferTap,
                   onRateTap: controller.onRateTap,
                 ),
+                18.verticalSpace,
+                _ProfileLogoutSection(
+                  onTap: () => controller.onLogoutTap(context),
+                ),
                 12.verticalSpace,
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileLogoutSection extends StatelessWidget {
+  const _ProfileLogoutSection({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColor.white.withValues(alpha: 0.7),
+      borderRadius: BorderRadius.circular(16.r),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          child: Row(
+            children: [
+              Icon(
+                Icons.logout_rounded,
+                color: AppColor.error,
+                size: 22.sp,
+              ),
+              14.horizontalSpace,
+              Expanded(
+                child: Text(
+                  'Logout',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppColor.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 22.sp,
+                color: AppColor.hintText,
+              ),
+            ],
           ),
         ),
       ),

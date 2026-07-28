@@ -75,9 +75,17 @@ class $AssetsIconsGen {
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/README_customise_preview.md
+  String get rEADMECustomisePreview =>
+      'assets/images/README_customise_preview.md';
+
   /// File path: assets/images/connect_with_partner_image.png
   AssetGenImage get connectWithPartnerImage =>
       const AssetGenImage('assets/images/connect_with_partner_image.png');
+
+  /// File path: assets/images/customise_lock_preview_bg.png
+  AssetGenImage get customiseLockPreviewBg =>
+      const AssetGenImage('assets/images/customise_lock_preview_bg.png');
 
   /// File path: assets/images/empty_box.png
   AssetGenImage get emptyBox =>
@@ -96,8 +104,10 @@ class $AssetsImagesGen {
       const AssetGenImage('assets/images/placeholder_image.jpg');
 
   /// List of all assets
-  List<AssetGenImage> get values => [
+  List<dynamic> get values => [
+    rEADMECustomisePreview,
     connectWithPartnerImage,
+    customiseLockPreviewBg,
     emptyBox,
     onboardImage,
     onboardImage2,
