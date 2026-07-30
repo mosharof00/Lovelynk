@@ -54,10 +54,8 @@ class MyApp extends StatelessWidget {
         title: AppConfig.appName,
         debugShowCheckedModeBanner: false,
 
-        // Add these — was completely missing
         theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.light,
 
         initialRoute: AppPages.INITIAL,
         getPages: AppPages.routes,
