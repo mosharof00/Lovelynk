@@ -6,6 +6,7 @@ import '../../../../gen/assets.gen.dart';
 import '../../../core/extensions/text_style_extension.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/app_input_text_form_field.dart';
+import '../../../global/widgets/app_scaffold.dart';
 import '../../../global/widgets/app_svg_icon.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/global_button.dart';
@@ -16,50 +17,47 @@ class ConnectWithPartnerView extends GetView<ConnectWithPartnerController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.background,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w),
-          child: Column(
-            children: [
-              12.verticalSpace,
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: controller.back,
-                    icon: Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 20.sp,
-                      color: AppColor.textPrimary,
+    return AppScaffold(
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 24.w),
+        child: Column(
+          children: [
+            12.verticalSpace,
+            Row(
+              children: [
+                IconButton(
+                  onPressed: controller.back,
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20.sp,
+                    color: AppColor.textPrimary,
+                  ),
+                ),
+                Expanded(
+                  child: Obx(
+                    () => _StepDots(
+                      current: controller.currentStep.value,
+                      total: ConnectWithPartnerController.totalSteps,
                     ),
                   ),
-                  Expanded(
-                    child: Obx(
-                      () => _StepDots(
-                        current: controller.currentStep.value,
-                        total: ConnectWithPartnerController.totalSteps,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 48.w),
-                ],
-              ),
-              20.verticalSpace,
-              Expanded(
-                child: Obx(() {
-                  switch (controller.currentStep.value) {
-                    case 0:
-                      return const _PartnerNameStep();
-                    case 1:
-                      return const _AnniversaryStep();
-                    default:
-                      return const _ConnectCodeStep();
-                  }
-                }),
-              ),
-            ],
-          ),
+                ),
+                SizedBox(width: 48.w),
+              ],
+            ),
+            20.verticalSpace,
+            Expanded(
+              child: Obx(() {
+                switch (controller.currentStep.value) {
+                  case 0:
+                    return const _PartnerNameStep();
+                  case 1:
+                    return const _AnniversaryStep();
+                  default:
+                    return const _ConnectCodeStep();
+                }
+              }),
+            ),
+          ],
         ),
       ),
     );

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:bulkretail/app/global/layouts/product_layout.dart';
-import 'package:bulkretail/app/global/widgets/appbar_title.dart';
 import 'package:bulkretail/app/global/widgets/global_loading.dart';
 import 'package:bulkretail/app/global/widgets/paginated_views.dart';
 import 'package:bulkretail/app/global/widgets/show_empty_result.dart';
@@ -8,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:get/get.dart';
 
+import '../../../global/widgets/app_scaffold.dart';
 import '../controllers/products_controller.dart';
 
 class ProductsView extends GetView<ProductsController> {
@@ -15,8 +15,8 @@ class ProductsView extends GetView<ProductsController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: AppBarTitle("Products")),
+    return AppScaffold(
+      appbarTitle: 'Products',
       body: Obx(
         () => PaginatedGridView(
           scrollController: controller.scrollController,

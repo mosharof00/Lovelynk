@@ -18,9 +18,6 @@ class ProfileController extends GetxController {
     // TODO: open edit profile
   }
 
-  void onMenuTap(String key) {
-    // TODO: navigate per menu item
-  }
 
   void onReferTap() {
     // TODO: open referral

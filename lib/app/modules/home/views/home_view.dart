@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/theme/app_color.dart';
+import '../../../global/widgets/app_scaffold.dart';
 import '../controllers/home_controller.dart';
 import '../widgets/home_affirmation_card.dart';
 import '../widgets/home_header.dart';
@@ -16,42 +17,45 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const HomeHeader(),
-              16.verticalSpace,
-              const PartnerDistanceCard(),
-              12.verticalSpace,
-              const HomeStatsRow(),
-              12.verticalSpace,
-              const HomeAffirmationCard(),
-              12.verticalSpace,
-              const HomeRecentActivity(),
-              20.verticalSpace,
-              const HomeHowToTips(),
-              // Long-press header area helper: double-tap avatar via debug in controller.
-              // Temporary UI switch for solo ↔ connected preview:
-              16.verticalSpace,
-              Center(
-                child: TextButton(
-                  onPressed: controller.toggleConnectedPreview,
-                  child: Text(
-                    'Preview: toggle solo / connected',
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      color: AppColor.hintText,
+    return AppScaffold(
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          children: [
+            const HomeHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    16.verticalSpace,
+                    const PartnerDistanceCard(),
+                    12.verticalSpace,
+                    const HomeStatsRow(),
+                    12.verticalSpace,
+                    const HomeAffirmationCard(),
+                    12.verticalSpace,
+                    const HomeRecentActivity(),
+                    20.verticalSpace,
+                    const HomeHowToTips(),
+                    16.verticalSpace,
+                    Center(
+                      child: TextButton(
+                        onPressed: controller.toggleConnectedPreview,
+                        child: Text(
+                          'Preview: toggle solo / connected',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: AppColor.hintText,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -15,6 +15,7 @@ abstract class Routes {
   static const REGISTER = _Paths.AUTH + _Paths.REGISTER;
   static const COLOR_CUSTOMISE = _Paths.COLOR_CUSTOMISE;
   static const WIDGETS = _Paths.WIDGETS;
+  static const SUBSCRIPTIONS = _Paths.SUBSCRIPTIONS;
 }
 
 abstract class _Paths {
@@ -31,4 +32,5 @@ abstract class _Paths {
   static const REGISTER = '/register';
   static const COLOR_CUSTOMISE = '/color-customise';
   static const WIDGETS = '/widgets';
+  static const SUBSCRIPTIONS = '/subscriptions';
 }

@@ -3,10 +3,10 @@ import 'package:bulkretail/app/global/widgets/custom_svg_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:get/get.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
 
 import '../../../../gen/assets.gen.dart';
 import '../../../core/theme/app_color.dart';
+import '../../../core/theme/app_gradient.dart';
 import '../controllers/main_page_controller.dart';
 
 class MainPageView extends GetView<MainPageController> {
@@ -15,12 +15,14 @@ class MainPageView extends GetView<MainPageController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.background,
+      backgroundColor: Colors.transparent,
       body: Obx(() => controller.pages[controller.selectedIndex.value]),
       bottomNavigationBar: const _BottomNav(),
     );
   }
 }
+
+// ── Bottom nav ────────────────────────────────────────────────────────────────
 
 class _BottomNav extends GetView<MainPageController> {
   const _BottomNav();
@@ -35,7 +37,8 @@ class _BottomNav extends GetView<MainPageController> {
       outlineIcon: Assets.icons.widgetIcon,
       fillIcon: Assets.icons.widgetFillIcon,
       label: 'Widgets',
-    ),    _NavTab(
+    ),
+    _NavTab(
       outlineIcon: Assets.icons.colorCustomizeIcon,
       fillIcon: Assets.icons.colorCustomizeFillIcon,
       label: 'Customise',
@@ -62,35 +65,17 @@ class _BottomNav extends GetView<MainPageController> {
       ),
       child: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 10.h),
           child: Obx(
-            () => GNav(
-              selectedIndex: controller.selectedIndex.value,
-              onTabChange: controller.changePage,
-              backgroundColor: Colors.white,
-              activeColor: Colors.white,
-              color: AppColor.hintText,
-              tabBackgroundColor: AppColor.primary,
-              gap: 6.w,
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-              duration: const Duration(milliseconds: 300),
-              tabs: List.generate(_tabs.length, (index) {
+            () => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_tabs.length, (index) {
                 final tab = _tabs[index];
                 final isActive = controller.selectedIndex.value == index;
-                return GButton(
-                  icon: Icons.circle, // required but overridden by leading
-                  leading: customSvgImage(
-                    imagePath: isActive ? tab.fillIcon : tab.outlineIcon,
-                    color: isActive ? Colors.white : AppColor.hintText,
-                    width: 20.w,
-                    height: 20.w,
-                  ),
-                  text: tab.label,
-                  textStyle: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                return _NavItem(
+                  tab: tab,
+                  isActive: isActive,
+                  onTap: () => controller.changePage(index),
                 );
               }),
             ),
@@ -101,7 +86,63 @@ class _BottomNav extends GetView<MainPageController> {
   }
 }
 
-// ── Data model for each tab ───────────────────────────────────────────────────
+// ── Single nav item ───────────────────────────────────────────────────────────
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.tab,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final _NavTab tab;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: EdgeInsets.symmetric(
+          horizontal: isActive ? 16.w : 12.w,
+          vertical: 10.h,
+        ),
+        decoration: BoxDecoration(
+          gradient: isActive ? AppGradient.brand : null,
+          borderRadius: BorderRadius.circular(30.r),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            customSvgImage(
+              imagePath: isActive ? tab.fillIcon : tab.outlineIcon,
+              color: isActive ? Colors.white : AppColor.hintText,
+              width: 20.w,
+              height: 20.w,
+            ),
+            if (isActive) ...[
+              6.horizontalSpace,
+              Text(
+                tab.label,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Tab data model ────────────────────────────────────────────────────────────
 
 class _NavTab {
   final String outlineIcon;

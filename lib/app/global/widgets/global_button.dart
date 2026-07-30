@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bulkretail/app/core/extensions/text_style_extension.dart';
 import 'package:bulkretail/app/core/theme/app_color.dart';
+import 'package:bulkretail/app/core/theme/app_gradient.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'app_text.dart';
@@ -50,10 +51,24 @@ class GlobalButton extends StatelessWidget {
   final TextStyle? textStyle;
   final bool isOutlined;
 
+  /// The gradient applied to the filled button.
+  /// Defaults to [AppGradient.brand] (pink → blue).
+  /// Pass [gradient] explicitly or set [color] to override.
+  LinearGradient? _resolveGradient() {
+    if (isDisabled || isOutlined) return null;
+    // Caller explicitly passed a gradient — honour it.
+    if (gradient != null) return gradient;
+    // Caller picked a flat colour — no gradient.
+    if (color != null) return null;
+    // Default: brand gradient.
+    return AppGradient.brand;
+  }
+
   Color _resolveColor() {
     if (isDisabled) return AppColor.primaryDisable;
     if (isOutlined) return Colors.transparent;
-    return color ?? AppColor.primary;
+    // Only used when gradient is null (i.e. caller passed a flat color).
+    return color ?? Colors.transparent;
   }
 
   Color _resolveTextColor() {
@@ -63,9 +78,10 @@ class GlobalButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedHeight = height ?? 48.h;
+    final resolvedHeight = height ?? 44.h;
     final resolvedRadius =
         borderRadius ?? BorderRadius.circular(resolvedHeight / 2);
+    final resolvedGradient = _resolveGradient();
 
     return CupertinoButton(
       onPressed: isDisabled ? null : onTap,
@@ -74,8 +90,8 @@ class GlobalButton extends StatelessWidget {
         height: resolvedHeight,
         width: width ?? double.infinity,
         decoration: BoxDecoration(
-          color: gradient == null ? _resolveColor() : null,
-          gradient: isDisabled ? null : gradient,
+          color: resolvedGradient == null ? _resolveColor() : null,
+          gradient: resolvedGradient,
           borderRadius: resolvedRadius,
           border: Border.all(
             color: borderColor ??

@@ -7,20 +7,20 @@ import '../../../global/widgets/app_text.dart';
 
 class ProfileMenuItemData {
   const ProfileMenuItemData({
-    required this.key,
     required this.icon,
     required this.label,
     this.value,
     this.valueColor,
     this.showStatusDot = false,
+    this.onTap,
   });
 
-  final String key;
   final IconData icon;
   final String label;
   final String? value;
   final Color? valueColor;
   final bool showStatusDot;
+  final VoidCallback? onTap;
 }
 
 class ProfileMenuSection extends StatelessWidget {
@@ -29,13 +29,11 @@ class ProfileMenuSection extends StatelessWidget {
     required this.title,
     required this.titleColor,
     required this.items,
-    required this.onItemTap,
   });
 
   final String title;
   final Color titleColor;
   final List<ProfileMenuItemData> items;
-  final void Function(String key) onItemTap;
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +59,7 @@ class ProfileMenuSection extends StatelessWidget {
           child: Column(
             children: [
               for (int i = 0; i < items.length; i++) ...[
-                _ProfileMenuTile(
-                  item: items[i],
-                  onTap: () => onItemTap(items[i].key),
-                ),
+                _ProfileMenuTile(item: items[i]),
                 if (i != items.length - 1)
                   Divider(
                     height: 1,
@@ -82,18 +77,14 @@ class ProfileMenuSection extends StatelessWidget {
 }
 
 class _ProfileMenuTile extends StatelessWidget {
-  const _ProfileMenuTile({
-    required this.item,
-    required this.onTap,
-  });
+  const _ProfileMenuTile({required this.item});
 
   final ProfileMenuItemData item;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: item.onTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
