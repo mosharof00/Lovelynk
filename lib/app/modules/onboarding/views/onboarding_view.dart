@@ -1,3 +1,4 @@
+import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -22,8 +23,8 @@ class OnboardingView extends GetView<OnboardingController> {
         padding: EdgeInsets.symmetric(horizontal: 28.w),
         child: Column(
           children: [
-            30.verticalSpace,
-            Image.asset(AppConfig.appLogo, height: 90.h, width: 90.w),
+            20.verticalSpace,
+            Image.asset(AppConfig.appLogo, width: 120.w),
             AppText(
               AppConfig.appName,
               style: context.titleLarge.copyWith(
@@ -32,22 +33,35 @@ class OnboardingView extends GetView<OnboardingController> {
                 letterSpacing: -0.3,
               ),
             ),
-            48.verticalSpace,
-            AppText(
-              'Together, even when apart.',
-              style: context.displayMedium.copyWith(
-                color: AppColor.textPrimary,
-                height: 1.25,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 3,
+            50.verticalSpace,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                AppText(
+                  '    Together,\neven when apart',
+                  style: context.displayMedium.copyWith(
+                    color: AppColor.textPrimary,
+                    height: 1.25,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                ),
+                5.width,
+                AppSvgIcon(
+                  Assets.icons.loveIcon,
+                  size: 16.sp,
+                  color: AppColor.primary,
+                ),
+              ],
             ),
-            12.verticalSpace,
+            16.verticalSpace,
             AppSvgIcon(
               Assets.icons.loveIcon,
               size: 16.sp,
               color: AppColor.primary,
             ),
+            16.verticalSpace,
             AppText(
               'The #1 app for long distance relationship widgets',
               style: context.bodyMedium.copyWith(
@@ -57,7 +71,12 @@ class OnboardingView extends GetView<OnboardingController> {
               textAlign: TextAlign.center,
               maxLines: 3,
             ),
-            10.verticalSpace,
+            16.verticalSpace,
+            AppSvgIcon(
+              Assets.icons.loveIcon,
+              size: 16.sp,
+              color: AppColor.primary,
+            ),
             Image.asset(Assets.images.onboardImage2.path, width: Get.width),
             const Spacer(),
             GlobalButton(text: 'Continue', onTap: controller.continueToLogin),

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/widget_style.dart';
+import '../../../global/widgets/app_color_picker.dart';
 import '../../../global/widgets/app_text.dart';
 
 class ColourThemePicker extends StatelessWidget {
@@ -14,6 +15,23 @@ class ColourThemePicker extends StatelessWidget {
 
   final String selectedId;
   final ValueChanged<String> onSelected;
+
+  bool get _isCustomSelected => WidgetStyleOptions.isCustomId(selectedId);
+
+  Color get _customColor =>
+      WidgetStyleOptions.byId(selectedId).color;
+
+  Future<void> _openCustomPicker(BuildContext context) async {
+    final picked = await showAppColorPicker(
+      context: context,
+      initialColor: _isCustomSelected
+          ? _customColor
+          : WidgetStyleOptions.byId(selectedId).color,
+      title: 'Colour Theme',
+    );
+    if (picked == null) return;
+    onSelected(WidgetStyleOptions.colorToCustomId(picked));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +91,11 @@ class ColourThemePicker extends StatelessWidget {
                   ],
                 ),
               ),
+            CustomColorSwatchButton(
+              isSelected: _isCustomSelected,
+              customColor: _isCustomSelected ? _customColor : null,
+              onTap: () => _openCustomPicker(context),
+            ),
           ],
         ),
       ],

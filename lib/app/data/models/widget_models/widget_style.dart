@@ -133,6 +133,8 @@ extension WidgetTextSizeX on WidgetTextSize {
 class WidgetStyleOptions {
   WidgetStyleOptions._();
 
+  static const String customPrefix = 'custom_';
+
   static const List<WidgetThemeColor> themeColors = [
     WidgetThemeColor(id: 'rose', label: 'Rose', color: Color(0xFFFF4FA3)),
     WidgetThemeColor(id: 'sky', label: 'Sky', color: Color(0xFF42C2FF)),
@@ -142,10 +144,30 @@ class WidgetStyleOptions {
     WidgetThemeColor(id: 'ink', label: 'Ink', color: Color(0xFF1A1530)),
   ];
 
+  static bool isCustomId(String id) => id.startsWith(customPrefix);
+
+  static String colorToCustomId(Color color) {
+    final value = color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
+    return '$customPrefix$value';
+  }
+
+  static Color? tryParseCustomId(String id) {
+    if (!isCustomId(id)) return null;
+    final hex = id.substring(customPrefix.length);
+    if (hex.length != 8) return null;
+    final value = int.tryParse(hex, radix: 16);
+    if (value == null) return null;
+    return Color(value);
+  }
+
   static WidgetThemeColor byId(String id) {
-    return themeColors.firstWhere(
-      (c) => c.id == id,
-      orElse: () => themeColors.first,
-    );
+    for (final c in themeColors) {
+      if (c.id == id) return c;
+    }
+    final custom = tryParseCustomId(id);
+    if (custom != null) {
+      return WidgetThemeColor(id: id, label: 'Custom', color: custom);
+    }
+    return themeColors.first;
   }
 }

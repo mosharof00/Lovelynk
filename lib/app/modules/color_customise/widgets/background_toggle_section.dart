@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/widget_style.dart';
+import '../../../global/widgets/app_color_picker.dart';
 import '../../../global/widgets/app_text.dart';
 
 class BackgroundToggleSection extends StatelessWidget {
@@ -18,6 +19,22 @@ class BackgroundToggleSection extends StatelessWidget {
   final String selectedColorId;
   final ValueChanged<bool> onToggle;
   final ValueChanged<String> onColorSelected;
+
+  bool get _isCustomSelected =>
+      WidgetStyleOptions.isCustomId(selectedColorId);
+
+  Color get _customColor =>
+      WidgetStyleOptions.byId(selectedColorId).color;
+
+  Future<void> _openCustomPicker(BuildContext context) async {
+    final picked = await showAppColorPicker(
+      context: context,
+      initialColor: WidgetStyleOptions.byId(selectedColorId).color,
+      title: 'Background colour',
+    );
+    if (picked == null) return;
+    onColorSelected(WidgetStyleOptions.colorToCustomId(picked));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +94,13 @@ class BackgroundToggleSection extends StatelessWidget {
                     ),
                   ),
                 ),
+              CustomColorSwatchButton(
+                size: 32.w,
+                showLabel: false,
+                isSelected: _isCustomSelected,
+                customColor: _isCustomSelected ? _customColor : null,
+                onTap: () => _openCustomPicker(context),
+              ),
             ],
           ),
         ],

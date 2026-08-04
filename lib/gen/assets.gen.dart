@@ -95,9 +95,9 @@ class $AssetsImagesGen {
   AssetGenImage get onboardImage =>
       const AssetGenImage('assets/images/onboard_image.png');
 
-  /// File path: assets/images/onboard_image_2.png
+  /// File path: assets/images/onboard_image_2.jpg
   AssetGenImage get onboardImage2 =>
-      const AssetGenImage('assets/images/onboard_image_2.png');
+      const AssetGenImage('assets/images/onboard_image_2.jpg');
 
   /// File path: assets/images/placeholder_image.jpg
   AssetGenImage get placeholderImage =>
