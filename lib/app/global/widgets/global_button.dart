@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bulkretail/app/core/extensions/text_style_extension.dart';
 import 'package:bulkretail/app/core/theme/app_color.dart';
-import 'package:bulkretail/app/core/theme/app_gradient.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'app_text.dart';
@@ -51,24 +50,16 @@ class GlobalButton extends StatelessWidget {
   final TextStyle? textStyle;
   final bool isOutlined;
 
-  /// The gradient applied to the filled button.
-  /// Defaults to [AppGradient.brand] (pink → blue).
-  /// Pass [gradient] explicitly or set [color] to override.
+  /// Optional gradient override. Defaults to solid [AppColor.primary].
   LinearGradient? _resolveGradient() {
     if (isDisabled || isOutlined) return null;
-    // Caller explicitly passed a gradient — honour it.
-    if (gradient != null) return gradient;
-    // Caller picked a flat colour — no gradient.
-    if (color != null) return null;
-    // Default: brand gradient.
-    return AppGradient.brand;
+    return gradient;
   }
 
   Color _resolveColor() {
     if (isDisabled) return AppColor.primaryDisable;
     if (isOutlined) return Colors.transparent;
-    // Only used when gradient is null (i.e. caller passed a flat color).
-    return color ?? Colors.transparent;
+    return color ?? AppColor.primary;
   }
 
   Color _resolveTextColor() {

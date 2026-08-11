@@ -71,7 +71,7 @@ class PartnerDistanceCard extends GetView<HomeController> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: AppColor.primaryLight,
+                  color: AppColor.secondary,
                   borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: AppText(
@@ -126,6 +126,7 @@ class PartnerDistanceCard extends GetView<HomeController> {
                         text: 'Connect Now',
                         height: 36.h,
                         fontSize: 11.sp,
+                        color: AppColor.secondary,
                       ),
                     ),
                   ],

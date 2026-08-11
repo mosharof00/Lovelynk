@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/theme/app_color.dart';
-import '../../../global/widgets/app_scaffold.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/global_button.dart';
 import '../controllers/color_customise_controller.dart';
@@ -18,10 +17,11 @@ class ColorCustomiseView extends GetView<ColorCustomiseController> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      body: Obx(() {
-        final style = controller.style.value;
-        return Column(
+    return Scaffold(
+      body: SafeArea(
+        child: Obx(() {
+          final style = controller.style.value;
+          return Column(
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 12.h, 12.w, 0),
@@ -147,6 +147,7 @@ class ColorCustomiseView extends GetView<ColorCustomiseController> {
           ],
         );
       }),
+      ),
     );
   }
 }

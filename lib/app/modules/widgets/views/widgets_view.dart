@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import '../../../core/services/subscription_service.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
-import '../../../global/widgets/app_scaffold.dart';
 import '../../../global/widgets/app_text.dart';
 import '../controllers/widgets_controller.dart';
 import '../widgets/widget_category_section.dart';
@@ -15,11 +14,12 @@ class WidgetsView extends GetView<WidgetsController> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      body: Obx(() {
-        final unlocked =
-            Get.find<SubscriptionService>().state.value.isWidgetsUnlocked;
-        return CustomScrollView(
+    return Scaffold(
+      body: SafeArea(
+        child: Obx(() {
+          final unlocked =
+              Get.find<SubscriptionService>().state.value.isWidgetsUnlocked;
+          return CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
@@ -108,6 +108,7 @@ class WidgetsView extends GetView<WidgetsController> {
           ],
         );
       }),
+      ),
     );
   }
 }

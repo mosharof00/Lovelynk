@@ -6,7 +6,6 @@ import '../../../../core/config/app_config.dart';
 import '../../../../core/extensions/text_style_extension.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_input_text_form_field.dart';
-import '../../../../global/widgets/app_scaffold.dart';
 import '../../../../global/widgets/app_text.dart';
 import '../../../../global/widgets/global_button.dart';
 import '../controllers/login_controller.dart';
@@ -16,8 +15,9 @@ class LoginView extends GetView<LoginController> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      body: SingleChildScrollView(
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 24.w),
         child: Form(
           key: controller.formKey,
@@ -120,6 +120,7 @@ class LoginView extends GetView<LoginController> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

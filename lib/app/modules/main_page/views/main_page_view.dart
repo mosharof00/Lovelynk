@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 
 import '../../../../gen/assets.gen.dart';
 import '../../../core/theme/app_color.dart';
-import '../../../core/theme/app_gradient.dart';
 import '../controllers/main_page_controller.dart';
 
 class MainPageView extends GetView<MainPageController> {
@@ -15,7 +14,6 @@ class MainPageView extends GetView<MainPageController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
       body: Obx(() => controller.pages[controller.selectedIndex.value]),
       bottomNavigationBar: const _BottomNav(),
     );
@@ -39,8 +37,8 @@ class _BottomNav extends GetView<MainPageController> {
       label: 'Widgets',
     ),
     _NavTab(
-      outlineIcon: Assets.icons.colorCustomizeIcon,
-      fillIcon: Assets.icons.colorCustomizeFillIcon,
+      outlineIcon: Assets.icons.adjustmentIcon,
+      fillIcon: Assets.icons.adjustmentFillIcon,
       label: 'Customise',
     ),
     _NavTab(
@@ -101,6 +99,9 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color activeColor = AppColor.secondary;
+    final Color inactiveColor = Colors.grey.shade600;
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -108,33 +109,30 @@ class _NavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
         padding: EdgeInsets.symmetric(
-          horizontal: isActive ? 16.w : 12.w,
-          vertical: 10.h,
+          horizontal: isActive ? 12.w : 8.w,
+          vertical: 4.h,
         ),
         decoration: BoxDecoration(
-          gradient: isActive ? AppGradient.brand : null,
-          borderRadius: BorderRadius.circular(30.r),
+          color: isActive ? AppColor.secondary.withAlpha(40) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20.r),
         ),
-        child: Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             customSvgImage(
               imagePath: isActive ? tab.fillIcon : tab.outlineIcon,
-              color: isActive ? Colors.white : AppColor.hintText,
-              width: 20.w,
-              height: 20.w,
+              color: isActive ? activeColor : inactiveColor,
+              width: 22.w,
+              height: 22.w,
             ),
-            if (isActive) ...[
-              6.horizontalSpace,
-              Text(
-                tab.label,
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+            Text(
+              tab.label,
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                color: isActive ? activeColor : inactiveColor,
               ),
-            ],
+            ),
           ],
         ),
       ),

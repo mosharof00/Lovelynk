@@ -6,7 +6,6 @@ import '../../../../gen/assets.gen.dart';
 import '../../../core/extensions/text_style_extension.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/app_svg_icon.dart';
-import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/cached_image.dart';
 import '../controllers/profile_controller.dart';
 
@@ -16,11 +15,21 @@ class ProfileHeader extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => InkWell(
+      () => GestureDetector(
         onTap: controller.onProfileTap,
-        borderRadius: BorderRadius.circular(16.r),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          decoration: BoxDecoration(
+            color: AppColor.white,
+            borderRadius: BorderRadius.circular(20.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Row(
             children: [
               _Avatar(url: controller.avatarUrl.value),
@@ -32,7 +41,7 @@ class ProfileHeader extends GetView<ProfileController> {
                     Row(
                       children: [
                         Flexible(
-                          child: AppText(
+                          child: Text(
                             controller.userName.value,
                             style: context.headlineMedium.copyWith(
                               color: AppColor.textPrimary,
@@ -40,6 +49,7 @@ class ProfileHeader extends GetView<ProfileController> {
                               fontSize: 22.sp,
                             ),
                             maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (controller.isPremium.value) ...[
@@ -53,12 +63,23 @@ class ProfileHeader extends GetView<ProfileController> {
                       ],
                     ),
                     if (controller.isPremium.value) ...[
-                      2.verticalSpace,
-                      AppText(
-                        'Premium',
-                        style: context.bodySmall.copyWith(
-                          color: AppColor.primary,
-                          fontWeight: FontWeight.w500,
+                      6.verticalSpace,
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColor.secondary,
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                        child: Text(
+                          'Premium',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -80,7 +101,6 @@ class ProfileHeader extends GetView<ProfileController> {
 
 class _Avatar extends StatelessWidget {
   const _Avatar({required this.url});
-
   final String url;
 
   @override
@@ -90,12 +110,12 @@ class _Avatar extends StatelessWidget {
       height: 64.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColor.white, width: 2.5),
+        border: Border.all(color: AppColor.primaryLight, width: 2.5),
         boxShadow: [
           BoxShadow(
             color: AppColor.primary.withValues(alpha: 0.12),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),

@@ -7,7 +7,6 @@ import '../../../../gen/assets.gen.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/extensions/text_style_extension.dart';
 import '../../../core/theme/app_color.dart';
-import '../../../global/widgets/app_scaffold.dart';
 import '../../../global/widgets/app_svg_icon.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/global_button.dart';
@@ -18,8 +17,9 @@ class OnboardingView extends GetView<OnboardingController> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      body: Padding(
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 28.w),
         child: Column(
           children: [
@@ -83,6 +83,7 @@ class OnboardingView extends GetView<OnboardingController> {
             28.verticalSpace,
           ],
         ),
+      ),
       ),
     );
   }

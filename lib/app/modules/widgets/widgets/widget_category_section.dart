@@ -33,7 +33,7 @@ class WidgetCategorySection extends StatelessWidget {
         AppText(
           category.title,
           style: TextStyle(
-            fontSize: 16.sp,
+            fontSize: 17.sp,
             fontWeight: FontWeight.w700,
             color: AppColor.textPrimary,
           ),
@@ -47,7 +47,7 @@ class WidgetCategorySection extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 12.w,
             mainAxisSpacing: 12.h,
-            childAspectRatio: 0.92,
+            childAspectRatio: 0.88,
           ),
           itemBuilder: (context, index) {
             final item = widgets[index];

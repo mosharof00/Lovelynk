@@ -7,7 +7,7 @@ class SplashController extends GetxController {
   //TODO: Implement SplashController
 
   Future<void> setupApp() async {
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 3));
 
     navigateToScreen();
   }

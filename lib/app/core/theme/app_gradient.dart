@@ -32,19 +32,18 @@ class AppGradient {
   static const LinearGradient pageBackground = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFFFF0F6), Color(0xFFF3EEFF), AppColor.background],
+    colors: [Color(0xFFEDF6FF), Color(0xFFE4F1FF), AppColor.background],
     stops: [0.0, 0.45, 1.0],
   );
 
-  // ── Full-screen app background: soft pink (top-left) → soft blue (bottom-right)
-  // Matches the client-provided reference image.
+  // ── Soft full-screen wash (kept for accents; app screens use solid bg)
   static const LinearGradient appBgGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFFD6E8), // soft pink
-      Color(0xFFEAEBFF), // soft lavender
-      Color(0xFFD4EEFF), // soft blue
+      Color(0xFFEDF6FF),
+      Color(0xFFE4F1FF),
+      Color(0xFFDCEEFF),
     ],
     stops: [0.0, 0.5, 1.0],
   );

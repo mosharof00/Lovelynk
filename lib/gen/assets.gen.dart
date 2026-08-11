@@ -11,8 +11,25 @@
 
 import 'package:flutter/widgets.dart';
 
+class $AssetsAnimationsGen {
+  const $AssetsAnimationsGen();
+
+  /// File path: assets/animations/splash_gif.gif
+  AssetGenImage get splashGif =>
+      const AssetGenImage('assets/animations/splash_gif.gif');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [splashGif];
+}
+
 class $AssetsIconsGen {
   const $AssetsIconsGen();
+
+  /// File path: assets/icons/adjustment_fill_icon.svg
+  String get adjustmentFillIcon => 'assets/icons/adjustment_fill_icon.svg';
+
+  /// File path: assets/icons/adjustment_icon.svg
+  String get adjustmentIcon => 'assets/icons/adjustment_icon.svg';
 
   /// File path: assets/icons/back_arrow_icon.svg
   String get backArrowIcon => 'assets/icons/back_arrow_icon.svg';
@@ -56,6 +73,8 @@ class $AssetsIconsGen {
 
   /// List of all assets
   List<String> get values => [
+    adjustmentFillIcon,
+    adjustmentIcon,
     backArrowIcon,
     blockFillIcon,
     blockIcon,
@@ -129,6 +148,7 @@ class $AssetsLogosGen {
 }
 
 abstract final class Assets {
+  static const $AssetsAnimationsGen animations = $AssetsAnimationsGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
   static const $AssetsLogosGen logos = $AssetsLogosGen();

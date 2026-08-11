@@ -1,4 +1,4 @@
-import 'package:bulkretail/app/global/widgets/app_scaffold.dart';
+import 'package:bulkretail/app/global/widgets/custom_appbar.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -9,9 +9,8 @@ class SubscriptionsView extends GetView<SubscriptionsController> {
   const SubscriptionsView({super.key});
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      appbarTitle: "Subscriptions",
-
+    return Scaffold(
+      appBar: const CustomAppBar(title: 'Subscriptions', showBackButton: true),
       body: const Center(
         child: Text(
           'SubscriptionsView is working',

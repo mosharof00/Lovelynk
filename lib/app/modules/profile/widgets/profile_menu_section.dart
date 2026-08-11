@@ -42,19 +42,26 @@ class ProfileMenuSection extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.only(left: 4.w, bottom: 10.h),
-          child: AppText(
+          child: Text(
             title,
-            style: context.titleSmall.copyWith(
-              color: titleColor,
-              fontWeight: FontWeight.w600,
+            style: TextStyle(
               fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+              color: titleColor,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: AppColor.white.withValues(alpha: 0.55),
+            color: AppColor.white,
             borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -64,7 +71,7 @@ class ProfileMenuSection extends StatelessWidget {
                   Divider(
                     height: 1,
                     thickness: 0.6,
-                    indent: 52.w,
+                    indent: 66.w,
                     color: AppColor.inputBorder.withValues(alpha: 0.7),
                   ),
               ],
@@ -85,15 +92,25 @@ class _ProfileMenuTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: item.onTap,
-      borderRadius: BorderRadius.circular(12.r),
+      borderRadius: BorderRadius.circular(16.r),
+      splashColor: AppColor.primaryLight,
+      highlightColor: AppColor.primaryLight.withValues(alpha: 0.5),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
         child: Row(
           children: [
-            Icon(
-              item.icon,
-              size: 22.sp,
-              color: AppColor.textPrimary.withValues(alpha: 0.75),
+            Container(
+              width: 36.w,
+              height: 36.w,
+              decoration: BoxDecoration(
+                color: AppColor.primaryLight,
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Icon(
+                item.icon,
+                size: 18.sp,
+                color: AppColor.primary,
+              ),
             ),
             14.horizontalSpace,
             Expanded(
@@ -101,8 +118,8 @@ class _ProfileMenuTile extends StatelessWidget {
                 item.label,
                 style: context.bodyLarge.copyWith(
                   color: AppColor.textPrimary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.sp,
                 ),
               ),
             ),
@@ -110,8 +127,9 @@ class _ProfileMenuTile extends StatelessWidget {
               AppText(
                 item.value!,
                 style: context.bodyMedium.copyWith(
-                  color: item.valueColor ?? AppColor.hintText,
+                  color: item.valueColor ?? AppColor.textSecondary,
                   fontWeight: FontWeight.w400,
+                  fontSize: 12.sp,
                 ),
               ),
               if (item.showStatusDot) ...[
@@ -129,7 +147,7 @@ class _ProfileMenuTile extends StatelessWidget {
             ],
             Icon(
               Icons.chevron_right_rounded,
-              size: 22.sp,
+              size: 20.sp,
               color: AppColor.hintText,
             ),
           ],

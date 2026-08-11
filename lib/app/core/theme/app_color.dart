@@ -15,8 +15,8 @@ class AppColor {
   static const Color success = Color(0xFF22C55E);
 
   // ── Light theme surfaces ──────────────────────────────
-  static const Color background = Color(0xFFFFF8FB);
-  static const Color background2 = Color(0xFFFFF1F6);
+  static const Color background = Color(0xFFEDF6FF);
+  static const Color background2 = Color(0xFFE4F1FF);
   static const Color white = Color(0xFFFFFFFF);
   static const Color inputFill = Color(0xFFFAFAFC);
   static const Color inputBorder = Color(0xFFE6E2EA);

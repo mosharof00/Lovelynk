@@ -6,7 +6,6 @@ import '../../../../gen/assets.gen.dart';
 import '../../../core/extensions/text_style_extension.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/app_input_text_form_field.dart';
-import '../../../global/widgets/app_scaffold.dart';
 import '../../../global/widgets/app_svg_icon.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/global_button.dart';
@@ -17,8 +16,9 @@ class ConnectWithPartnerView extends GetView<ConnectWithPartnerController> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      body: Padding(
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.w),
         child: Column(
           children: [
@@ -59,6 +59,7 @@ class ConnectWithPartnerView extends GetView<ConnectWithPartnerController> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
