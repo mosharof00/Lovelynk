@@ -13,16 +13,67 @@ import '../../main_page/controllers/main_page_controller.dart';
 class WidgetsController extends GetxController {
   late final SubscriptionService _subscription;
 
+  final searchController = TextEditingController();
+  final searchQuery = ''.obs;
+
+  /// `null` = All categories
+  final selectedCategory = Rxn<WidgetCategory>();
+
   @override
   void onInit() {
     super.onInit();
     _subscription = Get.find<SubscriptionService>();
+    searchController.addListener(() {
+      searchQuery.value = searchController.text.trim();
+    });
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
   }
 
   bool get isUnlocked => _subscription.isWidgetsUnlocked;
 
-  List<WidgetDefinition> widgetsFor(WidgetCategory category) =>
-      WidgetCatalog.byCategory(category);
+  void selectFilter(WidgetCategory? category) {
+    selectedCategory.value = category;
+  }
+
+  void onSeeAll(WidgetCategory category) {
+    selectedCategory.value = category;
+  }
+
+  List<WidgetDefinition> get filteredWidgets {
+    final query = searchQuery.value.toLowerCase();
+    final category = selectedCategory.value;
+
+    return WidgetCatalog.all.where((w) {
+      final matchesCategory = category == null || w.category == category;
+      if (!matchesCategory) return false;
+      if (query.isEmpty) return true;
+      return w.title.toLowerCase().contains(query) ||
+          w.subtitle.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  List<WidgetDefinition> widgetsFor(WidgetCategory category) {
+    final query = searchQuery.value.toLowerCase();
+    return WidgetCatalog.byCategory(category).where((w) {
+      if (query.isEmpty) return true;
+      return w.title.toLowerCase().contains(query) ||
+          w.subtitle.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  /// Categories currently visible under the All filter (after search).
+  List<WidgetCategory> get visibleCategories {
+    final selected = selectedCategory.value;
+    if (selected != null) return [selected];
+    return WidgetCategory.values
+        .where((c) => widgetsFor(c).isNotEmpty)
+        .toList();
+  }
 
   void onAddTap(WidgetDefinition widget) {
     Get.bottomSheet(
@@ -67,7 +118,10 @@ class WidgetsController extends GetxController {
             },
             child: AppText(
               'Start free trial',
-              style: TextStyle(color: AppColor.primary, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColor.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
@@ -84,7 +138,10 @@ class WidgetsController extends GetxController {
             },
             child: AppText(
               'Subscribe',
-              style: TextStyle(color: AppColor.primary, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColor.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

@@ -15,6 +15,8 @@ class WidgetCategorySection extends StatelessWidget {
     required this.isUnlocked,
     required this.onAdd,
     required this.onUnlock,
+    this.onSeeAll,
+    this.showSeeAll = true,
   });
 
   final WidgetCategory category;
@@ -22,6 +24,8 @@ class WidgetCategorySection extends StatelessWidget {
   final bool isUnlocked;
   final ValueChanged<WidgetDefinition> onAdd;
   final VoidCallback onUnlock;
+  final VoidCallback? onSeeAll;
+  final bool showSeeAll;
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +34,31 @@ class WidgetCategorySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText(
-          category.title,
-          style: TextStyle(
-            fontSize: 17.sp,
-            fontWeight: FontWeight.w700,
-            color: AppColor.textPrimary,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: AppText(
+                category.title,
+                style: TextStyle(
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.textPrimary,
+                ),
+              ),
+            ),
+            if (showSeeAll && onSeeAll != null)
+              GestureDetector(
+                onTap: onSeeAll,
+                child: AppText(
+                  'See all',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.secondary,
+                  ),
+                ),
+              ),
+          ],
         ),
         12.verticalSpace,
         GridView.builder(

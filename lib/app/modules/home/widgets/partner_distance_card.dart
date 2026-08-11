@@ -71,14 +71,14 @@ class PartnerDistanceCard extends GetView<HomeController> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: AppColor.secondary,
+                  color: AppColor.secondary.withAlpha(50),
                   borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: AppText(
                   'Connected with ${controller.partnerName.value}',
                   style: TextStyle(
                     fontSize: 11.sp,
-                    color: AppColor.primary,
+                    color: AppColor.secondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
