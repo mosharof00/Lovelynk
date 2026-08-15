@@ -31,6 +31,10 @@ class $AssetsIconsGen {
   /// File path: assets/icons/adjustment_icon.svg
   String get adjustmentIcon => 'assets/icons/adjustment_icon.svg';
 
+  /// File path: assets/icons/airplane_departure_icon.svg
+  String get airplaneDepartureIcon =>
+      'assets/icons/airplane_departure_icon.svg';
+
   /// File path: assets/icons/back_arrow_icon.svg
   String get backArrowIcon => 'assets/icons/back_arrow_icon.svg';
 
@@ -40,6 +44,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/block_icon.svg
   String get blockIcon => 'assets/icons/block_icon.svg';
 
+  /// File path: assets/icons/clock_icon.svg
+  String get clockIcon => 'assets/icons/clock_icon.svg';
+
   /// File path: assets/icons/color_customize_fill_icon.svg
   String get colorCustomizeFillIcon =>
       'assets/icons/color_customize_fill_icon.svg';
@@ -47,11 +54,23 @@ class $AssetsIconsGen {
   /// File path: assets/icons/color_customize_icon.svg
   String get colorCustomizeIcon => 'assets/icons/color_customize_icon.svg';
 
+  /// File path: assets/icons/days_together_love_icon.svg
+  String get daysTogetherLoveIcon => 'assets/icons/days_together_love_icon.svg';
+
+  /// File path: assets/icons/diatance_icon.svg
+  String get diatanceIcon => 'assets/icons/diatance_icon.svg';
+
   /// File path: assets/icons/home_fill_icon.svg
   String get homeFillIcon => 'assets/icons/home_fill_icon.svg';
 
   /// File path: assets/icons/home_icon.svg
   String get homeIcon => 'assets/icons/home_icon.svg';
+
+  /// File path: assets/icons/initials_icon.svg
+  String get initialsIcon => 'assets/icons/initials_icon.svg';
+
+  /// File path: assets/icons/kiss_icon.svg
+  String get kissIcon => 'assets/icons/kiss_icon.svg';
 
   /// File path: assets/icons/love_icon.svg
   String get loveIcon => 'assets/icons/love_icon.svg';
@@ -59,11 +78,32 @@ class $AssetsIconsGen {
   /// File path: assets/icons/love_multi.svg
   String get loveMulti => 'assets/icons/love_multi.svg';
 
+  /// File path: assets/icons/moods_icon.svg
+  String get moodsIcon => 'assets/icons/moods_icon.svg';
+
+  /// File path: assets/icons/morning_icon.svg
+  String get morningIcon => 'assets/icons/morning_icon.svg';
+
+  /// File path: assets/icons/note_done_icon.svg
+  String get noteDoneIcon => 'assets/icons/note_done_icon.svg';
+
+  /// File path: assets/icons/note_send_icon.svg
+  String get noteSendIcon => 'assets/icons/note_send_icon.svg';
+
+  /// File path: assets/icons/photos_icon.svg
+  String get photosIcon => 'assets/icons/photos_icon.svg';
+
   /// File path: assets/icons/profile_fill_icon.svg
   String get profileFillIcon => 'assets/icons/profile_fill_icon.svg';
 
   /// File path: assets/icons/profile_icon.svg
   String get profileIcon => 'assets/icons/profile_icon.svg';
+
+  /// File path: assets/icons/text_icon.svg
+  String get textIcon => 'assets/icons/text_icon.svg';
+
+  /// File path: assets/icons/thinking_icon.svg
+  String get thinkingIcon => 'assets/icons/thinking_icon.svg';
 
   /// File path: assets/icons/widget_fill_icon.svg
   String get widgetFillIcon => 'assets/icons/widget_fill_icon.svg';
@@ -75,17 +115,30 @@ class $AssetsIconsGen {
   List<String> get values => [
     adjustmentFillIcon,
     adjustmentIcon,
+    airplaneDepartureIcon,
     backArrowIcon,
     blockFillIcon,
     blockIcon,
+    clockIcon,
     colorCustomizeFillIcon,
     colorCustomizeIcon,
+    daysTogetherLoveIcon,
+    diatanceIcon,
     homeFillIcon,
     homeIcon,
+    initialsIcon,
+    kissIcon,
     loveIcon,
     loveMulti,
+    moodsIcon,
+    morningIcon,
+    noteDoneIcon,
+    noteSendIcon,
+    photosIcon,
     profileFillIcon,
     profileIcon,
+    textIcon,
+    thinkingIcon,
     widgetFillIcon,
     widgetIcon,
   ];

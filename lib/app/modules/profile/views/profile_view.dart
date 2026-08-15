@@ -69,10 +69,10 @@ class ProfileView extends GetView<ProfileController> {
                     label: 'Language',
                     value: controller.language.value,
                   ),
-                  const ProfileMenuItemData(
-                    icon: Icons.notifications_none_rounded,
-                    label: 'Notifications',
-                  ),
+                  // const ProfileMenuItemData(
+                  //   icon: Icons.notifications_none_rounded,
+                  //   label: 'Notifications',
+                  // ),
                 ],
               ),
               22.verticalSpace,
@@ -91,10 +91,6 @@ class ProfileView extends GetView<ProfileController> {
                   ProfileMenuItemData(
                     icon: Icons.description_outlined,
                     label: 'Terms of Use',
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.help_outline_rounded,
-                    label: 'Help Center',
                   ),
                 ],
               ),

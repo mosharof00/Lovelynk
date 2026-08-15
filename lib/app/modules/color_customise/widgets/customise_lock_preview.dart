@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/constants/widget_preview_assets.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
 import '../../../data/models/widget_models/widget_style.dart';
+import '../../../global/widgets/app_svg_icon.dart';
 import '../../../global/widgets/app_text.dart';
 
 class CustomiseLockPreview extends StatelessWidget {
@@ -131,7 +132,7 @@ class _WidgetPreviewChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(widget.icon, color: themeColor, size: 18.sp),
+          AppSvgIcon(widget.icon, color: themeColor, size: 18.sp),
           8.horizontalSpace,
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

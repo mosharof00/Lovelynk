@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-
+import '../../../gen/assets.gen.dart';
 import '../models/widget_models/app_widget_type.dart';
 import '../models/widget_models/widget_definition.dart';
 
@@ -7,7 +6,7 @@ import '../models/widget_models/widget_definition.dart';
 class WidgetCatalog {
   WidgetCatalog._();
 
-  static const List<WidgetDefinition> all = [
+  static final List<WidgetDefinition> all = [
     // ── Essentials ──────────────────────────────────────
     WidgetDefinition(
       type: AppWidgetType.daysTogether,
@@ -16,7 +15,7 @@ class WidgetCatalog {
       subtitle: 'How many days you\'ve been together',
       previewValue: '83',
       previewUnit: 'days',
-      icon: Icons.favorite_rounded,
+      icon: Assets.icons.daysTogetherLoveIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.distance,
@@ -25,7 +24,7 @@ class WidgetCatalog {
       subtitle: 'Miles or km between cities',
       previewValue: '168',
       previewUnit: 'miles',
-      icon: Icons.place_rounded,
+      icon: Assets.icons.diatanceIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.dualTimeZone,
@@ -34,7 +33,7 @@ class WidgetCatalog {
       subtitle: 'Dual time zones at a glance',
       previewValue: '8:42',
       previewUnit: 'PM',
-      icon: Icons.schedule_rounded,
+      icon: Assets.icons.clockIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.countdown,
@@ -43,7 +42,7 @@ class WidgetCatalog {
       subtitle: 'Visit, anniversary, or custom date',
       previewValue: '17',
       previewUnit: 'days to go',
-      icon: Icons.flight_takeoff_rounded,
+      icon: Assets.icons.airplaneDepartureIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.goodMorningNight,
@@ -52,7 +51,7 @@ class WidgetCatalog {
       subtitle: 'Auto greeting by time of day',
       previewValue: 'GM',
       previewUnit: 'greeting',
-      icon: Icons.wb_sunny_rounded,
+      icon: Assets.icons.morningIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.photo,
@@ -61,7 +60,7 @@ class WidgetCatalog {
       subtitle: 'Static shared photo, 4 layouts',
       previewValue: '📷',
       previewUnit: 'photo',
-      icon: Icons.photo_rounded,
+      icon: Assets.icons.photosIcon,
     ),
 
     // ── Relationship ────────────────────────────────────
@@ -72,7 +71,7 @@ class WidgetCatalog {
       subtitle: 'e.g. J ♥ M',
       previewValue: 'J♥M',
       previewUnit: 'initials',
-      icon: Icons.favorite_border_rounded,
+      icon: Assets.icons.initialsIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.loveNote,
@@ -81,7 +80,7 @@ class WidgetCatalog {
       subtitle: '120 chars, syncs in real time',
       previewValue: 'I love you',
       previewUnit: 'note',
-      icon: Icons.mail_rounded,
+      icon: Assets.icons.noteSendIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.latestLoveNote,
@@ -90,7 +89,7 @@ class WidgetCatalog {
       subtitle: 'Most recent note on your widget',
       previewValue: 'Miss you',
       previewUnit: 'latest',
-      icon: Icons.mark_email_read_rounded,
+      icon: Assets.icons.noteDoneIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.moodCheckIn,
@@ -99,7 +98,7 @@ class WidgetCatalog {
       subtitle: '8 moods, syncs to partner',
       previewValue: '😊',
       previewUnit: 'Happy',
-      icon: Icons.emoji_emotions_rounded,
+      icon: Assets.icons.moodsIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.customText,
@@ -108,18 +107,18 @@ class WidgetCatalog {
       subtitle: 'Your own short message',
       previewValue: 'Always',
       previewUnit: 'text',
-      icon: Icons.text_fields_rounded,
+      icon: Assets.icons.textIcon,
     ),
 
     // ── Interactive ─────────────────────────────────────
     WidgetDefinition(
-      type: AppWidgetType.thinkingOfYou,
+      type: AppWidgetType.sendKiss,
       category: WidgetCategory.interactive,
-      title: 'Thinking of You',
-      subtitle: 'One tap until dismissed',
-      previewValue: '💭',
+      title: 'Send Kiss',
+      subtitle: 'One tap to send a kiss',
+      previewValue: '💋',
       previewUnit: 'tap to send',
-      icon: Icons.psychology_rounded,
+      icon: Assets.icons.kissIcon,
     ),
   ];
 

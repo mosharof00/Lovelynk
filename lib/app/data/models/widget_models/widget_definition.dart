@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'app_widget_type.dart';
 
 class WidgetDefinition {
@@ -19,7 +17,9 @@ class WidgetDefinition {
   final String subtitle;
   final String previewValue;
   final String previewUnit;
-  final IconData icon;
+
+  /// SVG asset path from FlutterGen (`Assets.icons.*`).
+  final String icon;
 
   String get id => type.id;
 }

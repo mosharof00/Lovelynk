@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
+import '../../../global/widgets/app_svg_icon.dart';
 import '../../../global/widgets/app_text.dart';
 
 class WidgetCatalogCard extends StatelessWidget {
@@ -54,7 +55,7 @@ class WidgetCatalogCard extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Icon(widget.icon, size: 28.sp, color: AppColor.primary),
+          AppSvgIcon(widget.icon, size: 28.sp, color: AppColor.primary),
           8.verticalSpace,
           AppText(
             widget.previewValue,

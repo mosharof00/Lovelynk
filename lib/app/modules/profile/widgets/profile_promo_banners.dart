@@ -19,22 +19,22 @@ class ProfilePromoBanners extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _PromoBanner(
-          onTap: onReferTap,
-          accentColor: AppColor.primary,
-          leadingIcon: AppSvgIcon(
-            Assets.icons.loveIcon,
-            size: 22.sp,
-            color: AppColor.primary,
-          ),
-          title: 'Refer a couple, get 1 month free',
-          subtitle: 'Share lovelynk and get rewarded.',
-          trailing: Icon(
-            Icons.card_giftcard_rounded,
-            size: 32.sp,
-            color: AppColor.primary,
-          ),
-        ),
+        // _PromoBanner(
+        //   onTap: onReferTap,
+        //   accentColor: AppColor.primary,
+        //   leadingIcon: AppSvgIcon(
+        //     Assets.icons.loveIcon,
+        //     size: 22.sp,
+        //     color: AppColor.primary,
+        //   ),
+        //   title: 'Refer a couple, get 1 month free',
+        //   subtitle: 'Share lovelynk and get rewarded.',
+        //   trailing: Icon(
+        //     Icons.card_giftcard_rounded,
+        //     size: 32.sp,
+        //     color: AppColor.primary,
+        //   ),
+        // ),
         12.verticalSpace,
         _PromoBanner(
           onTap: onRateTap,

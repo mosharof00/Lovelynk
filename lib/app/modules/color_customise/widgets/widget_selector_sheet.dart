@@ -6,6 +6,7 @@ import '../../../core/theme/app_gradient.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
 import '../../../data/widget_catalog/widget_catalog.dart';
+import '../../../global/widgets/app_svg_icon.dart';
 
 /// A tappable trigger row that opens the widget selector as a bottom sheet.
 class WidgetSelectorField extends StatelessWidget {
@@ -248,7 +249,7 @@ class _WidgetTileState extends State<_WidgetTile> {
 class _IconBadge extends StatelessWidget {
   const _IconBadge({required this.icon, this.isSelected = false});
 
-  final IconData icon;
+  final String icon;
   final bool isSelected;
 
   @override
@@ -263,7 +264,7 @@ class _IconBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.r),
       ),
       alignment: Alignment.center,
-      child: Icon(
+      child: AppSvgIcon(
         icon,
         size: 18.sp,
         color: isSelected ? AppColor.white : AppColor.primary,

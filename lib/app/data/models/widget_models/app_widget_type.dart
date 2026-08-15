@@ -10,7 +10,7 @@ enum AppWidgetType {
   latestLoveNote,
   moodCheckIn,
   customText,
-  thinkingOfYou,
+  sendKiss,
 }
 
 enum WidgetCategory {
@@ -57,8 +57,8 @@ extension AppWidgetTypeX on AppWidgetType {
         return 'mood_check_in';
       case AppWidgetType.customText:
         return 'custom_text';
-      case AppWidgetType.thinkingOfYou:
-        return 'thinking_of_you';
+      case AppWidgetType.sendKiss:
+        return 'send_kiss';
     }
   }
 
