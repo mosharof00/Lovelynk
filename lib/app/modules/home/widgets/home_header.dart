@@ -1,3 +1,6 @@
+import 'package:bulkretail/app/core/utils/helper_utils.dart';
+import 'package:bulkretail/app/global/widgets/cached_image.dart';
+import 'package:bulkretail/app/modules/main_page/controllers/main_page_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -36,10 +39,16 @@ class HomeHeader extends GetView<HomeController> {
               ],
             ),
           ),
-          CircleAvatar(
-            radius: 22.r,
-            backgroundColor: AppColor.primaryLight,
-            child: Icon(Icons.person_rounded, color: AppColor.primary, size: 24.sp),
+          GestureDetector(
+            onTap: () {
+              Get.find<MainPageController>().changePage(3);
+            },
+            child: CachedImage(
+              imgUrl: HelperUtils.demoProfileImage,
+              height: 45.w,
+              width: 45.w,
+              borderRadius: 50.r,
+            ),
           ),
         ],
       ),

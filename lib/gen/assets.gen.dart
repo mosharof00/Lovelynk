@@ -60,6 +60,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/diatance_icon.svg
   String get diatanceIcon => 'assets/icons/diatance_icon.svg';
 
+  /// File path: assets/icons/email_fill_icon.svg
+  String get emailFillIcon => 'assets/icons/email_fill_icon.svg';
+
   /// File path: assets/icons/home_fill_icon.svg
   String get homeFillIcon => 'assets/icons/home_fill_icon.svg';
 
@@ -124,6 +127,7 @@ class $AssetsIconsGen {
     colorCustomizeIcon,
     daysTogetherLoveIcon,
     diatanceIcon,
+    emailFillIcon,
     homeFillIcon,
     homeIcon,
     initialsIcon,
@@ -155,6 +159,10 @@ class $AssetsImagesGen {
   AssetGenImage get connectWithPartnerImage =>
       const AssetGenImage('assets/images/connect_with_partner_image.png');
 
+  /// File path: assets/images/connected_image.png
+  AssetGenImage get connectedImage =>
+      const AssetGenImage('assets/images/connected_image.png');
+
   /// File path: assets/images/customise_lock_preview_bg.png
   AssetGenImage get customiseLockPreviewBg =>
       const AssetGenImage('assets/images/customise_lock_preview_bg.png');
@@ -162,6 +170,14 @@ class $AssetsImagesGen {
   /// File path: assets/images/empty_box.png
   AssetGenImage get emptyBox =>
       const AssetGenImage('assets/images/empty_box.png');
+
+  /// File path: assets/images/home_screen_demo.png
+  AssetGenImage get homeScreenDemo =>
+      const AssetGenImage('assets/images/home_screen_demo.png');
+
+  /// File path: assets/images/lock_screen_demo.png
+  AssetGenImage get lockScreenDemo =>
+      const AssetGenImage('assets/images/lock_screen_demo.png');
 
   /// File path: assets/images/onboard_image.png
   AssetGenImage get onboardImage =>
@@ -179,8 +195,11 @@ class $AssetsImagesGen {
   List<dynamic> get values => [
     rEADMECustomisePreview,
     connectWithPartnerImage,
+    connectedImage,
     customiseLockPreviewBg,
     emptyBox,
+    homeScreenDemo,
+    lockScreenDemo,
     onboardImage,
     onboardImage2,
     placeholderImage,

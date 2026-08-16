@@ -1,3 +1,6 @@
+import 'package:bulkretail/app/core/theme/app_gradient.dart';
+import 'package:bulkretail/app/global/widgets/app_svg_icon.dart';
+import 'package:bulkretail/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -19,7 +22,9 @@ class HomeRecentActivity extends GetView<HomeController> {
         decoration: BoxDecoration(
           color: AppColor.white,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: AppColor.inputBorder.withValues(alpha: 0.5)),
+          border: Border.all(
+            color: AppColor.inputBorder.withValues(alpha: 0.5),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,10 +58,19 @@ class HomeRecentActivity extends GetView<HomeController> {
                   padding: EdgeInsets.symmetric(vertical: 12.h),
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.mail_outline_rounded,
-                        size: 28.sp,
-                        color: AppColor.hintText,
+                      Container(
+                        width: 65.w,
+                        decoration: BoxDecoration(
+                          gradient: AppGradient.brand,
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Center(
+                          child: AppSvgIcon(
+                            Assets.icons.emailFillIcon,
+                            color: Colors.white,
+                            size: 55.w,
+                          ),
+                        ),
                       ),
                       8.verticalSpace,
                       AppText(
@@ -89,11 +103,13 @@ class HomeRecentActivity extends GetView<HomeController> {
                     time: '2m ago',
                   ),
                   _ActivityRow(
-                    text: 'You held ${controller.partnerName.value}\'s heartbeat',
+                    text:
+                        'You held ${controller.partnerName.value}\'s heartbeat',
                     time: '1h ago',
                   ),
                   _ActivityRow(
-                    text: '${controller.partnerName.value} checked your compass',
+                    text:
+                        '${controller.partnerName.value} checked your compass',
                     time: '3h ago',
                     showDivider: false,
                   ),
@@ -147,7 +163,10 @@ class _ActivityRow extends StatelessWidget {
         ),
         if (showDivider) ...[
           10.verticalSpace,
-          Divider(height: 1, color: AppColor.inputBorder.withValues(alpha: 0.6)),
+          Divider(
+            height: 1,
+            color: AppColor.inputBorder.withValues(alpha: 0.6),
+          ),
           10.verticalSpace,
         ],
       ],

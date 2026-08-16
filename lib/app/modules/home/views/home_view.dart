@@ -30,6 +30,7 @@ class HomeView extends GetView<HomeController> {
                     children: [
                       16.verticalSpace,
                       const PartnerDistanceCard(),
+
                       12.verticalSpace,
                       const HomeStatsRow(),
                       12.verticalSpace,

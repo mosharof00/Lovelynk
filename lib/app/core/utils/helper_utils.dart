@@ -18,8 +18,14 @@ class HelperUtils {
 
 
   static String defaultProfileImage =
-      // "https://i.pinimg.com/474x/18/b5/b5/18b5b599bb873285bd4def283c0d3c09.jpg";
-      "https://axbajldpgtugenukkold.supabase.co/storage/v1/object/public/images/data/default_profile_image.png";
+      "https://i.pinimg.com/474x/18/b5/b5/18b5b599bb873285bd4def283c0d3c09.jpg";
+
+  static String demoProfileImage =
+      "https://i.pinimg.com/736x/43/8a/28/438a28f0b12098c4cc1516ffb0378ccf.jpg";
+
+  static String partnerDemoProfileImage =
+      "https://i.pinimg.com/736x/37/91/d2/3791d2137100a90bc9c43fae58a27032.jpg";
+
   static bool isOnboard = false;
   static bool isLoggedIn = false;
   static bool isAdmin = false;

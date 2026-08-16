@@ -12,7 +12,7 @@ class ProfileController extends GetxController {
   final language = 'English'.obs;
   final locationPermission = 'Always'.obs;
   final syncStatus = 'All Good'.obs;
-  final avatarUrl = ''.obs;
+  final avatarUrl = HelperUtils.demoProfileImage.obs;
 
   void onProfileTap() {
     // TODO: open edit profile

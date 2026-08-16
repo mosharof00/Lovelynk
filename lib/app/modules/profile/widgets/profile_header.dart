@@ -1,3 +1,4 @@
+import 'package:bulkretail/app/core/utils/helper_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -32,7 +33,12 @@ class ProfileHeader extends GetView<ProfileController> {
           ),
           child: Row(
             children: [
-              _Avatar(url: controller.avatarUrl.value),
+              CachedImage(
+                imgUrl: HelperUtils.demoProfileImage,
+                height: 70.w,
+                width: 70.w,
+                borderRadius: 50.r,
+              ),
               14.horizontalSpace,
               Expanded(
                 child: Column(
