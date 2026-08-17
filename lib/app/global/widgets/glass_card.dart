@@ -23,7 +23,7 @@ class GlassCard extends StatelessWidget {
     this.borderRadius,
     this.onTap,
     this.blurSigma = 24,
-    this.opacity = 0.28,
+    this.opacity = 0.22,
     this.borderOpacity = 0.7,
     this.showShadow = true,
     this.borderWidth = 1,
@@ -60,9 +60,9 @@ class GlassCard extends StatelessWidget {
         boxShadow: showShadow
             ? [
                 BoxShadow(
-                  color: const Color(0xFF0077B6).withValues(alpha: 0.12),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                  color: const Color(0xFF0077B6).withValues(alpha: 0.10),
+                  blurRadius: 8,
+                  offset: const Offset(0, 5),
                 ),
               ]
             : null,

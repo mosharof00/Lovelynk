@@ -1,7 +1,9 @@
+import 'package:bulkretail/app/global/widgets/app_text.dart';
 import 'package:bulkretail/app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/glass_background.dart';
@@ -17,7 +19,7 @@ class ProfileView extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.background,
+      backgroundColor: GlassBackground.base,
       body: GlassBackground(
         child: SafeArea(
           bottom: false,

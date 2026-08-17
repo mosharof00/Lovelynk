@@ -12,14 +12,15 @@ class GlassBackground extends StatelessWidget {
 
   final Widget? child;
 
-  static const Color base = AppColor.background;
+  static  Color base = AppColor.background;
+  // static  Color base = Colors.grey.shade200;
 
   @override
   Widget build(BuildContext context) {
     final blobs = Stack(
       fit: StackFit.expand,
       children: [
-        const ColoredBox(color: base),
+         ColoredBox(color: base),
         Positioned(
           top: -90.h,
           left: -70.w,

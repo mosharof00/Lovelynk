@@ -94,7 +94,7 @@ class _ProfileMenuTile extends StatelessWidget {
               width: 36.w,
               height: 36.w,
               decoration: BoxDecoration(
-                color: AppColor.primaryLight,
+                color: AppColor.primaryLight.withAlpha(150),
                 borderRadius: BorderRadius.circular(10.r),
               ),
               child: Icon(

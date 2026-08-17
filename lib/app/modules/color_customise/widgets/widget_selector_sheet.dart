@@ -194,7 +194,7 @@ class _WidgetTileState extends State<_WidgetTile> {
 
   @override
   Widget build(BuildContext context) {
-    final showGradient = widget.isActive || _pressed;
+    final isSelected = widget.isActive || _pressed;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -208,15 +208,15 @@ class _WidgetTileState extends State<_WidgetTile> {
         curve: Curves.easeOut,
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
         decoration: BoxDecoration(
-          gradient: showGradient ? AppGradient.brand : null,
-          color: showGradient ? null : Colors.transparent,
+          // gradient: isSelected ? AppGradient.brand : null,
+          color: isSelected ? AppColor.secondary : Colors.transparent,
           borderRadius: BorderRadius.circular(14.r),
         ),
         child: Row(
           children: [
             _IconBadge(
               icon: widget.item.icon,
-              isSelected: showGradient,
+              isSelected: isSelected,
             ),
             12.horizontalSpace,
             Expanded(
@@ -227,7 +227,7 @@ class _WidgetTileState extends State<_WidgetTile> {
                   fontWeight:
                       widget.isActive ? FontWeight.w700 : FontWeight.w500,
                   color:
-                      showGradient ? AppColor.white : AppColor.textPrimary,
+                      isSelected ? AppColor.white : AppColor.textPrimary,
                 ),
               ),
             ),
