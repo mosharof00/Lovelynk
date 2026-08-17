@@ -32,18 +32,17 @@ class AppGradient {
   static const LinearGradient pageBackground = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFEDF6FF), Color(0xFFE4F1FF), AppColor.background],
+    colors: [Color(0xFF90E0EF), Color(0xFF7DD3E8), AppColor.background],
     stops: [0.0, 0.45, 1.0],
   );
 
-  // ── Soft full-screen wash (kept for accents; app screens use solid bg)
   static const LinearGradient appBgGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFEDF6FF),
-      Color(0xFFE4F1FF),
-      Color(0xFFDCEEFF),
+      Color(0xFF90E0EF),
+      Color(0xFF7DD3E8),
+      Color(0xFF48CAE4),
     ],
     stops: [0.0, 0.5, 1.0],
   );

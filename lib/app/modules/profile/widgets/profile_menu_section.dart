@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/extensions/text_style_extension.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/app_text.dart';
+import '../../../global/widgets/glass_card.dart';
 
 class ProfileMenuItemData {
   const ProfileMenuItemData({
@@ -51,28 +52,18 @@ class ProfileMenuSection extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColor.white,
-            borderRadius: BorderRadius.circular(16.r),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+        GlassCard(
+          borderRadius: BorderRadius.circular(16.r),
           child: Column(
             children: [
               for (int i = 0; i < items.length; i++) ...[
                 _ProfileMenuTile(item: items[i]),
                 if (i != items.length - 1)
-                  Divider(
+                    Divider(
                     height: 1,
                     thickness: 0.6,
                     indent: 66.w,
-                    color: AppColor.inputBorder.withValues(alpha: 0.7),
+                    color: Colors.white.withValues(alpha: 0.5),
                   ),
               ],
             ],
