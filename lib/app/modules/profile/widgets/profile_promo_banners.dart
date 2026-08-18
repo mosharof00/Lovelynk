@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../gen/assets.gen.dart';
 import '../../../core/theme/app_color.dart';
-import '../../../global/widgets/app_svg_icon.dart';
-import '../../../global/widgets/glass_card.dart';
 
 class ProfilePromoBanners extends StatelessWidget {
   const ProfilePromoBanners({
@@ -83,11 +80,15 @@ class _PromoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      onTap: onTap,
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 16.h),
+    return Material(
+      color: Colors.white,
       borderRadius: BorderRadius.circular(16.r),
-      child: Row(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 16.h),
+          child: Row(
             children: [
               Container(
                 width: 44.w,
@@ -130,6 +131,8 @@ class _PromoBanner extends StatelessWidget {
               trailing,
             ],
           ),
+        ),
+      ),
     );
   }
 }

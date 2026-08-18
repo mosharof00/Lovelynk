@@ -6,6 +6,9 @@ import '../../../core/utils/helper_utils.dart';
 import '../../../routes/app_pages.dart';
 
 class ProfileController extends GetxController {
+  bool isFadeInAnimate = true;
+
+
   final userName = 'Jasper'.obs;
   final isPremium = true.obs;
   final anniversary = '12 Oct 2022'.obs;
@@ -40,5 +43,18 @@ class ProfileController extends GetxController {
         Get.offAllNamed(Routes.LOGIN);
       },
     );
+  }
+
+  Future<void> closeFadeInAnimate() async {
+    await Future.delayed(Duration(seconds: 6));
+    isFadeInAnimate = false;
+  }
+
+  @override
+  void onInit() {
+    // TODO: implement onInit
+    super.onInit();
+
+    closeFadeInAnimate();
   }
 }

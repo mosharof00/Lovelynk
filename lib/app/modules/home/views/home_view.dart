@@ -1,3 +1,5 @@
+import 'package:bulkretail/app/global/animations/fade_in_animation.dart';
+import 'package:bulkretail/app/modules/home/widgets/not_connected_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -29,14 +31,35 @@ class HomeView extends GetView<HomeController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       16.verticalSpace,
-                      const PartnerDistanceCard(),
+                      FadeInAnimation(
+                        delay: 1,
+                        shouldAnimate: controller.isFadeInAnimate,
+                        child: PartnerDistanceCard(),
+                      ),
+                      FadeInAnimation(
+                        delay:  2,
+                        shouldAnimate: controller.isFadeInAnimate,
+                        child: NotConnectedCard(),
+                      ),
 
                       12.verticalSpace,
-                      const HomeStatsRow(),
+                      FadeInAnimation(
+                        delay:controller.isConnected.value?2: 3,
+                        shouldAnimate: controller.isFadeInAnimate,
+                        child: const HomeStatsRow(),
+                      ),
                       12.verticalSpace,
-                      const HomeAffirmationCard(),
+                      FadeInAnimation(
+                        delay:controller.isConnected.value?3: 4,
+                        shouldAnimate: controller.isFadeInAnimate,
+                        child: HomeAffirmationCard(),
+                      ),
                       12.verticalSpace,
-                      const HomeRecentActivity(),
+                      FadeInAnimation(
+                        delay:controller.isConnected.value?4: 5,
+                        shouldAnimate: controller.isFadeInAnimate,
+                        child: const HomeRecentActivity(),
+                      ),
                       20.verticalSpace,
                       const HomeHowToTips(),
                       16.verticalSpace,

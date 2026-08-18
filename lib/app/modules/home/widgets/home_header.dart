@@ -1,4 +1,5 @@
 import 'package:bulkretail/app/core/utils/helper_utils.dart';
+import 'package:bulkretail/app/global/animations/fade_in_animation.dart';
 import 'package:bulkretail/app/global/widgets/cached_image.dart';
 import 'package:bulkretail/app/modules/main_page/controllers/main_page_controller.dart';
 import 'package:flutter/material.dart';
@@ -18,36 +19,46 @@ class HomeHeader extends GetView<HomeController> {
       () => Row(
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  'Good morning,',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: AppColor.textSecondary,
+            child: FadeInAnimation(
+              delay: 1,
+              fromLeft: true,
+              shouldAnimate: controller.isFadeInAnimate,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    'Good morning,',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: AppColor.textSecondary,
+                    ),
                   ),
-                ),
-                AppText(
-                  controller.userName.value,
-                  style: TextStyle(
-                    fontSize: 28.sp,
-                    fontWeight: FontWeight.w700,
-                    color: AppColor.textPrimary,
+                  AppText(
+                    controller.userName.value,
+                    style: TextStyle(
+                      fontSize: 28.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColor.textPrimary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          GestureDetector(
-            onTap: () {
-              Get.find<MainPageController>().changePage(3);
-            },
-            child: CachedImage(
-              imgUrl: HelperUtils.demoProfileImage,
-              height: 45.w,
-              width: 45.w,
-              borderRadius: 50.r,
+          FadeInAnimation(
+            delay: 1,
+            fromRight: true,
+            shouldAnimate: controller.isFadeInAnimate,
+            child: GestureDetector(
+              onTap: () {
+                Get.find<MainPageController>().changePage(3);
+              },
+              child: CachedImage(
+                imgUrl: HelperUtils.demoProfileImage,
+                height: 45.w,
+                width: 45.w,
+                borderRadius: 50.r,
+              ),
             ),
           ),
         ],

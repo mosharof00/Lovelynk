@@ -5,7 +5,8 @@ import '../../main_page/controllers/main_page_controller.dart';
 
 class HomeController extends GetxController {
   /// Mock partner connection for Phase 1 UI. Toggle to preview both layouts.
-  final isConnected = false.obs;
+  final isConnected = true.obs;
+  bool isFadeInAnimate = true;
 
   final userName = 'Jasper'.obs;
   final partnerName = 'Milla'.obs;
@@ -25,4 +26,17 @@ class HomeController extends GetxController {
 
   /// Dev / UI preview: flip between solo and connected home.
   void toggleConnectedPreview() => isConnected.toggle();
+
+  Future<void> closeFadeInAnimate() async {
+    await Future.delayed(Duration(seconds: 6));
+    isFadeInAnimate = false;
+  }
+
+  @override
+  void onInit() {
+    // TODO: implement onInit
+    super.onInit();
+
+    closeFadeInAnimate();
+  }
 }

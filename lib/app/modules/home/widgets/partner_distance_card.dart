@@ -123,53 +123,7 @@ class PartnerDistanceCard extends GetView<HomeController> {
             ),
           ),
 
-          connected
-              ? SizedBox.shrink()
-              : Container(
-                  margin: EdgeInsets.only(top: 12.h),
-                  width: double.infinity,
-                  padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: AppColor.white,
-                    borderRadius: BorderRadius.circular(20.r),
-                    border: Border.all(
-                      color: AppColor.inputBorder.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Image.asset(AppConfig.appLogo, height: 40.w, width: 40.w),
-                      4.width,
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AppText(
-                              "Connect with your partner",
-                              style: context.titleSmall,
-                            ),
-                            4.height,
-                            AppText(
-                              "Start sharing moments and see your connection come to life",
-                              style: context.bodySmall.copyWith(
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      12.width,
-                      GlobalButton(
-                        onTap: () {},
-                        text: "Connect",
-                        fontSize: 12.sp,
-                        height: 26.h,
-                        width: 70.w,
-                      ),
-                    ],
-                  ),
-                ),
+
         ],
       );
     });

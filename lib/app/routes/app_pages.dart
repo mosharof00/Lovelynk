@@ -10,8 +10,6 @@ import '../modules/color_customise/bindings/color_customise_binding.dart';
 import '../modules/color_customise/views/color_customise_view.dart';
 import '../modules/connect_with_partner/bindings/connect_with_partner_binding.dart';
 import '../modules/connect_with_partner/views/connect_with_partner_view.dart';
-import '../modules/glass_test/bindings/glass_test_binding.dart';
-import '../modules/glass_test/views/glass_test_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/main_page/bindings/main_page_binding.dart';
@@ -103,11 +101,6 @@ class AppPages {
       name: _Paths.SUBSCRIPTIONS,
       page: () => const SubscriptionsView(),
       binding: SubscriptionsBinding(),
-    ),
-    GetPage(
-      name: _Paths.GLASS_TEST,
-      page: () => const GlassTestView(),
-      binding: GlassTestBinding(),
     ),
   ];
 }
