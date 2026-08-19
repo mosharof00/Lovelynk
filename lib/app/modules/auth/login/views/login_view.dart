@@ -109,7 +109,7 @@ class LoginView extends GetView<LoginController> {
                     child: AppText(
                       'Sign up',
                       style: context.titleSmall.copyWith(
-                        color: AppColor.secondary,
+                        color: AppColor.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

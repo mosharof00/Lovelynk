@@ -63,6 +63,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/email_fill_icon.svg
   String get emailFillIcon => 'assets/icons/email_fill_icon.svg';
 
+  /// File path: assets/icons/heartbeat_icon.svg
+  String get heartbeatIcon => 'assets/icons/heartbeat_icon.svg';
+
   /// File path: assets/icons/home_fill_icon.svg
   String get homeFillIcon => 'assets/icons/home_fill_icon.svg';
 
@@ -128,6 +131,7 @@ class $AssetsIconsGen {
     daysTogetherLoveIcon,
     diatanceIcon,
     emailFillIcon,
+    heartbeatIcon,
     homeFillIcon,
     homeIcon,
     initialsIcon,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/theme/app_color.dart';
-import '../../../core/theme/app_gradient.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
 import '../../../data/widget_catalog/widget_catalog.dart';

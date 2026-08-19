@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'app/core/config/app_config.dart';
 import 'app/core/services/local_store_service.dart';
 import 'app/core/services/subscription_service.dart';
+import 'app/core/services/widget_data_service.dart';
 import 'app/core/services/widget_style_store.dart';
 import 'app/core/theme/app_theme.dart';
 import 'app/data/repositories/app_repository_binding.dart';
@@ -30,6 +31,7 @@ void main() async {
   await HiveService.initHive();
 
   Get.put<SubscriptionService>(SubscriptionService(), permanent: true);
+  Get.put<WidgetDataService>(WidgetDataService().init(), permanent: true);
   await Get.putAsync<WidgetStyleStore>(
     () => WidgetStyleStore().init(),
     permanent: true,

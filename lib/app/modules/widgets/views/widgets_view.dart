@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../../core/services/subscription_service.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../global/widgets/app_text.dart';
@@ -16,64 +15,38 @@ class WidgetsView extends GetView<WidgetsController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Obx(() {
-          final unlocked =
-              Get.find<SubscriptionService>().state.value.isWidgetsUnlocked;
-          final selected = controller.selectedCategory.value;
-          final categories = controller.visibleCategories;
-          final hasResults = controller.filteredWidgets.isNotEmpty;
-
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        'Widgets',
-                        style: TextStyle(
-                          fontSize: 28.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppColor.textPrimary,
-                        ),
-                      ),
-                      16.verticalSpace,
-                      const _WidgetSearchBar(),
-                      14.verticalSpace,
-                      const _WidgetFilterChips(),
-                      if (!unlocked) ...[
-                        12.verticalSpace,
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 10.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.primaryLight,
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: AppText(
-                            'Trial ended — widgets are locked. Unlock to continue.',
-                            maxLines: 2,
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: AppColor.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    'Widgets',
+                    style: TextStyle(
+                      fontSize: 28.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColor.textPrimary,
+                    ),
                   ),
-                ),
+                  16.verticalSpace,
+                  const _WidgetSearchBar(),
+                  14.verticalSpace,
+                  const _WidgetFilterChips(),
+                  const _TrialBanner(),
+                ],
               ),
-              if (!hasResults)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
+            ),
+            Expanded(
+              child: Obx(() {
+                final unlocked = controller.isUnlocked;
+                final selected = controller.selectedCategory.value;
+                final categories = controller.visibleCategories;
+
+                if (controller.filteredWidgets.isEmpty) {
+                  return Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 32.w),
                       child: AppText(
@@ -85,33 +58,64 @@ class WidgetsView extends GetView<WidgetsController> {
                         ),
                       ),
                     ),
-                  ),
-                )
-              else
-                SliverPadding(
+                  );
+                }
+
+                return ListView(
                   padding: EdgeInsets.fromLTRB(20.w, 18.h, 20.w, 24.h),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      for (final category in categories) ...[
-                        WidgetCategorySection(
-                          category: category,
-                          widgets: controller.widgetsFor(category),
-                          isUnlocked: unlocked,
-                          onAdd: controller.onAddTap,
-                          onUnlock: controller.onUnlockTap,
-                          showSeeAll: selected == null,
-                          onSeeAll: () => controller.onSeeAll(category),
-                        ),
-                        24.verticalSpace,
-                      ],
-                    ]),
-                  ),
-                ),
-            ],
-          );
-        }),
+                  children: [
+                    for (final category in categories) ...[
+                      WidgetCategorySection(
+                        category: category,
+                        widgets: controller.widgetsFor(category),
+                        isUnlocked: unlocked,
+                        onAdd: controller.onAddTap,
+                        onUnlock: controller.onUnlockTap,
+                        onSend: controller.onSendTap,
+                        showSeeAll: selected == null,
+                        onSeeAll: () => controller.onSeeAll(category),
+                      ),
+                      24.verticalSpace,
+                    ],
+                  ],
+                );
+              }),
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _TrialBanner extends GetView<WidgetsController> {
+  const _TrialBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.isUnlocked) return const SizedBox.shrink();
+      return Padding(
+        padding: EdgeInsets.only(top: 12.h),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+          decoration: BoxDecoration(
+            color: AppColor.primaryLight,
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: AppText(
+            'Trial ended — widgets are locked. Unlock to continue.',
+            maxLines: 2,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: AppColor.primary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    });
   }
 }
 

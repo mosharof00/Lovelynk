@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services/subscription_service.dart';
+import '../../../core/services/widget_data_service.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
@@ -12,6 +14,7 @@ import '../../main_page/controllers/main_page_controller.dart';
 
 class WidgetsController extends GetxController {
   late final SubscriptionService _subscription;
+  late final WidgetDataService _data;
 
   final searchController = TextEditingController();
   final searchQuery = ''.obs;
@@ -23,6 +26,7 @@ class WidgetsController extends GetxController {
   void onInit() {
     super.onInit();
     _subscription = Get.find<SubscriptionService>();
+    _data = Get.find<WidgetDataService>();
     searchController.addListener(() {
       searchQuery.value = searchController.text.trim();
     });
@@ -88,6 +92,54 @@ class WidgetsController extends GetxController {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+    );
+  }
+
+  /// Interactive footer action (Send Kiss / Send Heart / Send Emoji).
+  void onSendTap(WidgetDefinition widget) {
+    switch (widget.type) {
+      case AppWidgetType.kiss:
+        _data.sendKiss();
+        _toast('Kiss sent 💋', 'Your partner will feel the love.');
+        break;
+      case AppWidgetType.heartbeat:
+        _data.sendHeartbeat();
+        _toast('Heartbeat sent 💗', 'Let them know you\'re thinking of them.');
+        break;
+      case AppWidgetType.emoji:
+        _openEmojiPicker();
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _openEmojiPicker() {
+    const emojis = ['😍', '😘', '🥰', '😂', '😊', '😭', '🔥', '👍', '🎉'];
+    Get.bottomSheet(
+      _EmojiPickerSheet(
+        emojis: emojis,
+        onPick: (emoji) {
+          _data.sendEmoji(emoji);
+          Get.back();
+          _toast('Emoji sent $emoji', 'Sent to your partner.');
+        },
+      ),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+    );
+  }
+
+  void _toast(String title, String message) {
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColor.primaryLight,
+      colorText: AppColor.textPrimary,
+      margin: const EdgeInsets.all(16),
     );
   }
 
@@ -194,6 +246,66 @@ class _AddWidgetSheet extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           GlobalButton(onTap: onCustomise, text: 'Open Customise'),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmojiPickerSheet extends StatelessWidget {
+  const _EmojiPickerSheet({required this.emojis, required this.onPick});
+
+  final List<String> emojis;
+  final ValueChanged<String> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 32.h),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: AppColor.inputBorder,
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+          ),
+          20.verticalSpace,
+          AppText(
+            'Send an emoji',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColor.textPrimary,
+            ),
+          ),
+          16.verticalSpace,
+          Wrap(
+            spacing: 12.w,
+            runSpacing: 12.h,
+            children: [
+              for (final emoji in emojis)
+                GestureDetector(
+                  onTap: () => onPick(emoji),
+                  child: Container(
+                    width: 52.w,
+                    height: 52.w,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColor.primaryLight,
+                      borderRadius: BorderRadius.circular(14.r),
+                    ),
+                    child: Text(emoji, style: TextStyle(fontSize: 26.sp)),
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

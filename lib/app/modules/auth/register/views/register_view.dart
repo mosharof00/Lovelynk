@@ -155,7 +155,7 @@ class RegisterView extends GetView<RegisterController> {
                     child: AppText(
                       'Sign in',
                       style: context.titleSmall.copyWith(
-                        color: AppColor.secondary,
+                        color: AppColor.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

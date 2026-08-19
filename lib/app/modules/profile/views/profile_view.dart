@@ -19,100 +19,98 @@ class ProfileView extends GetView<ProfileController> {
       backgroundColor: AppColor.background,
       body: SafeArea(
         bottom: false,
-        child: Obx(
-          () => ListView(
-            padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 40.h),
-            children: [
-              FadeInAnimation(
-                delay: 1,
-                fromLeft: true,
-                shouldAnimate: controller.isFadeInAnimate,
-                child: const ProfileHeader(),
+        child:ListView(
+          padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 40.h),
+          children: [
+            FadeInAnimation(
+              delay: 1,
+              fromLeft: true,
+              shouldAnimate: controller.isFadeInAnimate,
+              child: const ProfileHeader(),
+            ),
+            28.verticalSpace,
+            FadeInAnimation(
+              delay: 2,
+              fromLeft: true,
+              shouldAnimate: controller.isFadeInAnimate,
+              child: ProfileMenuSection(
+                title: 'Account',
+                titleColor: AppColor.textSecondary,
+                items: [
+                  ProfileMenuItemData(
+                    icon: Icons.edit,
+                    label: 'Edit Profile',
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.subscript,
+                    label: 'Manage Subscription',
+                    onTap: () => Get.toNamed(Routes.SUBSCRIPTIONS),
+                  ),
+                ],
               ),
-              28.verticalSpace,
-              FadeInAnimation(
-                delay: 2,
-                fromLeft: true,
-                shouldAnimate: controller.isFadeInAnimate,
-                child: ProfileMenuSection(
-                  title: 'Account',
-                  titleColor: AppColor.textSecondary,
-                  items: [
-                    ProfileMenuItemData(
-                      icon: Icons.edit,
-                      label: 'Edit Profile',
-                    ),
-                    ProfileMenuItemData(
-                      icon: Icons.subscript,
-                      label: 'Manage Subscription',
-                      onTap: () => Get.toNamed(Routes.SUBSCRIPTIONS),
-                    ),
-                  ],
-                ),
+            ),
+            22.verticalSpace,
+            FadeInAnimation(
+              delay: 3,
+              fromLeft: true,
+              shouldAnimate: controller.isFadeInAnimate,
+              child: ProfileMenuSection(
+                title: 'Your Relationship',
+                titleColor: AppColor.textSecondary,
+                items: [
+                  const ProfileMenuItemData(
+                    icon: Icons.favorite_border_rounded,
+                    label: 'Partner Profile',
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.calendar_today_outlined,
+                    label: 'Our Anniversary',
+                    value: controller.anniversary.value,
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.person_add_alt_1_outlined,
+                    label: 'Invite Partner',
+                    onTap: () => Get.toNamed(Routes.CONNECT_WITH_PARTNER),
+                  ),
+                ],
               ),
-              22.verticalSpace,
-              FadeInAnimation(
-                delay: 3,
-                fromLeft: true,
-                shouldAnimate: controller.isFadeInAnimate,
-                child: ProfileMenuSection(
-                  title: 'Your Relationship',
-                  titleColor: AppColor.textSecondary,
-                  items: [
-                    const ProfileMenuItemData(
-                      icon: Icons.favorite_border_rounded,
-                      label: 'Partner Profile',
-                    ),
-                    ProfileMenuItemData(
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Our Anniversary',
-                      value: controller.anniversary.value,
-                    ),
-                    ProfileMenuItemData(
-                      icon: Icons.person_add_alt_1_outlined,
-                      label: 'Invite Partner',
-                      onTap: () => Get.toNamed(Routes.CONNECT_WITH_PARTNER),
-                    ),
-                  ],
-                ),
-              ),
+            ),
 
-              22.verticalSpace,
-              FadeInAnimation(
-                delay: 4,
-                fromLeft: true,
-                shouldAnimate: controller.isFadeInAnimate,
-                child: ProfileMenuSection(
-                  title: 'Support',
-                  titleColor: AppColor.textSecondary,
-                  items: const [
-                    ProfileMenuItemData(
-                      icon: Icons.mail_outline_rounded,
-                      label: 'Contact Us',
-                    ),
-                    ProfileMenuItemData(
-                      icon: Icons.verified_user_outlined,
-                      label: 'Privacy Policy',
-                    ),
-                    ProfileMenuItemData(
-                      icon: Icons.description_outlined,
-                      label: 'Terms of Use',
-                    ),
-                  ],
-                ),
+            22.verticalSpace,
+            FadeInAnimation(
+              delay: 4,
+              fromLeft: true,
+              shouldAnimate: controller.isFadeInAnimate,
+              child: ProfileMenuSection(
+                title: 'Support',
+                titleColor: AppColor.textSecondary,
+                items: const [
+                  ProfileMenuItemData(
+                    icon: Icons.mail_outline_rounded,
+                    label: 'Contact Us',
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.verified_user_outlined,
+                    label: 'Privacy Policy',
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.description_outlined,
+                    label: 'Terms of Use',
+                  ),
+                ],
               ),
-              24.verticalSpace,
-              ProfilePromoBanners(
-                onReferTap: controller.onReferTap,
-                onRateTap: controller.onRateTap,
-              ),
-              18.verticalSpace,
-              _ProfileLogoutSection(
-                onTap: () => controller.onLogoutTap(context),
-              ),
-              12.verticalSpace,
-            ],
-          ),
+            ),
+            24.verticalSpace,
+            ProfilePromoBanners(
+              onReferTap: controller.onReferTap,
+              onRateTap: controller.onRateTap,
+            ),
+            18.verticalSpace,
+            _ProfileLogoutSection(
+              onTap: () => controller.onLogoutTap(context),
+            ),
+            12.verticalSpace,
+          ],
         ),
       ),
     );

@@ -1,16 +1,22 @@
+/// The client's final 12 widgets.
 enum AppWidgetType {
+  // Essentials
+  partnerDistance,
   daysTogether,
-  distance,
-  dualTimeZone,
-  countdown,
-  goodMorningNight,
-  photo,
+  togetherCounter,
+  partnerTime,
+  partnerWeather,
+  nextVisitCountdown,
+
+  // Relationship
+  loveCompass,
   initials,
-  loveNote,
-  latestLoveNote,
-  moodCheckIn,
-  customText,
-  sendKiss,
+  anniversary,
+
+  // Interactive
+  heartbeat,
+  kiss,
+  emoji,
 }
 
 enum WidgetCategory {
@@ -35,30 +41,30 @@ extension WidgetCategoryX on WidgetCategory {
 extension AppWidgetTypeX on AppWidgetType {
   String get id {
     switch (this) {
+      case AppWidgetType.partnerDistance:
+        return 'partner_distance';
       case AppWidgetType.daysTogether:
         return 'days_together';
-      case AppWidgetType.distance:
-        return 'distance';
-      case AppWidgetType.dualTimeZone:
-        return 'dual_time_zone';
-      case AppWidgetType.countdown:
-        return 'countdown';
-      case AppWidgetType.goodMorningNight:
-        return 'good_morning_night';
-      case AppWidgetType.photo:
-        return 'photo';
+      case AppWidgetType.togetherCounter:
+        return 'together_counter';
+      case AppWidgetType.partnerTime:
+        return 'partner_time';
+      case AppWidgetType.partnerWeather:
+        return 'partner_weather';
+      case AppWidgetType.nextVisitCountdown:
+        return 'next_visit_countdown';
+      case AppWidgetType.loveCompass:
+        return 'love_compass';
       case AppWidgetType.initials:
         return 'initials';
-      case AppWidgetType.loveNote:
-        return 'love_note';
-      case AppWidgetType.latestLoveNote:
-        return 'latest_love_note';
-      case AppWidgetType.moodCheckIn:
-        return 'mood_check_in';
-      case AppWidgetType.customText:
-        return 'custom_text';
-      case AppWidgetType.sendKiss:
-        return 'send_kiss';
+      case AppWidgetType.anniversary:
+        return 'anniversary';
+      case AppWidgetType.heartbeat:
+        return 'heartbeat';
+      case AppWidgetType.kiss:
+        return 'kiss';
+      case AppWidgetType.emoji:
+        return 'emoji';
     }
   }
 
