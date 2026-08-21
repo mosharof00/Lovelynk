@@ -16,6 +16,10 @@ abstract class Routes {
   static const COLOR_CUSTOMISE = _Paths.COLOR_CUSTOMISE;
   static const WIDGETS = _Paths.WIDGETS;
   static const SUBSCRIPTIONS = _Paths.SUBSCRIPTIONS;
+  static const HOME_SCREEN_GUID = _Paths.HOME_SCREEN_GUID;
+  static const LOCK_SCREEN_GUID = _Paths.LOCK_SCREEN_GUID;
+  static const HEARTBEAT_SUMMARY = _Paths.HEARTBEAT_SUMMARY;
+  static const KISS_SUMMARY = _Paths.KISS_SUMMARY;
 }
 
 abstract class _Paths {
@@ -33,4 +37,8 @@ abstract class _Paths {
   static const COLOR_CUSTOMISE = '/color-customise';
   static const WIDGETS = '/widgets';
   static const SUBSCRIPTIONS = '/subscriptions';
+  static const HOME_SCREEN_GUID = '/home-screen-guid';
+  static const LOCK_SCREEN_GUID = '/lock-screen-guid';
+  static const HEARTBEAT_SUMMARY = '/heartbeat-summary';
+  static const KISS_SUMMARY = '/kiss-summary';
 }

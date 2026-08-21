@@ -1,17 +1,17 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/services/compass_service.dart';
 import '../../../../core/services/widget_data_service.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
 
 WidgetDataService get _service => Get.find<WidgetDataService>();
+CompassService get _compass => Get.find<CompassService>();
 
-// ── Love Compass ────────────────────────────────────────────────────
+// ── Love Compass (live heading + partner bearing) ───────────────────
 
 class LoveCompassWidget extends StatelessWidget {
   const LoveCompassWidget({super.key});
@@ -19,7 +19,11 @@ class LoveCompassWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final data = _service.data.value;
+      final miles = _compass.hasLocation.value
+          ? _compass.partnerMiles.value
+          : _service.data.value.compassMiles;
+      final radians = _compass.needleRadians();
+
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -32,7 +36,7 @@ class LoveCompassWidget extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Transform.rotate(
-              angle: data.compassBearing * math.pi / 180,
+              angle: radians,
               child: Icon(
                 Icons.navigation_rounded,
                 color: AppColor.primary,
@@ -42,7 +46,7 @@ class LoveCompassWidget extends StatelessWidget {
           ),
           4.verticalSpace,
           AppText(
-            '${data.compassMiles} miles',
+            '$miles miles',
             style: TextStyle(
               fontSize: 15.sp,
               fontWeight: FontWeight.w700,

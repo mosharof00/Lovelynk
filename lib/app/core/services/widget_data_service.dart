@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 
+import '../../data/models/widget_models/reaction_activity.dart';
 import '../../data/models/widget_models/widget_data.dart';
 
 /// Central source of live widget data for the whole app.
@@ -20,6 +21,15 @@ class WidgetDataService extends GetxService {
   /// Emojis the user has sent, newest first (Emoji widget).
   final sentEmojis = <String>['😍', '😘', '🥰'].obs;
 
+  /// Heartbeats received from the partner (what the small widget shows).
+  final heartbeatsFromPartner = 90.obs;
+
+  /// Heartbeats I sent to the partner.
+  final heartbeatsFromMe = 57.obs;
+
+  /// Today's heartbeat activity (newest first).
+  final heartbeatActivity = <ReactionActivity>[].obs;
+
   Timer? _ticker;
 
   WidgetDataService init() {
@@ -27,7 +37,39 @@ class WidgetDataService extends GetxService {
       const Duration(seconds: 1),
       (_) => now.value = DateTime.now(),
     );
+    _seedHeartbeatActivity();
     return this;
+  }
+
+  void _seedHeartbeatActivity() {
+    final now = DateTime.now();
+    final partner = data.value.partnerName;
+    heartbeatActivity.assignAll([
+      ReactionActivity(
+        senderName: partner,
+        isFromMe: false,
+        count: 5,
+        at: now.subtract(const Duration(minutes: 12)),
+      ),
+      ReactionActivity(
+        senderName: partner,
+        isFromMe: false,
+        count: 7,
+        at: now.subtract(const Duration(minutes: 48)),
+      ),
+      ReactionActivity(
+        senderName: 'Me',
+        isFromMe: true,
+        count: 3,
+        at: now.subtract(const Duration(hours: 1, minutes: 20)),
+      ),
+      ReactionActivity(
+        senderName: partner,
+        isFromMe: false,
+        count: 53,
+        at: now.subtract(const Duration(hours: 2, minutes: 5)),
+      ),
+    ]);
   }
 
   @override
@@ -57,7 +99,32 @@ class WidgetDataService extends GetxService {
     // TODO(Supabase): record + push a kiss to the partner.
   }
 
-  void sendHeartbeat() {
-    // TODO(Supabase): record + push a heartbeat to the partner.
+  /// Records one heartbeat from me → partner and bumps the feed.
+  void sendHeartbeat({int count = 1}) {
+    heartbeatsFromMe.value += count;
+    final now = DateTime.now();
+    final list = heartbeatActivity.toList();
+    if (list.isNotEmpty &&
+        list.first.isFromMe &&
+        now.difference(list.first.at).inMinutes < 5) {
+      list[0] = ReactionActivity(
+        senderName: 'Me',
+        isFromMe: true,
+        count: list.first.count + count,
+        at: now,
+      );
+    } else {
+      list.insert(
+        0,
+        ReactionActivity(
+          senderName: 'Me',
+          isFromMe: true,
+          count: count,
+          at: now,
+        ),
+      );
+    }
+    heartbeatActivity.assignAll(list);
+    // TODO(Supabase): insert/increment reaction row + push.
   }
 }

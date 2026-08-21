@@ -10,8 +10,16 @@ import '../modules/color_customise/bindings/color_customise_binding.dart';
 import '../modules/color_customise/views/color_customise_view.dart';
 import '../modules/connect_with_partner/bindings/connect_with_partner_binding.dart';
 import '../modules/connect_with_partner/views/connect_with_partner_view.dart';
+import '../modules/heartbeat_summary/bindings/heartbeat_summary_binding.dart';
+import '../modules/heartbeat_summary/views/heartbeat_summary_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
+import '../modules/home_screen_guid/bindings/home_screen_guid_binding.dart';
+import '../modules/home_screen_guid/views/home_screen_guid_view.dart';
+import '../modules/kiss_summary/bindings/kiss_summary_binding.dart';
+import '../modules/kiss_summary/views/kiss_summary_view.dart';
+import '../modules/lock_screen_guid/bindings/lock_screen_guid_binding.dart';
+import '../modules/lock_screen_guid/views/lock_screen_guid_view.dart';
 import '../modules/main_page/bindings/main_page_binding.dart';
 import '../modules/main_page/views/main_page_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
@@ -32,7 +40,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.MAIN_PAGE;
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
     GetPage(
@@ -101,6 +109,26 @@ class AppPages {
       name: _Paths.SUBSCRIPTIONS,
       page: () => const SubscriptionsView(),
       binding: SubscriptionsBinding(),
+    ),
+    GetPage(
+      name: _Paths.HOME_SCREEN_GUID,
+      page: () => const HomeScreenGuidView(),
+      binding: HomeScreenGuidBinding(),
+    ),
+    GetPage(
+      name: _Paths.LOCK_SCREEN_GUID,
+      page: () => const LockScreenGuidView(),
+      binding: LockScreenGuidBinding(),
+    ),
+    GetPage(
+      name: _Paths.HEARTBEAT_SUMMARY,
+      page: () => const HeartbeatSummaryView(),
+      binding: HeartbeatSummaryBinding(),
+    ),
+    GetPage(
+      name: _Paths.KISS_SUMMARY,
+      page: () => const KissSummaryView(),
+      binding: KissSummaryBinding(),
     ),
   ];
 }

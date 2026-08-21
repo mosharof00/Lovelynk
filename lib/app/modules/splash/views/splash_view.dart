@@ -10,7 +10,8 @@ class SplashView extends GetView<SplashController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(SplashController());
+    // Touch controller so GetX keeps the binding instance alive.
+    controller;
     return Scaffold(
       backgroundColor: AppColor.white,
       body: Center(

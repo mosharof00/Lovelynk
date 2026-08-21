@@ -9,7 +9,7 @@ class LoginController extends GetxController {
   final passwordController = TextEditingController();
 
   void login() {
-    if (!(formKey.currentState?.validate() ?? false)) return;
+    // if (!(formKey.currentState?.validate() ?? false)) return;
     // TODO: wire auth API
     Get.offAllNamed(Routes.MAIN_PAGE);
   }

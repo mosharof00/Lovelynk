@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import 'app/core/config/app_config.dart';
+import 'app/core/services/compass_service.dart';
 import 'app/core/services/local_store_service.dart';
 import 'app/core/services/subscription_service.dart';
 import 'app/core/services/widget_data_service.dart';
@@ -32,6 +33,7 @@ void main() async {
 
   Get.put<SubscriptionService>(SubscriptionService(), permanent: true);
   Get.put<WidgetDataService>(WidgetDataService().init(), permanent: true);
+  Get.put<CompassService>(CompassService().init(), permanent: true);
   await Get.putAsync<WidgetStyleStore>(
     () => WidgetStyleStore().init(),
     permanent: true,

@@ -175,13 +175,29 @@ class $AssetsImagesGen {
   AssetGenImage get emptyBox =>
       const AssetGenImage('assets/images/empty_box.png');
 
+  /// File path: assets/images/heartbeat_header_image.png
+  AssetGenImage get heartbeatHeaderImage =>
+      const AssetGenImage('assets/images/heartbeat_header_image.png');
+
+  /// File path: assets/images/heartbeat_image.png
+  AssetGenImage get heartbeatImage =>
+      const AssetGenImage('assets/images/heartbeat_image.png');
+
   /// File path: assets/images/home_screen_demo.png
   AssetGenImage get homeScreenDemo =>
       const AssetGenImage('assets/images/home_screen_demo.png');
 
+  /// File path: assets/images/kiss_image.png
+  AssetGenImage get kissImage =>
+      const AssetGenImage('assets/images/kiss_image.png');
+
   /// File path: assets/images/lock_screen_demo.png
   AssetGenImage get lockScreenDemo =>
       const AssetGenImage('assets/images/lock_screen_demo.png');
+
+  /// File path: assets/images/love_png_icon.png
+  AssetGenImage get lovePngIcon =>
+      const AssetGenImage('assets/images/love_png_icon.png');
 
   /// File path: assets/images/onboard_image.png
   AssetGenImage get onboardImage =>
@@ -202,8 +218,12 @@ class $AssetsImagesGen {
     connectedImage,
     customiseLockPreviewBg,
     emptyBox,
+    heartbeatHeaderImage,
+    heartbeatImage,
     homeScreenDemo,
+    kissImage,
     lockScreenDemo,
+    lovePngIcon,
     onboardImage,
     onboardImage2,
     placeholderImage,

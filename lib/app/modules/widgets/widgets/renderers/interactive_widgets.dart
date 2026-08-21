@@ -17,25 +17,34 @@ class HeartbeatWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // SizedBox(
-        //   width: 90.w,
-        //   height: 34.h,
-        //   child: CustomPaint(
-        //     painter: _HeartbeatPainter(color: AppColor.primary),
-        //   ),
-        // ),
-        AppSvgIcon(Assets.icons.heartbeatIcon, size: 50.sp, color: AppColor.primary),
-
-        6.verticalSpace,
-        AppText(
-          'tap to send',
-          style: TextStyle(fontSize: 11.sp, color: AppColor.textSecondary),
-        ),
-      ],
-    );
+    return Obx(() {
+      final count = _service.heartbeatsFromPartner.value;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppSvgIcon(
+            Assets.icons.heartbeatIcon,
+            size: 40.sp,
+            color: AppColor.primary,
+          ),
+          6.verticalSpace,
+          AppText(
+            '$count',
+            style: TextStyle(
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColor.primary,
+              height: 1.0,
+            ),
+          ),
+          2.verticalSpace,
+          AppText(
+            'from partner',
+            style: TextStyle(fontSize: 11.sp, color: AppColor.textSecondary),
+          ),
+        ],
+      );
+    });
   }
 }
 

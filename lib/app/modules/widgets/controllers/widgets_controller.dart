@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services/subscription_service.dart';
@@ -10,7 +9,11 @@ import '../../../data/models/widget_models/widget_definition.dart';
 import '../../../data/widget_catalog/widget_catalog.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/global_button.dart';
+import '../../../routes/app_pages.dart';
 import '../../main_page/controllers/main_page_controller.dart';
+import '../widgets/dialogs/emoji_send_dialog.dart';
+import '../widgets/dialogs/heartbeat_send_dialog.dart';
+import '../widgets/dialogs/kiss_send_dialog.dart';
 
 class WidgetsController extends GetxController {
   late final SubscriptionService _subscription;
@@ -95,41 +98,51 @@ class WidgetsController extends GetxController {
     );
   }
 
-  /// Interactive footer action (Send Kiss / Send Heart / Send Emoji).
+  /// Interactive card tap → branded send dialog.
   void onSendTap(WidgetDefinition widget) {
+    final partner = _data.data.value.partnerName;
+
     switch (widget.type) {
-      case AppWidgetType.kiss:
-        _data.sendKiss();
-        _toast('Kiss sent 💋', 'Your partner will feel the love.');
-        break;
       case AppWidgetType.heartbeat:
-        _data.sendHeartbeat();
-        _toast('Heartbeat sent 💗', 'Let them know you\'re thinking of them.');
+        HeartbeatSendDialog.show(
+          partnerName: partner,
+          onSend: () {
+            _data.sendHeartbeat();
+            _toast(
+              'Heartbeat sent 💗',
+              'Let them know you\'re thinking of them.',
+            );
+          },
+          onViewDetails: () => Get.toNamed(Routes.HEARTBEAT_SUMMARY),
+        );
+        break;
+      case AppWidgetType.kiss:
+        KissSendDialog.show(
+          partnerName: partner,
+          onSend: () {
+            _data.sendKiss();
+            _toast('Kiss sent 💋', 'Your partner will feel the love.');
+          },
+          onViewDetails: () {
+            _toast('Coming soon', 'Kiss summary will match Heartbeat.');
+          },
+        );
         break;
       case AppWidgetType.emoji:
-        _openEmojiPicker();
+        EmojiSendDialog.show(
+          partnerName: partner,
+          onSend: (emoji) {
+            _data.sendEmoji(emoji);
+            _toast('Emoji sent $emoji', 'Sent to your partner.');
+          },
+          onViewDetails: () {
+            _toast('Coming soon', 'Emoji summary will match Heartbeat.');
+          },
+        );
         break;
       default:
         break;
     }
-  }
-
-  void _openEmojiPicker() {
-    const emojis = ['😍', '😘', '🥰', '😂', '😊', '😭', '🔥', '👍', '🎉'];
-    Get.bottomSheet(
-      _EmojiPickerSheet(
-        emojis: emojis,
-        onPick: (emoji) {
-          _data.sendEmoji(emoji);
-          Get.back();
-          _toast('Emoji sent $emoji', 'Sent to your partner.');
-        },
-      ),
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-    );
   }
 
   void _toast(String title, String message) {
@@ -246,66 +259,6 @@ class _AddWidgetSheet extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           GlobalButton(onTap: onCustomise, text: 'Open Customise'),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmojiPickerSheet extends StatelessWidget {
-  const _EmojiPickerSheet({required this.emojis, required this.onPick});
-
-  final List<String> emojis;
-  final ValueChanged<String> onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 32.h),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: AppColor.inputBorder,
-                borderRadius: BorderRadius.circular(2.r),
-              ),
-            ),
-          ),
-          20.verticalSpace,
-          AppText(
-            'Send an emoji',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
-              color: AppColor.textPrimary,
-            ),
-          ),
-          16.verticalSpace,
-          Wrap(
-            spacing: 12.w,
-            runSpacing: 12.h,
-            children: [
-              for (final emoji in emojis)
-                GestureDetector(
-                  onTap: () => onPick(emoji),
-                  child: Container(
-                    width: 52.w,
-                    height: 52.w,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColor.primaryLight,
-                      borderRadius: BorderRadius.circular(14.r),
-                    ),
-                    child: Text(emoji, style: TextStyle(fontSize: 26.sp)),
-                  ),
-                ),
-            ],
-          ),
         ],
       ),
     );
