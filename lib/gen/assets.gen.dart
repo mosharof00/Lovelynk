@@ -187,6 +187,22 @@ class $AssetsImagesGen {
   AssetGenImage get homeScreenDemo =>
       const AssetGenImage('assets/images/home_screen_demo.png');
 
+  /// File path: assets/images/home_widget_guid_step_1.png
+  AssetGenImage get homeWidgetGuidStep1 =>
+      const AssetGenImage('assets/images/home_widget_guid_step_1.png');
+
+  /// File path: assets/images/home_widget_guid_step_2.png
+  AssetGenImage get homeWidgetGuidStep2 =>
+      const AssetGenImage('assets/images/home_widget_guid_step_2.png');
+
+  /// File path: assets/images/home_widget_guid_step_3.png
+  AssetGenImage get homeWidgetGuidStep3 =>
+      const AssetGenImage('assets/images/home_widget_guid_step_3.png');
+
+  /// File path: assets/images/home_widget_guid_step_4.png
+  AssetGenImage get homeWidgetGuidStep4 =>
+      const AssetGenImage('assets/images/home_widget_guid_step_4.png');
+
   /// File path: assets/images/kiss_image.png
   AssetGenImage get kissImage =>
       const AssetGenImage('assets/images/kiss_image.png');
@@ -194,6 +210,26 @@ class $AssetsImagesGen {
   /// File path: assets/images/lock_screen_demo.png
   AssetGenImage get lockScreenDemo =>
       const AssetGenImage('assets/images/lock_screen_demo.png');
+
+  /// File path: assets/images/lock_widget_guid_step_1.png
+  AssetGenImage get lockWidgetGuidStep1 =>
+      const AssetGenImage('assets/images/lock_widget_guid_step_1.png');
+
+  /// File path: assets/images/lock_widget_guid_step_2.png
+  AssetGenImage get lockWidgetGuidStep2 =>
+      const AssetGenImage('assets/images/lock_widget_guid_step_2.png');
+
+  /// File path: assets/images/lock_widget_guid_step_3.png
+  AssetGenImage get lockWidgetGuidStep3 =>
+      const AssetGenImage('assets/images/lock_widget_guid_step_3.png');
+
+  /// File path: assets/images/lock_widget_guid_step_4.png
+  AssetGenImage get lockWidgetGuidStep4 =>
+      const AssetGenImage('assets/images/lock_widget_guid_step_4.png');
+
+  /// File path: assets/images/lock_widget_guid_step_5.png
+  AssetGenImage get lockWidgetGuidStep5 =>
+      const AssetGenImage('assets/images/lock_widget_guid_step_5.png');
 
   /// File path: assets/images/love_png_icon.png
   AssetGenImage get lovePngIcon =>
@@ -221,8 +257,17 @@ class $AssetsImagesGen {
     heartbeatHeaderImage,
     heartbeatImage,
     homeScreenDemo,
+    homeWidgetGuidStep1,
+    homeWidgetGuidStep2,
+    homeWidgetGuidStep3,
+    homeWidgetGuidStep4,
     kissImage,
     lockScreenDemo,
+    lockWidgetGuidStep1,
+    lockWidgetGuidStep2,
+    lockWidgetGuidStep3,
+    lockWidgetGuidStep4,
+    lockWidgetGuidStep5,
     lovePngIcon,
     onboardImage,
     onboardImage2,
