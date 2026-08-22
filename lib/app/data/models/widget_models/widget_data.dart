@@ -1,29 +1,48 @@
-import 'package:flutter/material.dart';
+import '../../../core/utils/weather_icon_mapper.dart';
 
 /// Weather shown by the Partner Weather widget.
 class PartnerWeather {
   const PartnerWeather({
     required this.temperature,
     required this.condition,
-    required this.icon,
+    required this.iconPath,
+    this.conditionId,
+    this.isDay = true,
   });
 
   /// Celsius.
   final int temperature;
   final String condition;
 
-  /// Placeholder icon until the client supplies custom weather art.
-  final IconData icon;
+  /// Custom SVG path (`Assets.weatherIcons.*`).
+  final String iconPath;
+
+  /// OpenWeather `weather[0].id` — used to re-map icon when data refreshes.
+  final int? conditionId;
+  final bool isDay;
+
+  /// Build from OpenWeather API fields (Edge Function / Supabase later).
+  factory PartnerWeather.fromOpenWeather({
+    required int temperature,
+    required String condition,
+    required int conditionId,
+    String? iconCode,
+  }) {
+    final isDay = WeatherIconMapper.isDayFromIconCode(iconCode);
+    return PartnerWeather(
+      temperature: temperature,
+      condition: condition,
+      conditionId: conditionId,
+      isDay: isDay,
+      iconPath: WeatherIconMapper.iconFor(
+        conditionId: conditionId,
+        isDay: isDay,
+      ),
+    );
+  }
 }
 
 /// All dynamic values the 12 widgets render.
-///
-/// One immutable snapshot. Live values that change every second (counters,
-/// partner time) are derived from this + the current time in the UI, so this
-/// object only changes when the underlying relationship data changes.
-///
-/// Currently built from [WidgetData.mock]. Later this is filled from Supabase
-/// (see `WidgetDataService.refreshFromBackend`).
 class WidgetData {
   const WidgetData({
     required this.userName,
@@ -41,26 +60,13 @@ class WidgetData {
 
   final String userName;
   final String partnerName;
-
-  /// Straight-line distance between the two partners.
   final int distanceMiles;
-
-  /// When the relationship started — drives Days Together + Together Counter.
   final DateTime togetherSince;
-
-  /// Partner timezone as a simple UTC offset in hours (e.g. Sydney = +10).
   final int partnerUtcOffsetHours;
   final String partnerCity;
-
   final PartnerWeather partnerWeather;
-
-  /// Next time the couple meets — drives Next Visit Countdown.
   final DateTime nextVisit;
-
-  /// Anniversary date — drives the Anniversary widget.
   final DateTime anniversary;
-
-  /// Direction (degrees, 0 = north) from the user toward the partner.
   final double compassBearing;
   final int compassMiles;
 
@@ -70,10 +76,8 @@ class WidgetData {
   String get partnerInitial =>
       partnerName.isNotEmpty ? partnerName[0].toUpperCase() : '?';
 
-  /// Full days the couple has been together.
   int get daysTogether => DateTime.now().difference(togetherSince).inDays;
 
-  /// Partner's current local time, derived from [now].
   DateTime partnerTime(DateTime now) =>
       now.toUtc().add(Duration(hours: partnerUtcOffsetHours));
 
@@ -88,10 +92,11 @@ class WidgetData {
       ),
       partnerUtcOffsetHours: 10,
       partnerCity: 'Sydney, Australia',
-      partnerWeather: const PartnerWeather(
+      partnerWeather: PartnerWeather.fromOpenWeather(
         temperature: 22,
         condition: 'Partly Cloudy',
-        icon: Icons.cloud_queue_rounded,
+        conditionId: 802,
+        iconCode: '03d',
       ),
       nextVisit: now.add(
         const Duration(days: 76, hours: 3, minutes: 27, seconds: 9),

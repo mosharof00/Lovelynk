@@ -288,11 +288,59 @@ class $AssetsLogosGen {
   List<AssetGenImage> get values => [appIcon, appLogo];
 }
 
+class $AssetsWeatherIconsGen {
+  const $AssetsWeatherIconsGen();
+
+  /// File path: assets/weather_icons/weather_clear_day.svg
+  String get weatherClearDay => 'assets/weather_icons/weather_clear_day.svg';
+
+  /// File path: assets/weather_icons/weather_clear_night.svg
+  String get weatherClearNight =>
+      'assets/weather_icons/weather_clear_night.svg';
+
+  /// File path: assets/weather_icons/weather_clouds.svg
+  String get weatherClouds => 'assets/weather_icons/weather_clouds.svg';
+
+  /// File path: assets/weather_icons/weather_drizzle.svg
+  String get weatherDrizzle => 'assets/weather_icons/weather_drizzle.svg';
+
+  /// File path: assets/weather_icons/weather_fog.svg
+  String get weatherFog => 'assets/weather_icons/weather_fog.svg';
+
+  /// File path: assets/weather_icons/weather_partly_cloudy.svg
+  String get weatherPartlyCloudy =>
+      'assets/weather_icons/weather_partly_cloudy.svg';
+
+  /// File path: assets/weather_icons/weather_rain.svg
+  String get weatherRain => 'assets/weather_icons/weather_rain.svg';
+
+  /// File path: assets/weather_icons/weather_snow.svg
+  String get weatherSnow => 'assets/weather_icons/weather_snow.svg';
+
+  /// File path: assets/weather_icons/weather_thunderstorm.svg
+  String get weatherThunderstorm =>
+      'assets/weather_icons/weather_thunderstorm.svg';
+
+  /// List of all assets
+  List<String> get values => [
+    weatherClearDay,
+    weatherClearNight,
+    weatherClouds,
+    weatherDrizzle,
+    weatherFog,
+    weatherPartlyCloudy,
+    weatherRain,
+    weatherSnow,
+    weatherThunderstorm,
+  ];
+}
+
 abstract final class Assets {
   static const $AssetsAnimationsGen animations = $AssetsAnimationsGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
   static const $AssetsLogosGen logos = $AssetsLogosGen();
+  static const $AssetsWeatherIconsGen weatherIcons = $AssetsWeatherIconsGen();
 }
 
 class AssetGenImage {

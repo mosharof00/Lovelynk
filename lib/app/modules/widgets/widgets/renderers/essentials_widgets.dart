@@ -344,9 +344,14 @@ class PartnerWeatherWidget extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(weather.icon, color: AppColor.secondary, size: 30.sp),
-              8.horizontalSpace,
+              AppSvgIcon(
+                weather.iconPath,
+                size: 36.sp,
+                // color: AppColor.primary,
+              ),
+              10.horizontalSpace,
               AppText(
                 '${weather.temperature}°',
                 style: TextStyle(

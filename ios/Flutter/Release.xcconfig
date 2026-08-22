@@ -1,2 +1,8 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
+
+LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*] = $(inherited) "$(PROJECT_DIR)/.symlinks/plugins/rive_native/native/build/iphoneos/bin/emulator"
+LIBRARY_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) "$(PROJECT_DIR)/.symlinks/plugins/rive_native/native/build/iphoneos/bin/release"
+
+OTHER_LDFLAGS[sdk=iphonesimulator*] = $(inherited) -lc++ -Wl,-force_load,$(PROJECT_DIR)/.symlinks/plugins/rive_native/native/build/iphoneos/bin/emulator/librive_native.a -lrive -lrive_pls_renderer -lrive_yoga -lrive_harfbuzz -lrive_sheenbidi -lrive_decoders -llibpng -lzlib -llibjpeg -llibwebp -lminiaudio -lluau_vm -lluau_compiler -lluau_analyzer -lrive_scripting_workspace -lspirv_cross -lbrotli
+OTHER_LDFLAGS[sdk=iphoneos*] = $(inherited) -lc++ -Wl,-force_load,$(PROJECT_DIR)/.symlinks/plugins/rive_native/native/build/iphoneos/bin/release/librive_native.a -lrive -lrive_pls_renderer -lrive_yoga -lrive_harfbuzz -lrive_sheenbidi -lrive_decoders -llibpng -lzlib -llibjpeg -llibwebp -lminiaudio -lluau_vm -lluau_compiler -lluau_analyzer -lrive_scripting_workspace -lspirv_cross -lbrotli

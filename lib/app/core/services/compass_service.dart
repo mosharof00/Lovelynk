@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -9,12 +10,21 @@ import 'package:get/get.dart';
 ///
 /// Needle angle = partnerBearing − deviceHeading.
 /// Location is started from Splash after the user taps Continue.
+///
+/// **iOS note:** You may see a console message like
+/// "Swift Package Manager is not supported for iOS" from Flutter tooling.
+/// [flutter_compass] ships as a CocoaPod (see `ios/Podfile.lock`) — the
+/// warning is harmless and the compass still works on a physical device.
+/// Simulators have no magnetometer, so heading stays at mock values there.
 class CompassService extends GetxService {
   /// Device heading in degrees (0–360, north = 0). Null until sensor ready.
   final heading = Rxn<double>();
 
   /// True when location permission was granted and a fix exists.
   final hasLocation = false.obs;
+
+  /// False when the device has no compass stream (e.g. iOS Simulator).
+  final hasCompass = true.obs;
 
   StreamSubscription<CompassEvent>? _headingSub;
   StreamSubscription<Position>? _positionSub;
@@ -33,11 +43,30 @@ class CompassService extends GetxService {
   final partnerMiles = 213.obs;
 
   CompassService init() {
-    _headingSub = FlutterCompass.events?.listen((event) {
-      final h = event.heading;
-      if (h == null) return;
-      heading.value = (h + 360) % 360;
-    });
+    final events = FlutterCompass.events;
+    if (events == null) {
+      hasCompass.value = false;
+      if (kDebugMode) {
+        debugPrint(
+          'CompassService: no magnetometer stream '
+          '(simulator or unsupported device). Using mock bearing.',
+        );
+      }
+      return this;
+    }
+
+    _headingSub = events.listen(
+      (event) {
+        final h = event.heading;
+        if (h == null) return;
+        heading.value = (h + 360) % 360;
+      },
+      onError: (Object error) {
+        if (kDebugMode) {
+          debugPrint('CompassService heading stream error: $error');
+        }
+      },
+    );
     // Location starts only after Splash permission Continue.
     return this;
   }

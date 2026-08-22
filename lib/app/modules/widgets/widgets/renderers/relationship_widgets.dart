@@ -19,48 +19,117 @@ class LoveCompassWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final data = _service.data.value;
       final miles = _compass.hasLocation.value
           ? _compass.partnerMiles.value
-          : _service.data.value.compassMiles;
+          : data.compassMiles;
       final radians = _compass.needleRadians();
+      final partnerLabel = data.partnerName.trim().split(' ').first;
 
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 55.w,
-            height: 55.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColor.primaryDisable, width: 1.5),
-            ),
-            alignment: Alignment.center,
-            child: Transform.rotate(
-              angle: radians,
-              child: Icon(
-                Icons.navigation_rounded,
-                color: AppColor.primary,
-                size: 28.sp,
-              ),
-            ),
-          ),
-          4.verticalSpace,
+          _CompassDial(needleRadians: radians),
           AppText(
             '$miles miles',
             style: TextStyle(
-              fontSize: 15.sp,
+              fontSize: 13.sp,
               fontWeight: FontWeight.w700,
               color: AppColor.primary,
             ),
           ),
-          2.verticalSpace,
+
           AppText(
-            'this way',
-            style: TextStyle(fontSize: 11.sp, color: AppColor.textSecondary),
+            '$partnerLabel is this way',
+            maxLines: 1,
+            style: TextStyle(fontSize: 8.sp, color: AppColor.textSecondary),
           ),
         ],
       );
     });
+  }
+}
+
+class _CompassDial extends StatelessWidget {
+  const _CompassDial({required this.needleRadians});
+
+  final double needleRadians;
+
+  static const _labels = ['N', 'E', 'S', 'W'];
+
+  @override
+  Widget build(BuildContext context) {
+    final dialSize = 70.w;
+    final ringSize = 56.w;
+
+    return SizedBox(
+      width: dialSize,
+      height: dialSize,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: ringSize,
+            height: ringSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColor.primary, width: 1.5),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Center(child: _CardinalLabel(_labels[0])),
+          ),
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: Center(child: _CardinalLabel(_labels[1])),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Center(child: _CardinalLabel(_labels[2])),
+          ),
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Center(child: _CardinalLabel(_labels[3])),
+          ),
+          Transform.rotate(
+            angle: needleRadians,
+            child: Icon(
+              Icons.navigation_rounded,
+              color: AppColor.primary,
+              size: 28.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CardinalLabel extends StatelessWidget {
+  const _CardinalLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppText(
+      label,
+      style: TextStyle(
+        fontSize: 8.sp,
+        fontWeight: FontWeight.w600,
+        color: AppColor.primary,
+        height: 1.0,
+      ),
+    );
   }
 }
 
