@@ -14,8 +14,8 @@ import '../modules/heartbeat_summary/bindings/heartbeat_summary_binding.dart';
 import '../modules/heartbeat_summary/views/heartbeat_summary_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
-import '../modules/home_screen_guid/bindings/home_screen_guid_binding.dart';
-import '../modules/home_screen_guid/views/home_screen_guid_view.dart';
+import '../modules/home_screen_guide/bindings/home_screen_guide_binding.dart';
+import '../modules/home_screen_guide/views/home_screen_guide_view.dart';
 import '../modules/kiss_summary/bindings/kiss_summary_binding.dart';
 import '../modules/kiss_summary/views/kiss_summary_view.dart';
 import '../modules/lock_screen_guid/bindings/lock_screen_guid_binding.dart';
@@ -111,12 +111,12 @@ class AppPages {
       binding: SubscriptionsBinding(),
     ),
     GetPage(
-      name: _Paths.HOME_SCREEN_GUID,
-      page: () => const HomeScreenGuidView(),
-      binding: HomeScreenGuidBinding(),
+      name: _Paths.HOME_SCREEN_GUIDE,
+      page: () => const HomeScreenGuideView(),
+      binding: HomeScreenGuideBinding(),
     ),
     GetPage(
-      name: _Paths.LOCK_SCREEN_GUID,
+      name: _Paths.LOCK_SCREEN_GUIDE,
       page: () => const LockScreenGuidView(),
       binding: LockScreenGuidBinding(),
     ),

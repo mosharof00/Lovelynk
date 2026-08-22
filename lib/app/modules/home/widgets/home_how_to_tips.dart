@@ -49,7 +49,7 @@ class HomeHowToTips extends StatelessWidget {
             title: 'Lock Screen',
             body:
                 'See how to add ${AppConfig.appName} widgets to your lock screen.',
-            onTap: () => Get.toNamed(Routes.LOCK_SCREEN_GUID),
+            onTap: () => Get.toNamed(Routes.LOCK_SCREEN_GUIDE),
           ),
           12.verticalSpace,
           _HowToRow(
@@ -57,7 +57,7 @@ class HomeHowToTips extends StatelessWidget {
             title: 'Home Screen',
             body:
                 'See how to add ${AppConfig.appName} widgets to your home screen.',
-            onTap: () => Get.toNamed(Routes.HOME_SCREEN_GUID),
+            onTap: () => Get.toNamed(Routes.HOME_SCREEN_GUIDE),
           ),
         ],
       ),
