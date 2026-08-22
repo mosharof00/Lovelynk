@@ -4,7 +4,7 @@ import '../../../../gen/assets.gen.dart';
 import '../../../core/config/app_config.dart';
 import '../../../data/models/widget_models/widget_guide_step.dart';
 
-class LockScreenGuidController extends GetxController {
+class LockScreenGuideController extends GetxController {
   final currentIndex = 0.obs;
 
   late final List<WidgetGuideStep> steps;

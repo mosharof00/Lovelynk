@@ -18,8 +18,8 @@ import '../modules/home_screen_guide/bindings/home_screen_guide_binding.dart';
 import '../modules/home_screen_guide/views/home_screen_guide_view.dart';
 import '../modules/kiss_summary/bindings/kiss_summary_binding.dart';
 import '../modules/kiss_summary/views/kiss_summary_view.dart';
-import '../modules/lock_screen_guid/bindings/lock_screen_guid_binding.dart';
-import '../modules/lock_screen_guid/views/lock_screen_guid_view.dart';
+import '../modules/lock_screen_guide/bindings/lock_screen_guide_binding.dart';
+import '../modules/lock_screen_guide/views/lock_screen_guide_view.dart';
 import '../modules/main_page/bindings/main_page_binding.dart';
 import '../modules/main_page/views/main_page_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
@@ -117,8 +117,8 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.LOCK_SCREEN_GUIDE,
-      page: () => const LockScreenGuidView(),
-      binding: LockScreenGuidBinding(),
+      page: () => const LockScreenGuideView(),
+      binding: LockScreenGuideBinding(),
     ),
     GetPage(
       name: _Paths.HEARTBEAT_SUMMARY,
