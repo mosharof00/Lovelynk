@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:bulkretail/app/core/theme/app_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -8,11 +9,12 @@ import '../../../../../gen/assets.gen.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
 import '../../../../global/widgets/global_button.dart';
+import '../../../../routes/app_pages.dart';
 
 /// Shared “send” dialog shell for Heartbeat / Kiss / Emoji.
 ///
 /// Soft frosted panel, hero art with two white rings, floating love icons,
-/// underlined “View details”, and a primary Send button.
+/// partner tip card with Home/Lock guide links, “View details”, and Send.
 class InteractiveSendDialog extends StatefulWidget {
   const InteractiveSendDialog({
     super.key,
@@ -22,6 +24,9 @@ class InteractiveSendDialog extends StatefulWidget {
     required this.onSend,
     required this.onViewDetails,
     required this.hero,
+    required this.partnerName,
+    required this.widgetLabel,
+    required this.tipEmoji,
     this.belowHero,
   });
 
@@ -34,6 +39,15 @@ class InteractiveSendDialog extends StatefulWidget {
   /// Center image / emoji (rings + floating hearts wrap this).
   final Widget hero;
 
+  /// Partner first name used in the tip card copy.
+  final String partnerName;
+
+  /// e.g. "Heartbeat", "Kiss", "Emoji".
+  final String widgetLabel;
+
+  /// Trailing emoji on the tip (💗 / 💋 / etc.).
+  final String tipEmoji;
+
   /// Optional content under the message (e.g. emoji picker).
   final Widget? belowHero;
 
@@ -44,6 +58,9 @@ class InteractiveSendDialog extends StatefulWidget {
     required VoidCallback onSend,
     required VoidCallback onViewDetails,
     required Widget hero,
+    required String partnerName,
+    required String widgetLabel,
+    required String tipEmoji,
     Widget? belowHero,
   }) {
     return Get.dialog(
@@ -54,6 +71,9 @@ class InteractiveSendDialog extends StatefulWidget {
         onSend: onSend,
         onViewDetails: onViewDetails,
         hero: hero,
+        partnerName: partnerName,
+        widgetLabel: widgetLabel,
+        tipEmoji: tipEmoji,
         belowHero: belowHero,
       ),
       barrierColor: Colors.black.withValues(alpha: 0.35),
@@ -67,6 +87,7 @@ class InteractiveSendDialog extends StatefulWidget {
 class _InteractiveSendDialogState extends State<InteractiveSendDialog>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
+  bool _showTip = true;
 
   @override
   void initState() {
@@ -83,6 +104,12 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
     super.dispose();
   }
 
+  String get _partnerFirst {
+    final name = widget.partnerName.trim();
+    if (name.isEmpty) return 'Your partner';
+    return name.split(' ').first;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -91,7 +118,9 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
       child: Container(
         constraints: BoxConstraints(maxHeight: 0.88.sh),
         decoration: BoxDecoration(
-          color: AppColor.white.withValues(alpha: 0.96),
+          // color: AppColor.white.withValues(alpha: 0.96),
+          // color: AppColor.background,
+          gradient: AppGradient.brandSoft,
           borderRadius: BorderRadius.circular(28.r),
           boxShadow: [
             BoxShadow(
@@ -105,23 +134,41 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
           borderRadius: BorderRadius.circular(28.r),
           child: Stack(
             children: [
-              // Soft pink / purple glow corners (like the mock).
-              Positioned(
-                top: -60.h,
-                left: -40.w,
-                child: _GlowBlob(
-                  color: AppColor.primary.withValues(alpha: 0.18),
-                  size: 160.r,
-                ),
-              ),
-              Positioned(
-                bottom: 80.h,
-                right: -50.w,
-                child: _GlowBlob(
-                  color: const Color(0xFFB794F6).withValues(alpha: 0.16),
-                  size: 180.r,
-                ),
-              ),
+              // Positioned(
+              //   top: 60.h,
+              //   left: 0,
+              //   right: 0,
+              //   child: Container(
+              //     height: 200.h,
+              //     width: 200.h,
+              //     decoration: BoxDecoration(
+              //       color: Colors.white.withAlpha(25),
+              //       shape: BoxShape.circle,
+              //       border: Border.all(
+              //         color: Colors.white.withAlpha(100),
+              //         width: 2,
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              //
+              // Positioned(
+              //   top: 80.h,
+              //   left: 0,
+              //   right: 0,
+              //   child: Container(
+              //     height: 160.h,
+              //     width: 160.h,
+              //     decoration: BoxDecoration(
+              //       color: Colors.white.withAlpha(25),
+              //       shape: BoxShape.circle,
+              //       border: Border.all(
+              //         color: Colors.white.withAlpha(100),
+              //         width: 2,
+              //       ),
+              //     ),
+              //   ),
+              // ),
               Padding(
                 padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 22.h),
                 child: Column(
@@ -133,10 +180,7 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            _HeroStage(
-                              pulse: _pulse,
-                              child: widget.hero,
-                            ),
+                            _HeroStage(pulse: _pulse, child: widget.hero),
                             18.verticalSpace,
                             AppText(
                               widget.message,
@@ -152,6 +196,22 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
                             if (widget.belowHero != null) ...[
                               16.verticalSpace,
                               widget.belowHero!,
+                            ],
+                            if (_showTip) ...[
+                              16.verticalSpace,
+                              _PartnerWidgetTipCard(
+                                message:
+                                    '$_partnerFirst needs the ${widget.widgetLabel} widget on their lock screen to feel this ${widget.tipEmoji}',
+                                onClose: () => setState(() => _showTip = false),
+                                onHomeGuide: () {
+                                  Get.back();
+                                  Get.toNamed(Routes.HOME_SCREEN_GUIDE);
+                                },
+                                onLockGuide: () {
+                                  Get.back();
+                                  Get.toNamed(Routes.LOCK_SCREEN_GUIDE);
+                                },
+                              ),
                             ],
                             16.verticalSpace,
                             GestureDetector(
@@ -173,11 +233,7 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
                       ),
                     ),
                     18.verticalSpace,
-                    GlobalButton(
-                      onTap: widget.onSend,
-                      text: widget.sendLabel,
-                      height: 52.h,
-                    ),
+                    GlobalButton(onTap: widget.onSend, text: widget.sendLabel),
                   ],
                 ),
               ),
@@ -200,10 +256,18 @@ class _DialogHeader extends StatelessWidget {
       children: [
         IconButton(
           onPressed: () => Get.back(),
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 18.sp,
-            color: AppColor.textPrimary,
+          icon: Container(
+            height: 30.w,
+            width: 30.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black12.withAlpha(25),
+            ),
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 18.sp,
+              color: Colors.black,
+            ),
           ),
         ),
         Expanded(
@@ -219,6 +283,105 @@ class _DialogHeader extends StatelessWidget {
         ),
         SizedBox(width: 40.w),
       ],
+    );
+  }
+}
+
+class _PartnerWidgetTipCard extends StatelessWidget {
+  const _PartnerWidgetTipCard({
+    required this.message,
+    required this.onClose,
+    required this.onHomeGuide,
+    required this.onLockGuide,
+  });
+
+  final String message;
+  final VoidCallback onClose;
+  final VoidCallback onHomeGuide;
+  final VoidCallback onLockGuide;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(14.w, 12.h, 8.w, 14.h),
+      decoration: BoxDecoration(
+        color: AppColor.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 2.h, right: 4.w),
+                  child: AppText(
+                    message,
+                    maxLines: 4,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w500,
+                      color: AppColor.textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: onClose,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: EdgeInsets.all(4.w),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18.sp,
+                    color: AppColor.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          10.verticalSpace,
+          _GuideLink(label: 'Home Screen Guide →', onTap: onHomeGuide),
+          6.verticalSpace,
+          _GuideLink(label: 'Lock Screen Guide →', onTap: onLockGuide),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuideLink extends StatelessWidget {
+  const _GuideLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AppText(
+        label,
+        style: TextStyle(
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w600,
+          color: AppColor.primary,
+          decoration: TextDecoration.underline,
+          decorationColor: AppColor.primary,
+        ),
+      ),
     );
   }
 }
@@ -250,10 +413,9 @@ class _HeroStage extends StatelessWidget {
           return Stack(
             alignment: Alignment.center,
             children: [
-              _Ring(size: 220.w, opacity: 0.55 + t * 0.15),
-              _Ring(size: 180.w, opacity: 0.75 + t * 0.1),
-              for (final love in _loves)
-                _FloatingLove(spec: love, t: t),
+              _Ring(size: 220.w),
+              _Ring(size: 180.w),
+              for (final love in _loves) _FloatingLove(spec: love, t: t),
               child,
             ],
           );
@@ -264,29 +426,19 @@ class _HeroStage extends StatelessWidget {
 }
 
 class _Ring extends StatelessWidget {
-  const _Ring({required this.size, required this.opacity});
+  const _Ring({required this.size});
 
   final double size;
-  final double opacity;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size,
       height: size,
+      width: size,
       decoration: BoxDecoration(
+        color: Colors.white.withAlpha(25),
         shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: opacity),
-          width: 2.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.55),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ),
-        ],
+        border: Border.all(color: Colors.white.withAlpha(100), width: 2),
       ),
     );
   }
@@ -327,25 +479,6 @@ class _FloatingLove extends StatelessWidget {
             fit: BoxFit.contain,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _GlowBlob extends StatelessWidget {
-  const _GlowBlob({required this.color, required this.size});
-
-  final Color color;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
       ),
     );
   }

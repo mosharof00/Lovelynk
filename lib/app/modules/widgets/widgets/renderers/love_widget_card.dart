@@ -4,14 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
 
-/// Shared shell for every widget card: title, live body, and footer action.
+/// Shared shell for every widget card: title, live body, and footer action(s).
 ///
-/// The body ([child]) is the widget's real look; this shell only owns the
-/// frame, the title row (with lock state) and the single footer button so all
-/// 12 widgets stay visually consistent.
-///
-/// Interactive widgets pass [onTap] so tapping anywhere on the card fires the
-/// action (e.g. send a kiss); the footer stays as "Add Widget".
+/// Interactive widgets pass [onSend] + [sendLabel] so the footer shows
+/// "Add Widget | Send …" — the card body itself is not tappable.
 class LoveWidgetCard extends StatelessWidget {
   const LoveWidgetCard({
     super.key,
@@ -19,7 +15,8 @@ class LoveWidgetCard extends StatelessWidget {
     required this.child,
     required this.isUnlocked,
     required this.onAction,
-    this.onTap,
+    this.onSend,
+    this.sendLabel,
   });
 
   final String title;
@@ -29,13 +26,17 @@ class LoveWidgetCard extends StatelessWidget {
   /// Footer: Add Widget / Unlock Widget.
   final VoidCallback onAction;
 
-  /// Whole-card tap (interactive widgets only).
-  final VoidCallback? onTap;
+  /// Optional second footer action (interactive widgets only).
+  final VoidCallback? onSend;
+  final String? sendLabel;
+
+  bool get _showSend =>
+      isUnlocked && onSend != null && (sendLabel?.isNotEmpty ?? false);
 
   @override
   Widget build(BuildContext context) {
-    final card = Container(
-      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 8.h),
+    return Container(
+      padding: EdgeInsets.fromLTRB(10.w, 12.h, 10.w, 8.h),
       decoration: BoxDecoration(
         color: AppColor.white,
         borderRadius: BorderRadius.circular(20.r),
@@ -77,20 +78,38 @@ class LoveWidgetCard extends StatelessWidget {
             color: AppColor.inputBorder.withValues(alpha: 0.8),
           ),
           6.verticalSpace,
-          _FooterAction(
-            label: isUnlocked ? 'Add Widget' : 'Unlock Widget',
-            icon: isUnlocked ? Icons.add_rounded : Icons.lock_open_rounded,
-            onTap: onAction,
-          ),
+          if (_showSend)
+            Row(
+              children: [
+                Expanded(
+                  child: _FooterAction(
+                    label: 'Add Widget',
+                    icon: Icons.add_rounded,
+                    onTap: onAction,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 16.h,
+                  color: AppColor.inputBorder.withValues(alpha: 0.9),
+                ),
+                Expanded(
+                  child: _FooterAction(
+                    label: sendLabel!,
+                    icon: Icons.send_outlined,
+                    onTap: onSend!,
+                  ),
+                ),
+              ],
+            )
+          else
+            _FooterAction(
+              label: isUnlocked ? 'Add Widget' : 'Unlock Widget',
+              icon: isUnlocked ? Icons.add_rounded : Icons.lock_open_rounded,
+              onTap: onAction,
+            ),
         ],
       ),
-    );
-
-    if (onTap == null) return card;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: card,
     );
   }
 }
@@ -111,23 +130,26 @@ class _FooterAction extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 14.sp, color: AppColor.secondary),
-          4.horizontalSpace,
-          Flexible(
-            child: AppText(
-              label,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColor.secondary,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 0.h, horizontal: 2.w),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 10.sp, color: AppColor.secondary),
+            3.horizontalSpace,
+            Flexible(
+              child: AppText(
+                label,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.secondary,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

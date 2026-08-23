@@ -59,8 +59,8 @@ class _CompassDial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dialSize = 70.w;
-    final ringSize = 56.w;
+    final dialSize = 68.w;
+    final ringSize = 54.w;
 
     return SizedBox(
       width: dialSize,

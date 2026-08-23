@@ -1,6 +1,6 @@
-import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services/compass_service.dart';
@@ -28,14 +28,28 @@ class SplashController extends GetxController {
   }
 
   /// Soft pre-prompt before the system permission sheet.
+  /// Skipped when location is already granted.
   Future<void> _askPermissions() async {
+    if (!Get.isRegistered<CompassService>()) return;
+
+    final compass = Get.find<CompassService>();
+    final status = await Geolocator.checkPermission();
+
+    // Already granted — start listening, never show the soft prompt again.
+    if (status == LocationPermission.whileInUse ||
+        status == LocationPermission.always) {
+      await compass.requestAndStartLocation();
+      return;
+    }
+
     final accepted = await Get.dialog<bool>(
       const _PermissionDialog(),
-      barrierDismissible: false,
+      barrierDismissible: true,
     );
 
-    if (accepted == true && Get.isRegistered<CompassService>()) {
-      await Get.find<CompassService>().requestAndStartLocation();
+    // Continue → system permission sheet. Dismiss / back → skip.
+    if (accepted == true) {
+      await compass.requestAndStartLocation();
     }
   }
 
@@ -93,25 +107,10 @@ class _PermissionDialog extends StatelessWidget {
               ),
             ),
             22.verticalSpace,
-            Row(
-              children: [
-                Expanded(
-                  child: GlobalButton(
-                    onTap: () => Get.back(result: false),
-                    text: 'Cancel',
-                    height: 40.h,
-                    color: Colors.grey,
-                  ),
-                ),
-                12.width,
-                Expanded(
-                  child: GlobalButton(
-                    onTap: () => Get.back(result: true),
-                    text: 'Continue',
-                    height: 40.h,
-                  ),
-                ),
-              ],
+            GlobalButton(
+              onTap: () => Get.back(result: true),
+              text: 'Continue',
+              height: 40.h,
             ),
           ],
         ),

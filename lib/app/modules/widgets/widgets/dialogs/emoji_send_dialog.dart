@@ -22,6 +22,9 @@ class EmojiSendDialog {
       title: 'Send an Emoji',
       message: 'Pick an emoji to send to $partnerName 💞',
       sendLabel: 'Send Emoji',
+      partnerName: partnerName,
+      widgetLabel: 'Emoji',
+      tipEmoji: '😍',
       onSend: () {
         final emoji = selected.value;
         Get.back();

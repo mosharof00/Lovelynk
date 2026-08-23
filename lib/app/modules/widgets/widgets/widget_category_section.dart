@@ -93,9 +93,10 @@ class WidgetCategorySection extends StatelessWidget {
       title: item.title,
       isUnlocked: isUnlocked,
       onAction: () => isUnlocked ? onAdd(item) : onUnlock(),
-      onTap: item.isInteractive
+      onSend: item.isInteractive
           ? () => isUnlocked ? onSend(item) : onUnlock()
           : null,
+      sendLabel: item.sendLabel,
       child: buildWidgetBody(item.type),
     );
   }

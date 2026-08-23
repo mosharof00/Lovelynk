@@ -18,6 +18,9 @@ class HeartbeatSendDialog {
       title: 'Send Heartbeat',
       message: 'Tap the button to send a heartbeat to $partnerName 💞',
       sendLabel: 'Send Heartbeat',
+      partnerName: partnerName,
+      widgetLabel: 'Heartbeat',
+      tipEmoji: '💗',
       onSend: () {
         Get.back();
         onSend();

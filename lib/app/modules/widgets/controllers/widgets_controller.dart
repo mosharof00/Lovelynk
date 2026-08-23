@@ -98,7 +98,7 @@ class WidgetsController extends GetxController {
     );
   }
 
-  /// Interactive card tap → branded send dialog.
+  /// Interactive footer "Send …" → branded send dialog.
   void onSendTap(WidgetDefinition widget) {
     final partner = _data.data.value.partnerName;
 

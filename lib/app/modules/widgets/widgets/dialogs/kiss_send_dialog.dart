@@ -18,6 +18,9 @@ class KissSendDialog {
       title: 'Send a Kiss',
       message: 'Tap the button to send a kiss to $partnerName 💞',
       sendLabel: 'Send a Kiss',
+      partnerName: partnerName,
+      widgetLabel: 'Kiss',
+      tipEmoji: '💋',
       onSend: () {
         Get.back();
         onSend();
