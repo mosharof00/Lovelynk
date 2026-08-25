@@ -42,6 +42,11 @@ class ProfileView extends GetView<ProfileController> {
                     label: 'Edit Profile',
                   ),
                   ProfileMenuItemData(
+                    icon: Icons.notifications_outlined,
+                    label: 'Notifications',
+                    onTap: () => Get.toNamed(Routes.NOTIFICATIONS),
+                  ),
+                  ProfileMenuItemData(
                     icon: Icons.subscript,
                     label: 'Manage Subscription',
                     onTap: () => Get.toNamed(Routes.SUBSCRIPTIONS),
@@ -79,6 +84,38 @@ class ProfileView extends GetView<ProfileController> {
             22.verticalSpace,
             FadeInAnimation(
               delay: 4,
+              fromLeft: true,
+              shouldAnimate: controller.isFadeInAnimate,
+              child: ProfileMenuSection(
+                title: 'Widgets & Activity',
+                titleColor: AppColor.textSecondary,
+                items: [
+                  ProfileMenuItemData(
+                    icon: Icons.history_rounded,
+                    label: 'Activities',
+                    onTap: () => Get.toNamed(Routes.ACTIVITIES),
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.favorite_rounded,
+                    label: 'Heartbeat',
+                    onTap: () => Get.toNamed(Routes.HEARTBEAT_SUMMARY),
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.volunteer_activism_rounded,
+                    label: 'Kiss',
+                    onTap: () => Get.toNamed(Routes.KISS_SUMMARY),
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.emoji_emotions_outlined,
+                    label: 'Emoji',
+                    onTap: () => Get.toNamed(Routes.EMOJI_SUMMARY),
+                  ),
+                ],
+              ),
+            ),
+            22.verticalSpace,
+            FadeInAnimation(
+              delay: 5,
               fromLeft: true,
               shouldAnimate: controller.isFadeInAnimate,
               child: ProfileMenuSection(

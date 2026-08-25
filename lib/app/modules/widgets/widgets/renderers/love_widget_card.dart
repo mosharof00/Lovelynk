@@ -8,6 +8,8 @@ import '../../../../global/widgets/app_text.dart';
 ///
 /// Interactive widgets pass [onSend] + [sendLabel] so the footer shows
 /// "Add Widget | Send …" — the card body itself is not tappable.
+///
+/// Use [compact] on Home (narrow columns) for smaller type / shorter labels.
 class LoveWidgetCard extends StatelessWidget {
   const LoveWidgetCard({
     super.key,
@@ -17,34 +19,44 @@ class LoveWidgetCard extends StatelessWidget {
     required this.onAction,
     this.onSend,
     this.sendLabel,
+    this.compact = false,
   });
 
   final String title;
   final Widget child;
   final bool isUnlocked;
-
-  /// Footer: Add Widget / Unlock Widget.
   final VoidCallback onAction;
-
-  /// Optional second footer action (interactive widgets only).
   final VoidCallback? onSend;
   final String? sendLabel;
+  final bool compact;
 
   bool get _showSend =>
       isUnlocked && onSend != null && (sendLabel?.isNotEmpty ?? false);
 
   @override
   Widget build(BuildContext context) {
+    final titleSize = compact ? 11.sp : 13.sp;
+    final padH = compact ? 6.w : 10.w;
+    final padTop = compact ? 8.h : 12.h;
+    final padBottom = compact ? 6.h : 8.h;
+    final gapAfterTitle = compact ? 4.h : 10.h;
+    final gapBeforeDivider = compact ? 4.h : 8.h;
+
+    final addLabel = compact
+        ? (isUnlocked ? 'Add' : 'Unlock')
+        : (isUnlocked ? 'Add Widget' : 'Unlock Widget');
+    final sendText = compact ? 'Send' : (sendLabel ?? 'Send');
+
     return Container(
-      padding: EdgeInsets.fromLTRB(10.w, 12.h, 10.w, 8.h),
+      padding: EdgeInsets.fromLTRB(padH, padTop, padH, padBottom),
       decoration: BoxDecoration(
         color: AppColor.white,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(compact ? 14.r : 20.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            blurRadius: compact ? 8 : 14,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -59,54 +71,61 @@ class LoveWidgetCard extends StatelessWidget {
                   maxLines: 1,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 13.sp,
+                    fontSize: titleSize,
                     fontWeight: FontWeight.w700,
                     color: AppColor.textPrimary,
                   ),
                 ),
               ),
               if (!isUnlocked)
-                Icon(Icons.lock_rounded, size: 14.sp, color: AppColor.hintText),
+                Icon(
+                  Icons.lock_rounded,
+                  size: compact ? 11.sp : 14.sp,
+                  color: AppColor.hintText,
+                ),
             ],
           ),
-          10.verticalSpace,
+          SizedBox(height: gapAfterTitle),
           Expanded(child: Center(child: child)),
-          8.verticalSpace,
+          SizedBox(height: gapBeforeDivider),
           Divider(
             height: 1,
             thickness: 0.6,
             color: AppColor.inputBorder.withValues(alpha: 0.8),
           ),
-          6.verticalSpace,
+          SizedBox(height: compact ? 4.h : 6.h),
           if (_showSend)
             Row(
               children: [
                 Expanded(
                   child: _FooterAction(
-                    label: 'Add Widget',
+                    label: addLabel,
                     icon: Icons.add_rounded,
                     onTap: onAction,
+                    compact: compact,
                   ),
                 ),
                 Container(
                   width: 1,
-                  height: 16.h,
+                  height: compact ? 12.h : 16.h,
                   color: AppColor.inputBorder.withValues(alpha: 0.9),
                 ),
                 Expanded(
                   child: _FooterAction(
-                    label: sendLabel!,
+                    label: sendText,
                     icon: Icons.send_outlined,
                     onTap: onSend!,
+                    compact: compact,
                   ),
                 ),
               ],
             )
           else
             _FooterAction(
-              label: isUnlocked ? 'Add Widget' : 'Unlock Widget',
+              label: addLabel,
               icon: isUnlocked ? Icons.add_rounded : Icons.lock_open_rounded,
               onTap: onAction,
+              compact: compact,
             ),
         ],
       ),
@@ -119,11 +138,13 @@ class _FooterAction extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
+    this.compact = false,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -131,18 +152,22 @@ class _FooterAction extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 0.h, horizontal: 2.w),
+        padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 1.w),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 10.sp, color: AppColor.secondary),
-            3.horizontalSpace,
+            Icon(
+              icon,
+              size: compact ? 10.sp : 12.sp,
+              color: AppColor.secondary,
+            ),
+            SizedBox(width: compact ? 2.w : 3.w),
             Flexible(
               child: AppText(
                 label,
                 maxLines: 1,
                 style: TextStyle(
-                  fontSize: 10.sp,
+                  fontSize: compact ? 9.sp : 11.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColor.secondary,
                 ),

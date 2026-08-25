@@ -212,7 +212,9 @@ class _DistanceDotsPainter extends CustomPainter {
 // ── Days Together ───────────────────────────────────────────────────
 
 class DaysTogetherWidget extends StatelessWidget {
-  const DaysTogetherWidget({super.key});
+  const DaysTogetherWidget({super.key, this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -221,21 +223,28 @@ class DaysTogetherWidget extends StatelessWidget {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppSvgIcon(Assets.icons.loveIcon, size: 30.sp, color: AppColor.primary),
-          8.verticalSpace,
+          AppSvgIcon(
+            Assets.icons.loveIcon,
+            size: compact ? 18.sp : 30.sp,
+            color: AppColor.primary,
+          ),
+          SizedBox(height: compact ? 4.h : 8.h),
           AppText(
             '$days',
             style: TextStyle(
-              fontSize: 30.sp,
+              fontSize: compact ? 18.sp : 30.sp,
               fontWeight: FontWeight.w700,
               color: AppColor.primary,
               height: 1.0,
             ),
           ),
-          2.verticalSpace,
+          SizedBox(height: compact ? 1.h : 2.h),
           AppText(
             'days',
-            style: TextStyle(fontSize: 12.sp, color: AppColor.textSecondary),
+            style: TextStyle(
+              fontSize: compact ? 10.sp : 12.sp,
+              color: AppColor.textSecondary,
+            ),
           ),
         ],
       );

@@ -96,6 +96,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/note_send_icon.svg
   String get noteSendIcon => 'assets/icons/note_send_icon.svg';
 
+  /// File path: assets/icons/notification_icon.svg
+  String get notificationIcon => 'assets/icons/notification_icon.svg';
+
   /// File path: assets/icons/photos_icon.svg
   String get photosIcon => 'assets/icons/photos_icon.svg';
 
@@ -142,6 +145,7 @@ class $AssetsIconsGen {
     morningIcon,
     noteDoneIcon,
     noteSendIcon,
+    notificationIcon,
     photosIcon,
     profileFillIcon,
     profileIcon,
@@ -171,17 +175,21 @@ class $AssetsImagesGen {
   AssetGenImage get customiseLockPreviewBg =>
       const AssetGenImage('assets/images/customise_lock_preview_bg.png');
 
+  /// File path: assets/images/emoji_summary_header_image.png
+  AssetGenImage get emojiSummaryHeaderImage =>
+      const AssetGenImage('assets/images/emoji_summary_header_image.png');
+
   /// File path: assets/images/empty_box.png
   AssetGenImage get emptyBox =>
       const AssetGenImage('assets/images/empty_box.png');
 
-  /// File path: assets/images/heartbeat_header_image.png
-  AssetGenImage get heartbeatHeaderImage =>
-      const AssetGenImage('assets/images/heartbeat_header_image.png');
-
   /// File path: assets/images/heartbeat_image.png
   AssetGenImage get heartbeatImage =>
       const AssetGenImage('assets/images/heartbeat_image.png');
+
+  /// File path: assets/images/heartbeat_summary_header_image.png
+  AssetGenImage get heartbeatSummaryHeaderImage =>
+      const AssetGenImage('assets/images/heartbeat_summary_header_image.png');
 
   /// File path: assets/images/home_screen_demo.png
   AssetGenImage get homeScreenDemo =>
@@ -253,9 +261,10 @@ class $AssetsImagesGen {
     connectWithPartnerImage,
     connectedImage,
     customiseLockPreviewBg,
+    emojiSummaryHeaderImage,
     emptyBox,
-    heartbeatHeaderImage,
     heartbeatImage,
+    heartbeatSummaryHeaderImage,
     homeScreenDemo,
     homeWidgetGuidStep1,
     homeWidgetGuidStep2,

@@ -76,7 +76,7 @@ class _HeartbeatHeader extends GetView<HeartbeatSummaryController> {
         fit: StackFit.expand,
         children: [
           Positioned.fill(
-            child: Assets.images.heartbeatHeaderImage.image(
+            child: Assets.images.heartbeatSummaryHeaderImage.image(
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
             ),

@@ -59,8 +59,8 @@ class _CompassDial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dialSize = 68.w;
-    final ringSize = 54.w;
+    final dialSize = 66.w;
+    final ringSize = 52.w;
 
     return SizedBox(
       width: dialSize,
@@ -186,13 +186,17 @@ class _InitialCircle extends StatelessWidget {
 // ── Anniversary ─────────────────────────────────────────────────────
 
 class AnniversaryWidget extends StatelessWidget {
-  const AnniversaryWidget({super.key});
+  const AnniversaryWidget({super.key, this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final anniversary = _service.data.value.anniversary;
-      final dateText = DateFormat('d MMM yyyy').format(anniversary);
+      final dateText = DateFormat(
+        compact ? 'd MMM' : 'd MMM yyyy',
+      ).format(anniversary);
       final daysToGo = _daysToNext(anniversary);
 
       return Column(
@@ -200,16 +204,23 @@ class AnniversaryWidget extends StatelessWidget {
         children: [
           AppText(
             dateText,
+            maxLines: 1,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 20.sp,
+              fontSize: compact ? 13.sp : 20.sp,
               fontWeight: FontWeight.w700,
               color: AppColor.primary,
             ),
           ),
-          6.verticalSpace,
+          SizedBox(height: compact ? 3.h : 6.h),
           AppText(
             '$daysToGo days to go',
-            style: TextStyle(fontSize: 12.sp, color: AppColor.textSecondary),
+            maxLines: 1,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: compact ? 9.sp : 12.sp,
+              color: AppColor.textSecondary,
+            ),
           ),
         ],
       );

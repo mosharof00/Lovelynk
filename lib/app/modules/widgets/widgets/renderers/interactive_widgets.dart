@@ -10,7 +10,7 @@ import '../../../../global/widgets/app_text.dart';
 
 WidgetDataService get _service => Get.find<WidgetDataService>();
 
-// ── Heartbeat ───────────────────────────────────────────────────────
+// ── Heartbeat (partner count) ───────────────────────────────────────
 
 class HeartbeatWidget extends StatelessWidget {
   const HeartbeatWidget({super.key});
@@ -48,60 +48,50 @@ class HeartbeatWidget extends StatelessWidget {
   }
 }
 
-// class _HeartbeatPainter extends CustomPainter {
-//   _HeartbeatPainter({required this.color});
-//
-//   final Color color;
-//
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     final paint = Paint()
-//       ..color = color
-//       ..style = PaintingStyle.stroke
-//       ..strokeWidth = 2
-//       ..strokeCap = StrokeCap.round
-//       ..strokeJoin = StrokeJoin.round;
-//
-//     final midY = size.height / 2;
-//     final path = Path()
-//       ..moveTo(0, midY)
-//       ..lineTo(size.width * 0.30, midY)
-//       ..lineTo(size.width * 0.40, midY - size.height * 0.35)
-//       ..lineTo(size.width * 0.50, midY + size.height * 0.45)
-//       ..lineTo(size.width * 0.60, midY - size.height * 0.15)
-//       ..lineTo(size.width * 0.70, midY)
-//       ..lineTo(size.width, midY);
-//
-//     canvas.drawPath(path, paint);
-//   }
-//
-//   @override
-//   bool shouldRepaint(covariant _HeartbeatPainter oldDelegate) =>
-//       oldDelegate.color != color;
-// }
-
-// ── Kiss ────────────────────────────────────────────────────────────
+// ── Kiss (partner count) ────────────────────────────────────────────
 
 class KissWidget extends StatelessWidget {
-  const KissWidget({super.key});
+  const KissWidget({super.key, this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('💋', style: TextStyle(fontSize: 48.sp)),
-        6.verticalSpace,
-        AppText(
-          'tap to send',
-          style: TextStyle(fontSize: 11.sp, color: AppColor.textSecondary),
-        ),
-      ],
-    );
+    return Obx(() {
+      final count = _service.kissesFromPartner.value;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppSvgIcon(
+            Assets.icons.kissIcon,
+            size: compact ? 22.sp : 40.sp,
+            color: AppColor.primary,
+          ),
+          SizedBox(height: compact ? 2.h : 6.h),
+          AppText(
+            '$count',
+            style: TextStyle(
+              fontSize: compact ? 18.sp : 22.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColor.primary,
+              height: 1.0,
+            ),
+          ),
+          SizedBox(height: compact ? 1.h : 2.h),
+          AppText(
+            'from partner',
+            style: TextStyle(
+              fontSize: compact ? 9.sp : 11.sp,
+              color: AppColor.textSecondary,
+            ),
+          ),
+        ],
+      );
+    });
   }
 }
 
-// ── Emoji ───────────────────────────────────────────────────────────
+// ── Emoji (partner recent) ──────────────────────────────────────────
 
 class EmojiWidget extends StatelessWidget {
   const EmojiWidget({super.key});
@@ -109,7 +99,7 @@ class EmojiWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final recent = _service.sentEmojis.take(3).toList();
+      final recent = _service.emojisFromPartner.take(3).toList();
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -124,7 +114,7 @@ class EmojiWidget extends StatelessWidget {
           ),
           6.verticalSpace,
           AppText(
-            'tap to send',
+            'from partner',
             style: TextStyle(fontSize: 11.sp, color: AppColor.textSecondary),
           ),
         ],

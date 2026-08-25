@@ -123,9 +123,7 @@ class WidgetsController extends GetxController {
             _data.sendKiss();
             _toast('Kiss sent 💋', 'Your partner will feel the love.');
           },
-          onViewDetails: () {
-            _toast('Coming soon', 'Kiss summary will match Heartbeat.');
-          },
+          onViewDetails: () => Get.toNamed(Routes.KISS_SUMMARY),
         );
         break;
       case AppWidgetType.emoji:
@@ -135,9 +133,7 @@ class WidgetsController extends GetxController {
             _data.sendEmoji(emoji);
             _toast('Emoji sent $emoji', 'Sent to your partner.');
           },
-          onViewDetails: () {
-            _toast('Coming soon', 'Emoji summary will match Heartbeat.');
-          },
+          onViewDetails: () => Get.toNamed(Routes.EMOJI_SUMMARY),
         );
         break;
       default:

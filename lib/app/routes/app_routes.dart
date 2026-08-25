@@ -20,6 +20,9 @@ abstract class Routes {
   static const LOCK_SCREEN_GUIDE = _Paths.LOCK_SCREEN_GUIDE;
   static const HEARTBEAT_SUMMARY = _Paths.HEARTBEAT_SUMMARY;
   static const KISS_SUMMARY = _Paths.KISS_SUMMARY;
+  static const EMOJI_SUMMARY = _Paths.EMOJI_SUMMARY;
+  static const ACTIVITIES = _Paths.ACTIVITIES;
+  static const NOTIFICATIONS = _Paths.NOTIFICATIONS;
 }
 
 abstract class _Paths {
@@ -41,4 +44,7 @@ abstract class _Paths {
   static const LOCK_SCREEN_GUIDE = '/lock-screen-guide';
   static const HEARTBEAT_SUMMARY = '/heartbeat-summary';
   static const KISS_SUMMARY = '/kiss-summary';
+  static const EMOJI_SUMMARY = '/emoji-summary';
+  static const ACTIVITIES = '/activities';
+  static const NOTIFICATIONS = '/notifications';
 }

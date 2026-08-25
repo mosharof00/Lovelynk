@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../global/widgets/app_text.dart';
+import '../../../global/widgets/notification_bell_button.dart';
 import '../controllers/widgets_controller.dart';
 import '../widgets/widget_category_section.dart';
 
@@ -23,13 +24,20 @@ class WidgetsView extends GetView<WidgetsController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppText(
-                    'Widgets',
-                    style: TextStyle(
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColor.textPrimary,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppText(
+                          'Widgets',
+                          style: TextStyle(
+                            fontSize: 28.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColor.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const NotificationBellButton(),
+                    ],
                   ),
                   16.verticalSpace,
                   const _WidgetSearchBar(),

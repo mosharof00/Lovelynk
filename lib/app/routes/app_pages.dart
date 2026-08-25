@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import '../modules/activities/bindings/activities_binding.dart';
+import '../modules/activities/views/activities_view.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/login/bindings/login_binding.dart';
 import '../modules/auth/login/views/login_view.dart';
@@ -10,6 +12,8 @@ import '../modules/color_customise/bindings/color_customise_binding.dart';
 import '../modules/color_customise/views/color_customise_view.dart';
 import '../modules/connect_with_partner/bindings/connect_with_partner_binding.dart';
 import '../modules/connect_with_partner/views/connect_with_partner_view.dart';
+import '../modules/emoji_summary/bindings/emoji_summary_binding.dart';
+import '../modules/emoji_summary/views/emoji_summary_view.dart';
 import '../modules/heartbeat_summary/bindings/heartbeat_summary_binding.dart';
 import '../modules/heartbeat_summary/views/heartbeat_summary_view.dart';
 import '../modules/home/bindings/home_binding.dart';
@@ -22,6 +26,8 @@ import '../modules/lock_screen_guide/bindings/lock_screen_guide_binding.dart';
 import '../modules/lock_screen_guide/views/lock_screen_guide_view.dart';
 import '../modules/main_page/bindings/main_page_binding.dart';
 import '../modules/main_page/views/main_page_view.dart';
+import '../modules/notifications/bindings/notifications_binding.dart';
+import '../modules/notifications/views/notifications_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
 import '../modules/products/bindings/products_binding.dart';
@@ -129,6 +135,21 @@ class AppPages {
       name: _Paths.KISS_SUMMARY,
       page: () => const KissSummaryView(),
       binding: KissSummaryBinding(),
+    ),
+    GetPage(
+      name: _Paths.EMOJI_SUMMARY,
+      page: () => const EmojiSummaryView(),
+      binding: EmojiSummaryBinding(),
+    ),
+    GetPage(
+      name: _Paths.ACTIVITIES,
+      page: () => const ActivitiesView(),
+      binding: ActivitiesBinding(),
+    ),
+    GetPage(
+      name: _Paths.NOTIFICATIONS,
+      page: () => const NotificationsView(),
+      binding: NotificationsBinding(),
     ),
   ];
 }

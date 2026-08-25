@@ -85,7 +85,7 @@ class PartnerDistanceCard extends GetView<HomeController> {
                                 ? '${controller.distanceLabel.value}'
                                 : '— — —',
                             style: TextStyle(
-                              fontSize: 28.sp,
+                              fontSize: 22.sp,
                               fontWeight: FontWeight.w700,
                               color: connected? AppColor.textPrimary: AppColor.grey410,
                             ),
@@ -95,14 +95,14 @@ class PartnerDistanceCard extends GetView<HomeController> {
                                 ? controller.distanceUnit.value
                                 : 'miles apart',
                             style: TextStyle(
-                              fontSize: 12.sp,
+                              fontSize: 11.sp,
                               color: AppColor.textSecondary,
                             ),
                           ),
 
                           Image.asset(
                             Assets.images.connectedImage.path,
-                            width: 200.w,
+                            width: 160.w,
                           ),
                         ],
                       ),
@@ -163,18 +163,18 @@ class _AvatarSlot extends StatelessWidget {
                       ),
                       child: CachedImage(
                         imgUrl: imageUrl ?? '',
-                        height: 58.w,
-                        width: 58.w,
+                        height: 48.w,
+                        width: 48.w,
                         borderRadius: 50.r,
                       ),
                     )
                   : CircleAvatar(
-                      radius: 28.r,
+                      radius: 24.r,
                       backgroundColor: AppColor.primaryLight,
                       child: Icon(
                         Icons.person_rounded,
                         color: AppColor.primary.withValues(alpha: 0.7),
-                        size: 28.sp,
+                        size: 24.sp,
                       ),
                     ),
               if (showAdd)

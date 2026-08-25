@@ -25,32 +25,32 @@ class HomeAffirmationCard extends GetView<HomeController> {
           AppText(
             'Daily Affirmation',
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w600,
               color: AppColor.textSecondary,
             ),
           ),
-          8.verticalSpace,
+          6.verticalSpace,
           Obx(
             () => AppText(
               controller.affirmation.value,
               maxLines: 4,
               style: TextStyle(
-                fontSize: 15.sp,
+                fontSize: 13.sp,
                 fontWeight: FontWeight.w600,
                 color: AppColor.textPrimary,
                 height: 1.35,
               ),
             ),
           ),
-          8.verticalSpace,
+          6.verticalSpace,
           Row(
             children: [
-              Icon(Icons.favorite_rounded, size: 12.sp, color: AppColor.primary),
-              4.horizontalSpace,
-              Icon(Icons.favorite_rounded, size: 12.sp, color: AppColor.primaryLight),
-              4.horizontalSpace,
-              Icon(Icons.favorite_rounded, size: 12.sp, color: AppColor.primary),
+              Icon(Icons.favorite_rounded, size: 11.sp, color: AppColor.primary),
+              3.horizontalSpace,
+              Icon(Icons.favorite_rounded, size: 11.sp, color: AppColor.primaryLight),
+              3.horizontalSpace,
+              Icon(Icons.favorite_rounded, size: 11.sp, color: AppColor.primary),
             ],
           ),
         ],

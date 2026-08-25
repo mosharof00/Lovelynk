@@ -1,5 +1,6 @@
 import 'package:bulkretail/app/core/theme/app_gradient.dart';
 import 'package:bulkretail/app/global/widgets/app_svg_icon.dart';
+import 'package:bulkretail/app/routes/app_pages.dart';
 import 'package:bulkretail/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -41,12 +42,16 @@ class HomeRecentActivity extends GetView<HomeController> {
                 ),
                 const Spacer(),
                 if (connected)
-                  AppText(
-                    'View all',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: AppColor.primary,
-                      fontWeight: FontWeight.w600,
+                  GestureDetector(
+                    onTap: () => Get.toNamed(Routes.ACTIVITIES),
+                    behavior: HitTestBehavior.opaque,
+                    child: AppText(
+                      'View all',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: AppColor.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
               ],

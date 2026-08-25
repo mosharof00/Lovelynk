@@ -5,22 +5,24 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../../gen/assets.gen.dart';
+import '../../../core/services/widget_data_service.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/reaction_activity.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/custom_appbar.dart';
 import '../../../global/widgets/global_button.dart';
-import '../controllers/kiss_summary_controller.dart';
+import '../../widgets/widgets/dialogs/emoji_send_dialog.dart';
+import '../controllers/emoji_summary_controller.dart';
 
-class KissSummaryView extends GetView<KissSummaryController> {
-  const KissSummaryView({super.key});
+class EmojiSummaryView extends GetView<EmojiSummaryController> {
+  const EmojiSummaryView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.background,
       appBar: const CustomAppBar(
-        title: 'Kiss',
+        title: 'Emoji',
         showBackButton: true,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
@@ -33,7 +35,7 @@ class KissSummaryView extends GetView<KissSummaryController> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                const _KissHeader(),
+                const _EmojiHeader(),
                 Padding(
                   padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                   child: Column(
@@ -61,8 +63,8 @@ class KissSummaryView extends GetView<KissSummaryController> {
   }
 }
 
-class _KissHeader extends GetView<KissSummaryController> {
-  const _KissHeader();
+class _EmojiHeader extends GetView<EmojiSummaryController> {
+  const _EmojiHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -75,15 +77,15 @@ class _KissHeader extends GetView<KissSummaryController> {
         fit: StackFit.expand,
         children: [
           Positioned.fill(
-            child: Assets.images.heartbeatSummaryHeaderImage.image(
+            child: Assets.images.emojiSummaryHeaderImage.image(
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
             ),
           ),
           Positioned(
             left: 0,
-            right: MediaQuery.of(context).size.width * 0.42,
-            top: 120.h,
+            right: MediaQuery.of(context).size.width * 0.36,
+            top: 130.h,
             child: Obx(
               () => _CountOverlay(
                 count: controller.fromPartner,
@@ -92,9 +94,9 @@ class _KissHeader extends GetView<KissSummaryController> {
             ),
           ),
           Positioned(
-            left: MediaQuery.of(context).size.width * 0.42,
+            left: MediaQuery.of(context).size.width * 0.36,
             right: 0,
-            top: 120.h,
+            top: 130.h,
             child: Obx(
               () => _CountOverlay(
                 count: controller.fromMe,
@@ -107,16 +109,33 @@ class _KissHeader extends GetView<KissSummaryController> {
             right: 50.w,
             bottom: 28.h,
             child: GlobalButton(
-              onTap: controller.sendKiss,
+              onTap: () {
+                final partner = controller.partnerName;
+                EmojiSendDialog.show(
+                  partnerName: partner,
+                  onSend: (emoji) {
+                    Get.find<WidgetDataService>().sendEmoji(emoji);
+                    Get.snackbar(
+                      'Emoji sent $emoji',
+                      'Sent to your partner.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: AppColor.primaryLight,
+                      colorText: AppColor.textPrimary,
+                      margin: const EdgeInsets.all(16),
+                    );
+                  },
+                  onViewDetails: () {},
+                );
+              },
               text: '',
               height: 40.h,
               widget: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('💋', style: TextStyle(fontSize: 16.sp, color: Colors.white)),
+                  Text('😍', style: TextStyle(fontSize: 16.sp)),
                   6.width,
                   AppText(
-                    'Send Kiss',
+                    'Send Emoji',
                     style: context.titleLarge.copyWith(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.w600,
@@ -181,7 +200,7 @@ class _CountOverlay extends StatelessWidget {
   }
 }
 
-class _ActivityList extends GetView<KissSummaryController> {
+class _ActivityList extends GetView<EmojiSummaryController> {
   const _ActivityList();
 
   @override
@@ -193,7 +212,7 @@ class _ActivityList extends GetView<KissSummaryController> {
           padding: EdgeInsets.symmetric(vertical: 32.h),
           child: Center(
             child: AppText(
-              'No kisses yet today.\nSend the first one!',
+              'No emojis yet today.\nSend the first one!',
               textAlign: TextAlign.center,
               maxLines: 3,
               style: TextStyle(
@@ -218,7 +237,7 @@ class _ActivityList extends GetView<KissSummaryController> {
   }
 }
 
-class _ActivityTile extends GetView<KissSummaryController> {
+class _ActivityTile extends GetView<EmojiSummaryController> {
   const _ActivityTile({required this.item});
 
   final ReactionActivity item;
@@ -298,15 +317,9 @@ class _ActivityTile extends GetView<KissSummaryController> {
                     ),
                   ),
                 ),
-                Text('💋', style: TextStyle(fontSize: 16.sp)),
-                4.horizontalSpace,
-                AppText(
-                  'x ${item.count}',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                    color: AppColor.primary,
-                  ),
+                Text(
+                  item.emoji ?? '😊',
+                  style: TextStyle(fontSize: 22.sp),
                 ),
               ],
             ),

@@ -9,12 +9,11 @@ import '../../../../../gen/assets.gen.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
 import '../../../../global/widgets/global_button.dart';
-import '../../../../routes/app_pages.dart';
 
 /// Shared “send” dialog shell for Heartbeat / Kiss / Emoji.
 ///
 /// Soft frosted panel, hero art with two white rings, floating love icons,
-/// partner tip card with Home/Lock guide links, “View details”, and Send.
+/// partner tip card with setup-guide CTA, “View details”, and Send.
 class InteractiveSendDialog extends StatefulWidget {
   const InteractiveSendDialog({
     super.key,
@@ -203,13 +202,15 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
                                 message:
                                     '$_partnerFirst needs the ${widget.widgetLabel} widget on their lock screen to feel this ${widget.tipEmoji}',
                                 onClose: () => setState(() => _showTip = false),
-                                onHomeGuide: () {
-                                  Get.back();
-                                  Get.toNamed(Routes.HOME_SCREEN_GUIDE);
-                                },
-                                onLockGuide: () {
-                                  Get.back();
-                                  Get.toNamed(Routes.LOCK_SCREEN_GUIDE);
+                                onSendGuide: () {
+                                  Get.snackbar(
+                                    'Setup guide',
+                                    'We’ll notify $_partnerFirst to add the ${widget.widgetLabel} widget.',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: AppColor.primaryLight,
+                                    colorText: AppColor.textPrimary,
+                                    margin: const EdgeInsets.all(16),
+                                  );
                                 },
                               ),
                             ],
@@ -291,14 +292,12 @@ class _PartnerWidgetTipCard extends StatelessWidget {
   const _PartnerWidgetTipCard({
     required this.message,
     required this.onClose,
-    required this.onHomeGuide,
-    required this.onLockGuide,
+    required this.onSendGuide,
   });
 
   final String message;
   final VoidCallback onClose;
-  final VoidCallback onHomeGuide;
-  final VoidCallback onLockGuide;
+  final VoidCallback onSendGuide;
 
   @override
   Widget build(BuildContext context) {
@@ -306,15 +305,9 @@ class _PartnerWidgetTipCard extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(14.w, 12.h, 8.w, 14.h),
       decoration: BoxDecoration(
-        color: AppColor.white,
+        color: Colors.white.withAlpha(50),
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: Colors.white.withAlpha(150), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,35 +345,21 @@ class _PartnerWidgetTipCard extends StatelessWidget {
             ],
           ),
           10.verticalSpace,
-          _GuideLink(label: 'Home Screen Guide →', onTap: onHomeGuide),
-          6.verticalSpace,
-          _GuideLink(label: 'Lock Screen Guide →', onTap: onLockGuide),
+          GestureDetector(
+            onTap: onSendGuide,
+            behavior: HitTestBehavior.opaque,
+            child: AppText(
+              'Send them the setup guide →',
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColor.primary,
+                decoration: TextDecoration.underline,
+                decorationColor: AppColor.primary,
+              ),
+            ),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-class _GuideLink extends StatelessWidget {
-  const _GuideLink({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AppText(
-        label,
-        style: TextStyle(
-          fontSize: 13.sp,
-          fontWeight: FontWeight.w600,
-          color: AppColor.primary,
-          decoration: TextDecoration.underline,
-          decorationColor: AppColor.primary,
-        ),
       ),
     );
   }

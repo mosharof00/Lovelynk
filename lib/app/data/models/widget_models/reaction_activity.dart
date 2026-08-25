@@ -5,10 +5,14 @@ class ReactionActivity {
     required this.isFromMe,
     required this.count,
     required this.at,
+    this.emoji,
   });
 
   final String senderName;
   final bool isFromMe;
   final int count;
   final DateTime at;
+
+  /// Set for emoji reactions (e.g. "😍"); null for heartbeat / kiss.
+  final String? emoji;
 }
