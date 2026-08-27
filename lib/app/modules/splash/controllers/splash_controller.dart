@@ -23,7 +23,7 @@ class SplashController extends GetxController {
   Future<void> setupApp() async {
     await Future.delayed(const Duration(milliseconds: 600));
     await _askPermissions();
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 1400));
     await navigateToScreen();
   }
 

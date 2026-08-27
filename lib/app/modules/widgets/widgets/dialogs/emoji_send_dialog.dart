@@ -1,3 +1,5 @@
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -5,18 +7,16 @@ import 'package:get/get.dart';
 import '../../../../core/theme/app_color.dart';
 import 'interactive_send_dialog.dart';
 
-/// Emoji send dialog — same shell as Kiss/Heartbeat, with a picker under the hero.
+/// Emoji send dialog — same shell as Kiss/Heartbeat, with a full picker.
 class EmojiSendDialog {
   EmojiSendDialog._();
-
-  static const emojis = ['😍', '😘', '🥰', '😂', '😊', '😭', '🔥', '👍', '🎉'];
 
   static Future<void> show({
     required String partnerName,
     required ValueChanged<String> onSend,
     required VoidCallback onViewDetails,
   }) {
-    final selected = emojis.first.obs;
+    final selected = '😍'.obs;
 
     return InteractiveSendDialog.show(
       title: 'Send an Emoji',
@@ -40,36 +40,74 @@ class EmojiSendDialog {
           style: TextStyle(fontSize: 72.sp, height: 1),
         ),
       ),
-      belowHero: Obx(
-        () => Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 10.w,
-          runSpacing: 10.h,
-          children: [
-            for (final emoji in emojis)
-              GestureDetector(
-                onTap: () => selected.value = emoji,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  width: 44.w,
-                  height: 44.w,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: selected.value == emoji
-                        ? AppColor.primaryLight
-                        : AppColor.inputFill,
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: selected.value == emoji
-                          ? AppColor.primary
-                          : AppColor.inputBorder,
-                      width: selected.value == emoji ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Text(emoji, style: TextStyle(fontSize: 22.sp)),
-                ),
-              ),
-          ],
+      belowHero: _EmojiPickerPanel(
+        onSelected: (emoji) => selected.value = emoji,
+      ),
+    );
+  }
+}
+
+class _EmojiPickerPanel extends StatelessWidget {
+  const _EmojiPickerPanel({required this.onSelected});
+
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final isIos = foundation.defaultTargetPlatform == TargetPlatform.iOS;
+    final surface = Colors.white.withValues(alpha: 0.72);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16.r),
+      child: EmojiPicker(
+        onEmojiSelected: (_, emoji) => onSelected(emoji.emoji),
+        config: Config(
+          height: 220.h,
+          checkPlatformCompatibility: true,
+          viewOrderConfig: const ViewOrderConfig(
+            top: EmojiPickerItem.categoryBar,
+            middle: EmojiPickerItem.emojiView,
+            bottom: EmojiPickerItem.searchBar,
+          ),
+          emojiViewConfig: EmojiViewConfig(
+            columns: 8,
+            emojiSizeMax: 28 * (isIos ? 1.2 : 1.0),
+            backgroundColor: surface,
+            recentsLimit: 28,
+            replaceEmojiOnLimitExceed: true,
+            noRecents: const Text(
+              'No recents yet',
+              style: TextStyle(fontSize: 16, color: Colors.black26),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          categoryViewConfig: CategoryViewConfig(
+            initCategory: Category.SMILEYS,
+            recentTabBehavior: RecentTabBehavior.RECENT,
+            backgroundColor: surface,
+            indicatorColor: AppColor.primary,
+            iconColor: AppColor.hintText,
+            iconColorSelected: AppColor.primary,
+            backspaceColor: AppColor.primary,
+            dividerColor: Colors.white.withValues(alpha: 0.4),
+          ),
+          bottomActionBarConfig: const BottomActionBarConfig(
+            showBackspaceButton: false,
+            showSearchViewButton: true,
+            backgroundColor: AppColor.primary,
+            buttonColor: AppColor.primary,
+            buttonIconColor: Colors.white,
+          ),
+          searchViewConfig: SearchViewConfig(
+            backgroundColor: surface,
+            buttonIconColor: AppColor.primary,
+            hintText: 'Search emoji',
+          ),
+          skinToneConfig: const SkinToneConfig(
+            enabled: true,
+            indicatorColor: AppColor.primary,
+            rememberSkinTone: true,
+          ),
         ),
       ),
     );

@@ -23,8 +23,7 @@ class OnboardingView extends GetView<OnboardingController> {
         padding: EdgeInsets.symmetric(horizontal: 28.w),
         child: Column(
           children: [
-            20.verticalSpace,
-            Image.asset(AppConfig.appLogo, width: 120.w),
+            Image.asset(AppConfig.appLogo, width: 180.w),
             AppText(
               AppConfig.appName,
               style: context.titleLarge.copyWith(
@@ -33,14 +32,14 @@ class OnboardingView extends GetView<OnboardingController> {
                 letterSpacing: -0.3,
               ),
             ),
-            50.verticalSpace,
+            30.verticalSpace,
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 AppText(
                   '    Together,\neven when apart',
-                  style: context.displayMedium.copyWith(
+                  style: context.headlineLarge.copyWith(
                     color: AppColor.textPrimary,
                     height: 1.25,
                   ),

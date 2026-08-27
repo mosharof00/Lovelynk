@@ -86,7 +86,9 @@ class LoveWidgetCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: gapAfterTitle),
-          Expanded(child: Center(child: child)),
+          Expanded(
+            child: compact ? child : Center(child: child),
+          ),
           SizedBox(height: gapBeforeDivider),
           Divider(
             height: 1,

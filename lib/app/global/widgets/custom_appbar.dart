@@ -66,8 +66,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Text title — ignored if [titleWidget] is provided
   final String? title;
 
+  final TextStyle? titleStyle;
+
   /// Optional subtitle shown below the title
   final String? subtitle;
+
+  final TextStyle? subtitleStyle;
 
   /// Fully custom title widget — overrides [title] and [subtitle]
   final Widget? titleWidget;
@@ -106,12 +110,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.centerTitle = true,
     this.systemOverlayStyle,
     this.onBackTap,
+    this.titleStyle,
+    this.subtitleStyle,
   });
 
   @override
-  Size get preferredSize => Size.fromHeight(
-    kToolbarHeight + (bottom?.preferredSize.height ?? 0),
-  );
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) {
@@ -138,9 +143,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       // ── Actions ──────────────────────────────────────────────
       actions: actions != null
           ? [
-        ...actions!.map((a) => _buildActionButton(a, effectiveForeground)),
-        SizedBox(width: 4.w),
-      ]
+              ...actions!.map(
+                (a) => _buildActionButton(a, effectiveForeground),
+              ),
+              SizedBox(width: 4.w),
+            ]
           : null,
 
       // ── Bottom ───────────────────────────────────────────────
@@ -168,28 +175,28 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (subtitle != null) {
       return Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment:
-        centerTitle ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+        crossAxisAlignment: centerTitle
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
         children: [
           Text(
             title ?? '',
-            style: Theme.of(context).appBarTheme.titleTextStyle,
+            style: titleStyle ?? Theme.of(context).appBarTheme.titleTextStyle,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             subtitle!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: foregroundColor.withOpacity(0.6),
-            ),
+            style:
+                subtitleStyle ??
+                Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: foregroundColor.withValues(alpha: 0.6),
+                ),
             overflow: TextOverflow.ellipsis,
           ),
         ],
       );
     }
-    return Text(
-      title ?? '',
-      overflow: TextOverflow.ellipsis,
-    );
+    return Text(title ?? '', overflow: TextOverflow.ellipsis);
   }
 
   Widget _buildActionButton(AppBarAction action, Color foregroundColor) {
@@ -275,22 +282,21 @@ class _Badge extends StatelessWidget {
 
 /// Simple titled AppBar with no back button
 class AppBarTitle extends CustomAppBar {
-  const AppBarTitle(String title, {super.key})
-      : super(title: title);
+  const AppBarTitle(String title, {super.key}) : super(title: title);
 }
 
 /// AppBar with back button
 class AppBarBack extends CustomAppBar {
   const AppBarBack(String title, {super.key, super.onBackTap})
-      : super(title: title, showBackButton: true);
+    : super(title: title, showBackButton: true);
 }
 
 /// AppBar with back button + right actions
 class AppBarBackWithActions extends CustomAppBar {
   const AppBarBackWithActions(
-      String title, {
-        super.key,
-        required List<AppBarAction> actions,
-        super.onBackTap,
-      }) : super(title: title, showBackButton: true, actions: actions);
+    String title, {
+    super.key,
+    required List<AppBarAction> actions,
+    super.onBackTap,
+  }) : super(title: title, showBackButton: true, actions: actions);
 }

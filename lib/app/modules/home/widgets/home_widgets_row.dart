@@ -18,8 +18,8 @@ import '../controllers/home_controller.dart';
 
 /// Home preview strip: Days Together, Kiss, Anniversary — same data as Widgets,
 /// with [LoveWidgetCard.compact] sizing for narrow columns.
-class HomeStatsRow extends GetView<HomeController> {
-  const HomeStatsRow({super.key});
+class HomeWidgetsRow extends GetView<HomeController> {
+  const HomeWidgetsRow({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class HomeStatsRow extends GetView<HomeController> {
       final unlocked = subscription.state.value.isWidgetsUnlocked;
 
       return SizedBox(
-        height: 148.h,
+        height: 130.h,
         child: Row(
           children: [
             Expanded(

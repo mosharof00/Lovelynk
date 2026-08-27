@@ -220,15 +220,18 @@ class DaysTogetherWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final days = _service.data.value.daysTogether;
-      return Column(
-        mainAxisSize: MainAxisSize.min,
+      final content = Column(
+        mainAxisAlignment: compact
+            ? MainAxisAlignment.spaceEvenly
+            : MainAxisAlignment.center,
+        mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
         children: [
           AppSvgIcon(
             Assets.icons.loveIcon,
-            size: compact ? 18.sp : 30.sp,
+            size: compact ? 22.sp : 30.sp,
             color: AppColor.primary,
           ),
-          SizedBox(height: compact ? 4.h : 8.h),
+          if (!compact) SizedBox(height: 8.h),
           AppText(
             '$days',
             style: TextStyle(
@@ -238,7 +241,7 @@ class DaysTogetherWidget extends StatelessWidget {
               height: 1.0,
             ),
           ),
-          SizedBox(height: compact ? 1.h : 2.h),
+          if (!compact) SizedBox(height: 6.h),
           AppText(
             'days',
             style: TextStyle(
@@ -248,6 +251,7 @@ class DaysTogetherWidget extends StatelessWidget {
           ),
         ],
       );
+      return compact ? SizedBox.expand(child: content) : content;
     });
   }
 }

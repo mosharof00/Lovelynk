@@ -215,6 +215,10 @@ class $AssetsImagesGen {
   AssetGenImage get kissImage =>
       const AssetGenImage('assets/images/kiss_image.png');
 
+  /// File path: assets/images/kiss_summary_header_image.png
+  AssetGenImage get kissSummaryHeaderImage =>
+      const AssetGenImage('assets/images/kiss_summary_header_image.png');
+
   /// File path: assets/images/lock_screen_demo.png
   AssetGenImage get lockScreenDemo =>
       const AssetGenImage('assets/images/lock_screen_demo.png');
@@ -271,6 +275,7 @@ class $AssetsImagesGen {
     homeWidgetGuidStep3,
     homeWidgetGuidStep4,
     kissImage,
+    kissSummaryHeaderImage,
     lockScreenDemo,
     lockWidgetGuidStep1,
     lockWidgetGuidStep2,

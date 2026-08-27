@@ -42,6 +42,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   geolocator: ^14.0.3
   flutter_compass: ^0.8.1
+  emoji_picker_flutter: ^4.5.3
 
 dev_dependencies:
   flutter_test:

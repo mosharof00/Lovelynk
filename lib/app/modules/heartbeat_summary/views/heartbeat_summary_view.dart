@@ -19,11 +19,16 @@ class HeartbeatSummaryView extends GetView<HeartbeatSummaryController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.background,
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: 'Heartbeat',
+        subtitle: "Send a heart to show your care 🩷",
+        subtitleStyle: context.textTheme.bodySmall?.copyWith(
+          color: AppColor.textPrimary.withAlpha(150),
+          fontWeight: FontWeight.w500,
+        ),
         showBackButton: true,
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
       ),
       extendBodyBehindAppBar: true,
@@ -84,24 +89,26 @@ class _HeartbeatHeader extends GetView<HeartbeatSummaryController> {
           // Left heart count (from partner)
           Positioned(
             left: 0,
-            right: MediaQuery.of(context).size.width * 0.42,
-            top: 120.h,
+            right: MediaQuery.of(context).size.width * 0.34,
+            top: 104.h,
             child: Obx(
               () => _HeartCountOverlay(
                 count: controller.fromPartner,
                 label: 'from ${controller.partnerName}',
+                color: AppColor.primary,
               ),
             ),
           ),
           // Right heart count (from me)
           Positioned(
-            left: MediaQuery.of(context).size.width * 0.42,
+            left: MediaQuery.of(context).size.width * 0.34,
             right: 0,
-            top: 120.h,
+            top: 104.h,
             child: Obx(
               () => _HeartCountOverlay(
                 count: controller.fromMe,
                 label: 'from Me',
+                color: AppColor.secondary,
               ),
             ),
           ),
@@ -109,7 +116,7 @@ class _HeartbeatHeader extends GetView<HeartbeatSummaryController> {
           Positioned(
             left: 50.w,
             right: 50.w,
-            bottom: 28.h,
+            bottom: 20.h,
             child: GlobalButton(
               onTap: controller.sendHeartbeat,
               text: '',
@@ -143,10 +150,15 @@ class _HeartbeatHeader extends GetView<HeartbeatSummaryController> {
 }
 
 class _HeartCountOverlay extends StatelessWidget {
-  const _HeartCountOverlay({required this.count, required this.label});
+  const _HeartCountOverlay({
+    required this.count,
+    required this.label,
+    required this.color,
+  });
 
   final int count;
   final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +169,7 @@ class _HeartCountOverlay extends StatelessWidget {
           '$count',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 36.sp,
+            fontSize: 34.sp,
             fontWeight: FontWeight.w800,
             color: Colors.white,
             height: 1.0,
@@ -170,7 +182,7 @@ class _HeartCountOverlay extends StatelessWidget {
             ],
           ),
         ),
-        4.verticalSpace,
+        67.verticalSpace,
         AppText(
           label,
           textAlign: TextAlign.center,
@@ -178,9 +190,9 @@ class _HeartCountOverlay extends StatelessWidget {
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.95),
+            color: color,
             shadows: [
-              Shadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4),
+              Shadow(color: color.withValues(alpha: 0.2), blurRadius: 4),
             ],
           ),
         ),

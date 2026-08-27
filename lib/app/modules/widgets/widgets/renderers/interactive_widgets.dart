@@ -59,15 +59,18 @@ class KissWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final count = _service.kissesFromPartner.value;
-      return Column(
-        mainAxisSize: MainAxisSize.min,
+      final content = Column(
+        mainAxisAlignment: compact
+            ? MainAxisAlignment.spaceEvenly
+            : MainAxisAlignment.center,
+        mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
         children: [
           AppSvgIcon(
             Assets.icons.kissIcon,
             size: compact ? 22.sp : 40.sp,
             color: AppColor.primary,
           ),
-          SizedBox(height: compact ? 2.h : 6.h),
+          if (!compact) SizedBox(height: 6.h),
           AppText(
             '$count',
             style: TextStyle(
@@ -77,9 +80,11 @@ class KissWidget extends StatelessWidget {
               height: 1.0,
             ),
           ),
-          SizedBox(height: compact ? 1.h : 2.h),
+          if (!compact) SizedBox(height: 6.h),
           AppText(
             'from partner',
+            maxLines: 1,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: compact ? 9.sp : 11.sp,
               color: AppColor.textSecondary,
@@ -87,6 +92,7 @@ class KissWidget extends StatelessWidget {
           ),
         ],
       );
+      return compact ? SizedBox.expand(child: content) : content;
     });
   }
 }

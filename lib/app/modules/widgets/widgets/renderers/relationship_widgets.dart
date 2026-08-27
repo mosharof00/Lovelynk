@@ -194,25 +194,30 @@ class AnniversaryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final anniversary = _service.data.value.anniversary;
-      final dateText = DateFormat(
-        compact ? 'd MMM' : 'd MMM yyyy',
-      ).format(anniversary);
+      final dateText = DateFormat('d MMM yyyy').format(anniversary);
       final daysToGo = _daysToNext(anniversary);
 
-      return Column(
-        mainAxisSize: MainAxisSize.min,
+      final content = Column(
+        mainAxisAlignment: compact
+            ? MainAxisAlignment.spaceEvenly
+            : MainAxisAlignment.center,
+        mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          AppText(
-            dateText,
-            maxLines: 1,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: compact ? 13.sp : 20.sp,
-              fontWeight: FontWeight.w700,
-              color: AppColor.primary,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: AppText(
+              dateText,
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: compact ? 13.sp : 20.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColor.primary,
+                height: 1.1,
+              ),
             ),
           ),
-          SizedBox(height: compact ? 3.h : 6.h),
+          if (!compact) SizedBox(height: 6.h),
           AppText(
             '$daysToGo days to go',
             maxLines: 1,
@@ -224,6 +229,7 @@ class AnniversaryWidget extends StatelessWidget {
           ),
         ],
       );
+      return compact ? SizedBox.expand(child: content) : content;
     });
   }
 
