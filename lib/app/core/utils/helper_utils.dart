@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../modules/main_page/controllers/main_page_controller.dart';
 import '../../routes/app_pages.dart';
 import '../services/local_store_service.dart';
+import '../widgets/widget_sync_service.dart';
 import '../services/secure_storage_service.dart';
 import 'logger.dart';
 
@@ -117,6 +118,9 @@ class HelperUtils {
       // Ensure MainPageController is permanent and not reinitialized
       Get.put(MainPageController(), permanent: true);
       Get.put(HomeController(), permanent: true);
+    }
+    if (Get.isRegistered<WidgetSyncService>()) {
+      await Get.find<WidgetSyncService>().syncAll();
     }
     await Future.delayed(Duration(milliseconds: 400));
   }

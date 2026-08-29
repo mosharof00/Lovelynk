@@ -9,7 +9,8 @@ import 'app/core/services/compass_service.dart';
 import 'app/core/services/local_store_service.dart';
 import 'app/core/services/subscription_service.dart';
 import 'app/core/services/widget_data_service.dart';
-import 'app/core/services/widget_style_store.dart';
+import 'app/core/widgets/widget_style_store.dart';
+import 'app/core/widgets/widget_sync_service.dart';
 import 'app/core/theme/app_theme.dart';
 import 'app/data/repositories/app_repository_binding.dart';
 import 'app/routes/app_pages.dart';
@@ -36,6 +37,10 @@ void main() async {
   Get.put<CompassService>(CompassService().init(), permanent: true);
   await Get.putAsync<WidgetStyleStore>(
     () => WidgetStyleStore().init(),
+    permanent: true,
+  );
+  await Get.putAsync<WidgetSyncService>(
+    () => WidgetSyncService().init(),
     permanent: true,
   );
 
