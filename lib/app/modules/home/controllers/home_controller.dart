@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../core/services/subscription_service.dart';
 import '../../../routes/app_pages.dart';
 import '../../main_page/controllers/main_page_controller.dart';
 
@@ -20,9 +21,20 @@ class HomeController extends GetxController {
   final affirmation =
       'Distance means so little when someone means so much.'.obs;
 
+  late final SubscriptionService _subscription;
+
+  /// Central subscription access — reads from [SubscriptionService], not duplicated here.
+  SubscriptionService get subscription => _subscription;
+
+  bool get isPremium => _subscription.isPremium;
+
+  bool get isWidgetsUnlocked => _subscription.isWidgetsUnlocked;
+
   void goConnectPartner() => Get.toNamed(Routes.CONNECT_WITH_PARTNER);
 
   void goWidgetsTab() => Get.find<MainPageController>().changePage(1);
+
+  void goSubscriptions() => Get.toNamed(Routes.SUBSCRIPTIONS);
 
   /// Dev / UI preview: flip between solo and connected home.
   void toggleConnectedPreview() => isConnected.toggle();
@@ -32,11 +44,18 @@ class HomeController extends GetxController {
     isFadeInAnimate = false;
   }
 
+  /// Called on home load — later fetches user + subscription from Supabase.
+  Future<void> loadUser() async {
+    // TODO(Supabase): fetch user profile and call
+    // _subscription.applyFromUser(...)
+    await _subscription.refreshFromUser();
+  }
+
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
-
+    _subscription = Get.find<SubscriptionService>();
+    loadUser();
     closeFadeInAnimate();
   }
 }

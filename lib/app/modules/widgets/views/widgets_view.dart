@@ -49,7 +49,8 @@ class WidgetsView extends GetView<WidgetsController> {
             ),
             Expanded(
               child: Obx(() {
-                final unlocked = controller.isUnlocked;
+                final unlocked =
+                    controller.subscription.state.value.isWidgetsUnlocked;
                 final selected = controller.selectedCategory.value;
                 final categories = controller.visibleCategories;
 
@@ -102,7 +103,9 @@ class _TrialBanner extends GetView<WidgetsController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.isUnlocked) return const SizedBox.shrink();
+      if (controller.subscription.state.value.isWidgetsUnlocked) {
+        return const SizedBox.shrink();
+      }
       return Padding(
         padding: EdgeInsets.only(top: 12.h),
         child: Container(

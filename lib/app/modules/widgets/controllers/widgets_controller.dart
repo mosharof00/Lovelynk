@@ -41,7 +41,9 @@ class WidgetsController extends GetxController {
     super.onClose();
   }
 
-  bool get isUnlocked => _subscription.isWidgetsUnlocked;
+  SubscriptionService get subscription => _subscription;
+
+  bool get isUnlocked => _subscription.state.value.isWidgetsUnlocked;
 
   void selectFilter(WidgetCategory? category) {
     selectedCategory.value = category;
@@ -152,63 +154,7 @@ class WidgetsController extends GetxController {
     );
   }
 
-  void onUnlockTap() {
-    Get.dialog(
-      AlertDialog(
-        title: const AppText('Unlock widgets'),
-        content: const AppText(
-          'Your free trial unlocks all widgets. After the trial, subscribe to keep them unlocked.',
-          maxLines: 5,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const AppText('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              _subscription.startTrial();
-              Get.back();
-              Get.snackbar(
-                'Trial started',
-                'All widgets are unlocked for 7 days.',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: AppColor.primaryLight,
-                colorText: AppColor.textPrimary,
-              );
-            },
-            child: AppText(
-              'Start free trial',
-              style: TextStyle(
-                color: AppColor.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              _subscription.activateSubscription();
-              Get.back();
-              Get.snackbar(
-                'Subscribed',
-                'All widgets unlocked.',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: AppColor.primaryLight,
-                colorText: AppColor.textPrimary,
-              );
-            },
-            child: AppText(
-              'Subscribe',
-              style: TextStyle(
-                color: AppColor.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  void onUnlockTap() => Get.toNamed(Routes.SUBSCRIPTIONS);
 
   /// Dev helper: expire trial to preview locked UI.
   void debugExpireTrial() => _subscription.expireTrial();

@@ -1,3 +1,4 @@
+import WidgetKit
 import SwiftUI
 
 /// Parsed customise style for a widget (from App Group).
@@ -5,6 +6,7 @@ struct WidgetStyleConfig {
     let themeColor: Color
     let useBackground: Bool
     let backgroundColor: Color
+    let fontId: String
     let font: Font
     let titleSize: CGFloat
     let valueSize: CGFloat
@@ -21,10 +23,46 @@ struct WidgetStyleConfig {
             themeColor: Self.color(for: themeId),
             useBackground: useBg,
             backgroundColor: Self.color(for: bgId),
+            fontId: fontName,
             font: Self.font(for: fontName, valueSize: valueSize),
             titleSize: titleSize,
             valueSize: valueSize
         )
+    }
+
+    // MARK: Home screen scaling (lock-screen accessories keep base sizes)
+
+    func homeValueSize(for family: WidgetFamily) -> CGFloat {
+        let scale: CGFloat
+        switch family {
+        case .systemSmall: scale = 1.65
+        case .systemMedium: scale = 1.9
+        case .systemLarge: scale = 2.1
+        default: scale = 1.0
+        }
+        return valueSize * scale
+    }
+
+    func homeTitleSize(for family: WidgetFamily) -> CGFloat {
+        guard family == .systemSmall || family == .systemMedium || family == .systemLarge else {
+            return titleSize
+        }
+        return max(titleSize * 1.15, 13)
+    }
+
+    func homeValueFont(for family: WidgetFamily) -> Font {
+        Self.font(for: fontId, valueSize: homeValueSize(for: family))
+    }
+
+    /// Circle diameter for Initials home-screen layout.
+    func initialsCircleDiameter(for family: WidgetFamily) -> CGFloat {
+        let base: CGFloat
+        switch family {
+        case .systemMedium: base = 72
+        case .systemLarge: base = 84
+        default: base = 58
+        }
+        return base * (valueSize / 34.0)
     }
 
     private static func sizes(for textSize: String) -> (CGFloat, CGFloat) {

@@ -3,29 +3,28 @@ import SwiftUI
 
 // MARK: - Entry
 
-struct DaysTogetherEntry: TimelineEntry {
+struct AnniversaryEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
     let lockMessage: String
-    let count: Int
-    let title: String
+    let dateLabel: String
+    let daysToGo: Int
     let style: WidgetStyleConfig
 }
 
 // MARK: - Provider
 
-struct DaysTogetherProvider: TimelineProvider {
-    func placeholder(in context: Context) -> DaysTogetherEntry {
+struct AnniversaryProvider: TimelineProvider {
+    func placeholder(in context: Context) -> AnniversaryEntry {
         sampleEntry()
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (DaysTogetherEntry) -> Void) {
+    func getSnapshot(in context: Context, completion: @escaping (AnniversaryEntry) -> Void) {
         completion(readEntry())
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<DaysTogetherEntry>) -> Void) {
+    func getTimeline(in context: Context, completion: @escaping (Timeline<AnniversaryEntry>) -> Void) {
         let entry = readEntry()
-        // Midnight refresh so day count stays accurate.
         let nextMidnight = Calendar.current.startOfDay(
             for: Calendar.current.date(byAdding: .day, value: 1, to: Date())!
         )
@@ -33,44 +32,44 @@ struct DaysTogetherProvider: TimelineProvider {
         completion(timeline)
     }
 
-    private func readEntry() -> DaysTogetherEntry {
+    private func readEntry() -> AnniversaryEntry {
         let locked = AppGroupStore.bool(WidgetKeys.globalLocked)
         let lockMessage = AppGroupStore.string(
             WidgetKeys.globalLockMessage,
             default: "Locked"
         )
-        let count = AppGroupStore.int(WidgetKeys.DaysTogether.count, default: 0)
-        let title = AppGroupStore.string(
-            WidgetKeys.DaysTogether.title,
-            default: "Days Together"
+        let dateLabel = AppGroupStore.string(
+            WidgetKeys.Anniversary.dateLabel,
+            default: "12 Oct 2025"
         )
-        let style = WidgetStyleConfig.load(widgetId: WidgetKeys.DaysTogether.widgetId)
-        return DaysTogetherEntry(
+        let daysToGo = AppGroupStore.int(WidgetKeys.Anniversary.daysToGo, default: 0)
+        let style = WidgetStyleConfig.load(widgetId: WidgetKeys.Anniversary.widgetId)
+        return AnniversaryEntry(
             date: Date(),
             isLocked: locked,
             lockMessage: lockMessage,
-            count: count,
-            title: title,
+            dateLabel: dateLabel,
+            daysToGo: daysToGo,
             style: style
         )
     }
 
-    private func sampleEntry() -> DaysTogetherEntry {
-        DaysTogetherEntry(
+    private func sampleEntry() -> AnniversaryEntry {
+        AnniversaryEntry(
             date: Date(),
             isLocked: false,
             lockMessage: "Locked",
-            count: 76,
-            title: "Days Together",
-            style: WidgetStyleConfig.load(widgetId: WidgetKeys.DaysTogether.widgetId)
+            dateLabel: "12 Oct 2025",
+            daysToGo: 42,
+            style: WidgetStyleConfig.load(widgetId: WidgetKeys.Anniversary.widgetId)
         )
     }
 }
 
 // MARK: - Views
 
-struct DaysTogetherWidgetView: View {
-    var entry: DaysTogetherEntry
+struct AnniversaryWidgetView: View {
+    var entry: AnniversaryEntry
     @Environment(\.widgetFamily) var family
 
     var body: some View {
@@ -98,10 +97,8 @@ struct DaysTogetherWidgetView: View {
             Text("🔒 \(entry.lockMessage)")
         default:
             VStack(spacing: 6) {
-                Image(systemName: "lock.fill")
-                    .font(.title2)
-                Text(entry.lockMessage)
-                    .font(.headline)
+                Image(systemName: "lock.fill").font(.title2)
+                Text(entry.lockMessage).font(.headline)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -113,18 +110,16 @@ struct DaysTogetherWidgetView: View {
         case .accessoryCircular:
             ZStack {
                 AccessoryWidgetBackground()
-                VStack(spacing: 0) {
-                    Text("❤️").font(.caption2)
-                    Text("\(entry.count)").font(.headline)
-                }
+                Text("\(entry.daysToGo)")
+                    .font(.headline)
             }
         case .accessoryRectangular:
             HStack {
-                Text("❤️")
-                Text("\(entry.count) days").font(.headline)
+                Text("💍")
+                Text("\(entry.daysToGo) days").font(.headline)
             }
         case .accessoryInline:
-            Text("❤️ \(entry.count) days")
+            Text("💍 \(entry.dateLabel) · \(entry.daysToGo)d")
         case .systemMedium:
             mediumLayout
         default:
@@ -134,23 +129,23 @@ struct DaysTogetherWidgetView: View {
 
     private var smallLayout: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(entry.title)
+            Text("Anniversary")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
 
             Spacer(minLength: 4)
 
-            Text("\(entry.count)")
+            Text(entry.dateLabel)
                 .font(entry.style.homeValueFont(for: family))
                 .foregroundStyle(entry.style.themeColor)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
 
-            Text("days")
+            Text("\(entry.daysToGo) days to go")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .regular))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(WidgetLayoutMetrics.homePadding)
@@ -160,29 +155,27 @@ struct DaysTogetherWidgetView: View {
     private var mediumLayout: some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(entry.title)
+                Text("Anniversary")
                     .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                     .foregroundStyle(.secondary)
+
+                Text(entry.dateLabel)
+                    .font(entry.style.homeValueFont(for: family))
+                    .foregroundStyle(entry.style.themeColor)
+                    .minimumScaleFactor(0.5)
                     .lineLimit(1)
 
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("\(entry.count)")
-                        .font(entry.style.homeValueFont(for: family))
-                        .foregroundStyle(entry.style.themeColor)
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                    Text("days")
-                        .font(.system(
-                            size: entry.style.homeTitleSize(for: family) + 4,
-                            weight: .medium
-                        ))
-                        .foregroundStyle(.secondary)
-                }
+                Text("\(entry.daysToGo) days to go")
+                    .font(.system(
+                        size: entry.style.homeTitleSize(for: family) + 2,
+                        weight: .medium
+                    ))
+                    .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 0)
 
-            Text("❤️")
+            Text("💍")
                 .font(.system(size: entry.style.homeValueSize(for: family) * 0.72))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -193,15 +186,15 @@ struct DaysTogetherWidgetView: View {
 
 // MARK: - Widget definition
 
-struct DaysTogetherWidget: Widget {
-    let kind: String = "DaysTogetherWidget"
+struct AnniversaryWidget: Widget {
+    let kind: String = "AnniversaryWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: DaysTogetherProvider()) { entry in
-            DaysTogetherWidgetView(entry: entry)
+        StaticConfiguration(kind: kind, provider: AnniversaryProvider()) { entry in
+            AnniversaryWidgetView(entry: entry)
         }
-        .configurationDisplayName("Days Together")
-        .description("How many days you've been together.")
+        .configurationDisplayName("Anniversary")
+        .description("Count down to your next anniversary.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

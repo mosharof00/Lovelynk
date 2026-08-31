@@ -23,4 +23,13 @@ class WidgetAppGroup {
   // ── Initials data keys ────────────────────────────────────────────────
   static const initialsUser = 'initials_user_initial';
   static const initialsPartner = 'initials_partner_initial';
+
+  // ── Partner Distance data keys ──────────────────────────────────────────
+  static const partnerDistanceMiles = 'partner_distance_miles';
+  static const partnerDistanceUser = 'partner_distance_user_initial';
+  static const partnerDistancePartner = 'partner_distance_partner_initial';
+
+  // ── Anniversary data keys ───────────────────────────────────────────────
+  static const anniversaryDateLabel = 'anniversary_date_label';
+  static const anniversaryDaysToGo = 'anniversary_days_to_go';
 }

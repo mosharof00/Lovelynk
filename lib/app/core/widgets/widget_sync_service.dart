@@ -1,10 +1,12 @@
 import 'package:get/get.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:intl/intl.dart';
 
 import '../../data/models/widget_models/app_widget_type.dart';
 import '../../data/models/widget_models/widget_style.dart';
 import '../services/subscription_service.dart';
 import '../services/widget_data_service.dart';
+import '../utils/logger.dart';
 import 'widget_app_group.dart';
 import '../widgets/widget_style_store.dart';
 import 'widget_kind.dart';
@@ -31,12 +33,21 @@ class WidgetSyncService extends GetxService {
 
   /// Called on every cold start. Later: fetch Supabase first, then sync.
   Future<void> syncOnAppLaunch() async {
+    Log.i('[WidgetSync] App opening — starting widget sync...');
     await _data.refreshFromBackend();
     await syncAll();
+    Log.i('[WidgetSync] App opening sync complete.');
   }
 
   /// Full sync — call after login, partner connect, or manual refresh.
   Future<void> syncAll() async {
+    final locked = !_subscription.isWidgetsUnlocked;
+    Log.i(
+      '[WidgetSync] syncAll — locked=$locked, '
+      'premium=${_subscription.isPremium}, '
+      'onTrial=${_subscription.isOnTrial}',
+    );
+
     await _writeGlobalLock();
     for (final type in AppWidgetType.values) {
       await _writeDataFor(type);
@@ -48,6 +59,7 @@ class WidgetSyncService extends GetxService {
       }
     }
     await _refreshAllNativeWidgets();
+    Log.i('[WidgetSync] syncAll finished — native widgets refreshed.');
   }
 
   /// Sync one widget's data + refresh its native timeline.
@@ -82,6 +94,7 @@ class WidgetSyncService extends GetxService {
 
   Future<void> _writeGlobalLock() async {
     final locked = !_subscription.isWidgetsUnlocked;
+    Log.i('[WidgetSync] Writing global lock — locked=$locked');
     await HomeWidget.saveWidgetData<String>(
       WidgetAppGroup.globalLocked,
       locked ? '1' : '0',
@@ -97,6 +110,10 @@ class WidgetSyncService extends GetxService {
   // ── Per-widget data ─────────────────────────────────────────────────────
 
   Future<void> _writeDataFor(AppWidgetType type) async {
+    if (!_subscription.isWidgetsUnlocked) {
+      Log.i('[WidgetSync] Skipping data for ${type.id} — subscription locked');
+      return;
+    }
     final d = _data.data.value;
     switch (type) {
       case AppWidgetType.daysTogether:
@@ -119,10 +136,43 @@ class WidgetSyncService extends GetxService {
           d.partnerInitial,
         );
         break;
+      case AppWidgetType.partnerDistance:
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerDistanceMiles,
+          '${d.distanceMiles}',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerDistanceUser,
+          d.userInitial,
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerDistancePartner,
+          d.partnerInitial,
+        );
+        break;
+      case AppWidgetType.anniversary:
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.anniversaryDateLabel,
+          DateFormat('d MMM yyyy').format(d.anniversary),
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.anniversaryDaysToGo,
+          '${_daysToNextAnniversary(d.anniversary)}',
+        );
+        break;
       default:
-        // Native widgets not yet implemented — no-op until Tier 2+.
         break;
     }
+  }
+
+  int _daysToNextAnniversary(DateTime anniversary) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    var next = DateTime(today.year, anniversary.month, anniversary.day);
+    if (next.isBefore(today)) {
+      next = DateTime(today.year + 1, anniversary.month, anniversary.day);
+    }
+    return next.difference(today).inDays;
   }
 
   // ── Per-widget style ────────────────────────────────────────────────────

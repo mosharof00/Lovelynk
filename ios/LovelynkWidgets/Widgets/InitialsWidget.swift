@@ -111,13 +111,39 @@ struct InitialsWidgetView: View {
             initialsRow(fontSize: 14)
         case .accessoryInline:
             Text("\(entry.userInitial) ♥ \(entry.partnerInitial)")
+        case .systemMedium:
+            homeLayout
         default:
-            VStack(spacing: 8) {
-                initialsRow(fontSize: entry.style.valueSize * 0.55)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .widgetBackground(entry.style)
+            homeLayout
         }
+    }
+
+    private var homeLayout: some View {
+        let diameter = entry.style.initialsCircleDiameter(for: family)
+        let heartSize = diameter * 0.32
+        let spacing = family == .systemMedium ? 14.0 : 10.0
+
+        return HStack(spacing: spacing) {
+            initialCircle(entry.userInitial, diameter: diameter)
+            Image(systemName: "heart.fill")
+                .font(.system(size: heartSize))
+                .foregroundStyle(entry.style.themeColor)
+            initialCircle(entry.partnerInitial, diameter: diameter)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(WidgetLayoutMetrics.homePadding)
+        .widgetBackground(entry.style)
+    }
+
+    private func initialCircle(_ initial: String, diameter: CGFloat) -> some View {
+        Text(initial)
+            .font(.system(size: diameter * 0.38, weight: .bold, design: .rounded))
+            .foregroundStyle(entry.style.themeColor)
+            .frame(width: diameter, height: diameter)
+            .overlay(
+                Circle()
+                    .stroke(entry.style.themeColor, lineWidth: 2)
+            )
     }
 
     private func initialsRow(fontSize: CGFloat) -> some View {

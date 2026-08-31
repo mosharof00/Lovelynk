@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/extensions/text_style_extension.dart';
+import '../../../core/services/subscription_service.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/cached_image.dart';
 import '../controllers/profile_controller.dart';
@@ -13,8 +14,13 @@ class ProfileHeader extends GetView<ProfileController> {
 
   @override
   Widget build(BuildContext context) {
+    final subscription = Get.find<SubscriptionService>();
+
     return Obx(
-      () => Material(
+      () {
+        final isPremium = subscription.state.value.isPremium;
+
+        return Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22.r),
         child: InkWell(
@@ -49,7 +55,7 @@ class ProfileHeader extends GetView<ProfileController> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (controller.isPremium.value) ...[
+                          if (isPremium) ...[
                             6.horizontalSpace,
                             Icon(
                               Icons.workspace_premium_rounded,
@@ -59,7 +65,7 @@ class ProfileHeader extends GetView<ProfileController> {
                           ],
                         ],
                       ),
-                      if (controller.isPremium.value) ...[
+                      if (isPremium) ...[
                         6.verticalSpace,
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -92,7 +98,8 @@ class ProfileHeader extends GetView<ProfileController> {
             ),
           ),
         ),
-      ),
+      );
+      },
     );
   }
 }

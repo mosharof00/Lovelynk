@@ -9,6 +9,8 @@ class WidgetKind {
 
   static const daysTogether = 'DaysTogetherWidget';
   static const initials = 'InitialsWidget';
+  static const partnerDistance = 'PartnerDistanceWidget';
+  static const anniversary = 'AnniversaryWidget';
 
   static String? iosKindFor(AppWidgetType type) {
     switch (type) {
@@ -16,6 +18,10 @@ class WidgetKind {
         return daysTogether;
       case AppWidgetType.initials:
         return initials;
+      case AppWidgetType.partnerDistance:
+        return partnerDistance;
+      case AppWidgetType.anniversary:
+        return anniversary;
       default:
         return null;
     }
@@ -27,5 +33,7 @@ class WidgetKind {
   static List<String> get implementedKinds => [
         daysTogether,
         initials,
+        partnerDistance,
+        anniversary,
       ];
 }

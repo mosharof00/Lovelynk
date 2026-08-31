@@ -8,6 +8,7 @@ struct LovelynkWidgetBundle: WidgetBundle {
     var body: some Widget {
         DaysTogetherWidget()
         InitialsWidget()
-        // Tier 2+: PartnerDistanceWidget(), …
+        PartnerDistanceWidget()
+        AnniversaryWidget()
     }
 }

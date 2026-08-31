@@ -22,4 +22,21 @@ enum WidgetKeys {
 
         static func style(_ field: String) -> String { "\(widgetId)_\(field)" }
     }
+
+    enum PartnerDistance {
+        static let widgetId = "partner_distance"
+        static let miles = "partner_distance_miles"
+        static let userInitial = "partner_distance_user_initial"
+        static let partnerInitial = "partner_distance_partner_initial"
+
+        static func style(_ field: String) -> String { "\(widgetId)_\(field)" }
+    }
+
+    enum Anniversary {
+        static let widgetId = "anniversary"
+        static let dateLabel = "anniversary_date_label"
+        static let daysToGo = "anniversary_days_to_go"
+
+        static func style(_ field: String) -> String { "\(widgetId)_\(field)" }
+    }
 }

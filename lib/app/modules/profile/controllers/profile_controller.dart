@@ -10,7 +10,6 @@ class ProfileController extends GetxController {
 
 
   final userName = 'Jasper'.obs;
-  final isPremium = true.obs;
   final anniversary = '12 Oct 2022'.obs;
   final language = 'English'.obs;
   final locationPermission = 'Always'.obs;
@@ -46,7 +45,7 @@ class ProfileController extends GetxController {
   }
 
   Future<void> closeFadeInAnimate() async {
-    await Future.delayed(Duration(seconds: 6));
+    await Future.delayed(Duration(seconds: 4));
     isFadeInAnimate = false;
   }
 
