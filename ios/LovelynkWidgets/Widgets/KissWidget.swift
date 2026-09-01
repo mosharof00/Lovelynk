@@ -119,7 +119,7 @@ struct KissWidgetView: View {
     private var compactHomeLayout: some View {
         VStack(spacing: 4) {
             Text("💋")
-                .font(.system(size: entry.style.homeValueSize(for: family) * 0.38))
+                .font(.system(size: entry.style.homeValueSize(for: family) * 0.60))
             Text("\(entry.count)")
                 .font(.system(
                     size: entry.style.homeValueSize(for: family) * 0.42,
@@ -143,7 +143,7 @@ struct KissWidgetView: View {
     private var mediumLayout: some View {
         HStack(spacing: 16) {
             Text("💋")
-                .font(.system(size: entry.style.homeValueSize(for: family) * 0.72))
+                .font(.system(size: entry.style.homeValueSize(for: family) * 0.80))
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(entry.count)")
                     .font(entry.style.homeValueFont(for: family))
