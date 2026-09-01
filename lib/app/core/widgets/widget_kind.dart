@@ -11,6 +11,14 @@ class WidgetKind {
   static const initials = 'InitialsWidget';
   static const partnerDistance = 'PartnerDistanceWidget';
   static const anniversary = 'AnniversaryWidget';
+  static const partnerTime = 'PartnerTimeWidget';
+  static const togetherCounter = 'TogetherCounterWidget';
+  static const nextVisitCountdown = 'NextVisitCountdownWidget';
+  static const partnerWeather = 'PartnerWeatherWidget';
+  static const loveCompass = 'LoveCompassWidget';
+  static const heartbeat = 'HeartbeatWidget';
+  static const kiss = 'KissWidget';
+  static const emoji = 'EmojiWidget';
 
   static String? iosKindFor(AppWidgetType type) {
     switch (type) {
@@ -22,8 +30,22 @@ class WidgetKind {
         return partnerDistance;
       case AppWidgetType.anniversary:
         return anniversary;
-      default:
-        return null;
+      case AppWidgetType.partnerTime:
+        return partnerTime;
+      case AppWidgetType.togetherCounter:
+        return togetherCounter;
+      case AppWidgetType.nextVisitCountdown:
+        return nextVisitCountdown;
+      case AppWidgetType.partnerWeather:
+        return partnerWeather;
+      case AppWidgetType.loveCompass:
+        return loveCompass;
+      case AppWidgetType.heartbeat:
+        return heartbeat;
+      case AppWidgetType.kiss:
+        return kiss;
+      case AppWidgetType.emoji:
+        return emoji;
     }
   }
 
@@ -35,5 +57,13 @@ class WidgetKind {
         initials,
         partnerDistance,
         anniversary,
+        partnerTime,
+        togetherCounter,
+        nextVisitCountdown,
+        partnerWeather,
+        loveCompass,
+        heartbeat,
+        kiss,
+        emoji,
       ];
 }

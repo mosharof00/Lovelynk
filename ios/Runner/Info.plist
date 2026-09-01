@@ -26,6 +26,17 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.lovelynk.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>lovelynk</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Lovelynk uses your location to show distance and point the Love Compass toward your partner.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

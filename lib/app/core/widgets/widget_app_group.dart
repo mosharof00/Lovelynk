@@ -32,4 +32,30 @@ class WidgetAppGroup {
   // ── Anniversary data keys ───────────────────────────────────────────────
   static const anniversaryDateLabel = 'anniversary_date_label';
   static const anniversaryDaysToGo = 'anniversary_days_to_go';
+
+  // ── Partner Time data keys ────────────────────────────────────────────────
+  static const partnerTimeUtcOffsetHours = 'partner_time_utc_offset_hours';
+  static const partnerTimeCity = 'partner_time_city';
+
+  // ── Together Counter data keys ──────────────────────────────────────────
+  static const togetherCounterSince = 'together_counter_since';
+
+  // ── Next Visit Countdown data keys ──────────────────────────────────────
+  static const nextVisitTargetAt = 'next_visit_target_at';
+
+  // ── Partner Weather data keys ───────────────────────────────────────────
+  static const partnerWeatherTemperature = 'partner_weather_temperature';
+  static const partnerWeatherCondition = 'partner_weather_condition';
+  static const partnerWeatherCity = 'partner_weather_city';
+  static const partnerWeatherIconKey = 'partner_weather_icon_key';
+
+  // ── Love Compass data keys ──────────────────────────────────────────────
+  static const loveCompassMiles = 'love_compass_miles';
+  static const loveCompassPartnerLabel = 'love_compass_partner_label';
+  static const loveCompassNeedleDegrees = 'love_compass_needle_degrees';
+
+  // ── Interactive widget data keys ────────────────────────────────────────
+  static const heartbeatCount = 'heartbeat_count';
+  static const kissCount = 'kiss_count';
+  static const emojiRecent = 'emoji_recent';
 }

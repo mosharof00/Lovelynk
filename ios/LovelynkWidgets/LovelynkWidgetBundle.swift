@@ -10,5 +10,13 @@ struct LovelynkWidgetBundle: WidgetBundle {
         InitialsWidget()
         PartnerDistanceWidget()
         AnniversaryWidget()
+        PartnerTimeWidget()
+        TogetherCounterWidget()
+        NextVisitCountdownWidget()
+        PartnerWeatherWidget()
+        LoveCompassWidget()
+        HeartbeatWidget()
+        KissWidget()
+        EmojiWidget()
     }
 }

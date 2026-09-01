@@ -40,6 +40,22 @@ class WeatherIconMapper {
     return Assets.weatherIcons.weatherPartlyCloudy;
   }
 
+  /// Key synced to the iOS widget extension (maps to SF Symbols there).
+  static String nativeIconKey({
+    required int conditionId,
+    bool isDay = true,
+  }) {
+    if (conditionId >= 200 && conditionId < 300) return 'thunderstorm';
+    if (conditionId >= 300 && conditionId < 400) return 'drizzle';
+    if (conditionId >= 500 && conditionId < 600) return 'rain';
+    if (conditionId >= 600 && conditionId < 700) return 'snow';
+    if (conditionId >= 700 && conditionId < 800) return 'fog';
+    if (conditionId == 800) return isDay ? 'clear_day' : 'clear_night';
+    if (conditionId == 801) return 'partly_cloudy';
+    if (conditionId > 801 && conditionId < 900) return 'clouds';
+    return 'partly_cloudy';
+  }
+
   /// Parses OpenWeather `weather[0].icon` suffix (`01d` → day, `01n` → night).
   static bool isDayFromIconCode(String? iconCode) {
     if (iconCode == null || iconCode.isEmpty) return true;

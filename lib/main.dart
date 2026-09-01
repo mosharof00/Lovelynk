@@ -8,6 +8,7 @@ import 'app/core/config/app_config.dart';
 import 'app/core/services/compass_service.dart';
 import 'app/core/services/local_store_service.dart';
 import 'app/core/services/subscription_service.dart';
+import 'app/core/services/widget_deep_link_service.dart';
 import 'app/core/services/widget_data_service.dart';
 import 'app/core/widgets/widget_style_store.dart';
 import 'app/core/widgets/widget_sync_service.dart';
@@ -41,6 +42,10 @@ void main() async {
   );
   await Get.putAsync<WidgetSyncService>(
     () => WidgetSyncService().init(),
+    permanent: true,
+  );
+  await Get.putAsync<WidgetDeepLinkService>(
+    () => WidgetDeepLinkService().init(),
     permanent: true,
   );
 

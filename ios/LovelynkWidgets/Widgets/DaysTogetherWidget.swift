@@ -74,21 +74,21 @@ struct DaysTogetherWidgetView: View {
     @Environment(\.widgetFamily) var family
 
     var body: some View {
-        if entry.isLocked {
-            lockedView
-        } else {
-            contentView
+        Group {
+            if entry.isLocked {
+                lockedView
+            } else {
+                contentView
+            }
         }
+        .accessoryWidgetContainer(family: family)
     }
 
     @ViewBuilder
     private var lockedView: some View {
         switch family {
         case .accessoryCircular:
-            ZStack {
-                AccessoryWidgetBackground()
-                Image(systemName: "lock.fill")
-            }
+            Image(systemName: "lock.fill")
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "lock.fill")
@@ -111,12 +111,9 @@ struct DaysTogetherWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            ZStack {
-                AccessoryWidgetBackground()
-                VStack(spacing: 0) {
-                    Text("❤️").font(.caption2)
-                    Text("\(entry.count)").font(.headline)
-                }
+            VStack(spacing: 0) {
+                Text("❤️").font(.caption2)
+                Text("\(entry.count)").font(.headline)
             }
         case .accessoryRectangular:
             HStack {

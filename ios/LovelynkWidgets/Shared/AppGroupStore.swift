@@ -18,4 +18,22 @@ enum AppGroupStore {
         let raw = defaults?.string(forKey: key) ?? ""
         return Int(raw) ?? defaultValue
     }
+
+    static func isoDate(_ key: String) -> Date? {
+        let raw = defaults?.string(forKey: key) ?? ""
+        guard !raw.isEmpty else { return nil }
+
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = fractional.date(from: raw) { return date }
+
+        let standard = ISO8601DateFormatter()
+        standard.formatOptions = [.withInternetDateTime]
+        return standard.date(from: raw)
+    }
+
+    static func double(_ key: String, default defaultValue: Double = 0) -> Double {
+        let raw = defaults?.string(forKey: key) ?? ""
+        return Double(raw) ?? defaultValue
+    }
 }

@@ -4,9 +4,11 @@ import 'package:intl/intl.dart';
 
 import '../../data/models/widget_models/app_widget_type.dart';
 import '../../data/models/widget_models/widget_style.dart';
+import '../services/compass_service.dart';
 import '../services/subscription_service.dart';
 import '../services/widget_data_service.dart';
 import '../utils/logger.dart';
+import '../utils/weather_icon_mapper.dart';
 import 'widget_app_group.dart';
 import '../widgets/widget_style_store.dart';
 import 'widget_kind.dart';
@@ -160,7 +162,91 @@ class WidgetSyncService extends GetxService {
           '${_daysToNextAnniversary(d.anniversary)}',
         );
         break;
-      default:
+      case AppWidgetType.partnerTime:
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerTimeUtcOffsetHours,
+          '${d.partnerUtcOffsetHours}',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerTimeCity,
+          d.partnerCity,
+        );
+        break;
+      case AppWidgetType.togetherCounter:
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.togetherCounterSince,
+          d.togetherSince.toUtc().toIso8601String(),
+        );
+        break;
+      case AppWidgetType.nextVisitCountdown:
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.nextVisitTargetAt,
+          d.nextVisit.toUtc().toIso8601String(),
+        );
+        break;
+      case AppWidgetType.partnerWeather:
+        final weather = d.partnerWeather;
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerWeatherTemperature,
+          '${weather.temperature}',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerWeatherCondition,
+          weather.condition,
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerWeatherCity,
+          d.partnerCity,
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerWeatherIconKey,
+          WeatherIconMapper.nativeIconKey(
+            conditionId: weather.conditionId ?? 802,
+            isDay: weather.isDay,
+          ),
+        );
+        break;
+      case AppWidgetType.loveCompass:
+        final compass = Get.find<CompassService>();
+        final bearing = compass.hasLocation.value
+            ? compass.partnerBearing.value
+            : d.compassBearing;
+        final miles = compass.hasLocation.value
+            ? compass.partnerMiles.value
+            : d.compassMiles;
+        final heading = compass.heading.value ?? 0;
+        final needle = bearing - heading;
+        final partnerLabel = d.partnerName.trim().split(' ').first;
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.loveCompassMiles,
+          '$miles',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.loveCompassPartnerLabel,
+          partnerLabel.isEmpty ? 'Partner' : partnerLabel,
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.loveCompassNeedleDegrees,
+          '$needle',
+        );
+        break;
+      case AppWidgetType.heartbeat:
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.heartbeatCount,
+          '${_data.heartbeatsFromPartner.value}',
+        );
+        break;
+      case AppWidgetType.kiss:
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.kissCount,
+          '${_data.kissesFromPartner.value}',
+        );
+        break;
+      case AppWidgetType.emoji:
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.emojiRecent,
+          _data.emojisFromPartner.take(3).join(','),
+        );
         break;
     }
   }

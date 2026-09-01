@@ -86,7 +86,7 @@ class WidgetData {
     return WidgetData(
       userName: 'Jasper',
       partnerName: 'Milla',
-      distanceMiles: 168,
+      distanceMiles: 1068,
       togetherSince: now.subtract(
         const Duration(days: 76, hours: 3, minutes: 27, seconds: 9),
       ),

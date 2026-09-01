@@ -35,7 +35,22 @@ WidgetSyncService                    reads style keys
 | Initials | `InitialsWidget` | ✅ |
 | Partner Distance | `PartnerDistanceWidget` | ✅ |
 | Anniversary | `AnniversaryWidget` | ✅ |
-| Others | — | Flutter in-app only (coming next) |
+| Partner Time | `PartnerTimeWidget` | ✅ (live, updates every minute) |
+| Together Counter | `TogetherCounterWidget` | ✅ (live, updates every second) |
+| Next Visit Countdown | `NextVisitCountdownWidget` | ✅ (live, updates every second) |
+| Partner Weather | `PartnerWeatherWidget` | ✅ |
+| Love Compass | `LoveCompassWidget` | ✅ |
+| Heartbeat | `HeartbeatWidget` | ✅ (tap → open app to send) |
+| Kiss | `KissWidget` | ✅ (tap → open app to send) |
+| Emoji | `EmojiWidget` | ✅ (tap → open app to send) |
+
+All **12** widgets are implemented natively on iOS.
+
+### Interactive widgets (Heartbeat, Kiss, Emoji)
+
+Tapping the widget opens the app via `lovelynk://widget/{heartbeat|kiss|emoji}?homeWidget` and shows the send dialog on the Widgets tab. The `homeWidget` query param is required for the `home_widget` plugin to deliver the URL to Flutter (`WidgetDeepLinkService`).
+
+URL scheme `lovelynk` is registered in `ios/Runner/Info.plist`.
 
 ---
 
@@ -77,7 +92,7 @@ WidgetSyncService                    reads style keys
 
 1. Run app once (syncs demo data: **76 days**, initials **J ♥ M**)
 2. Home Screen → long-press → **+**
-3. Search **Days Together**, **Initials**, **Partner Distance**, or **Anniversary** → Add
+3. Search **Lovelynk** → add any widget (Days Together, Heartbeat, etc.)
 4. **Customise** tab → change colour → **Save** → widget updates
 
 ### 6. Lock screen
@@ -125,7 +140,7 @@ So yes — **one App Group is correct**. Push updates one widget by writing that
 |-------|--------|
 | App Group + key bridge | ✅ Done |
 | Flutter sync on app open | ✅ Done |
-| Per-widget native Swift UI | ✅ 4 of 12 |
+| Per-widget native Swift UI | ✅ 12 of 12 |
 | APNs + Notification Service Extension | 🔜 Phase 2 |
 | `applyPushPayload()` in Dart | Stub ready |
 
@@ -139,12 +154,14 @@ So yes — **one App Group is correct**. Push updates one widget by writing that
 | Build error duplicate `@main` | Only `LovelynkWidgetBundle.swift` has `@main` |
 | App Group signing error | Match group id in portal + both targets |
 | Old widget still on home screen | Remove old widget, add new from gallery |
+| Lock screen shows "Please adopt containerBackground API" | Fixed in iOS 17+ — rebuild app, remove & re-add lock widgets |
+| Tap interactive widget does nothing | Rebuild after adding `lovelynk` URL scheme; URL must include `?homeWidget` |
 
 ---
 
-## Adding the next widget
+## Adding a new widget (reference)
 
 1. Dart: keys in `widget_app_group.dart` + `WidgetSyncService._writeDataFor`
 2. Dart: `WidgetKind.implementedKinds`
-3. iOS: `Widgets/YourWidget.swift`
+3. iOS: `Widgets/YourWidget.swift` + keys in `WidgetKeys.swift`
 4. iOS: register in `LovelynkWidgetBundle.swift`

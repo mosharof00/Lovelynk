@@ -6,6 +6,9 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
+import '../../data/models/widget_models/app_widget_type.dart';
+import '../widgets/widget_sync_service.dart';
+
 /// Live device heading + optional location for the Love Compass.
 ///
 /// Needle angle = partnerBearing − deviceHeading.
@@ -28,6 +31,7 @@ class CompassService extends GetxService {
 
   StreamSubscription<CompassEvent>? _headingSub;
   StreamSubscription<Position>? _positionSub;
+  Timer? _compassWidgetSyncDebounce;
 
   /// Mock partner coords (Sydney). Replaced by Supabase later.
   static const double partnerLat = -33.8688;
@@ -116,6 +120,22 @@ class CompassService extends GetxService {
       partnerLng,
     );
     partnerMiles.value = (meters / 1609.344).round();
+    _scheduleLoveCompassWidgetSync();
+  }
+
+  /// Push live compass data to the native Love Compass widget (debounced).
+  void _scheduleLoveCompassWidgetSync() {
+    _compassWidgetSyncDebounce?.cancel();
+    _compassWidgetSyncDebounce = Timer(const Duration(seconds: 2), () async {
+      if (!Get.isRegistered<WidgetSyncService>()) return;
+      await Get.find<WidgetSyncService>().syncWidget(AppWidgetType.loveCompass);
+      if (kDebugMode) {
+        debugPrint(
+          'CompassService: synced Love Compass widget — '
+          '${partnerMiles.value} mi, bearing ${partnerBearing.value.toStringAsFixed(0)}°',
+        );
+      }
+    });
   }
 
   /// Needle rotation in radians for [Transform.rotate].
@@ -127,6 +147,7 @@ class CompassService extends GetxService {
 
   @override
   void onClose() {
+    _compassWidgetSyncDebounce?.cancel();
     _headingSub?.cancel();
     _positionSub?.cancel();
     super.onClose();

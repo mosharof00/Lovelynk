@@ -60,7 +60,7 @@ struct AnniversaryProvider: TimelineProvider {
             isLocked: false,
             lockMessage: "Locked",
             dateLabel: "12 Oct 2025",
-            daysToGo: 42,
+            daysToGo: 41,
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.Anniversary.widgetId)
         )
     }
@@ -73,21 +73,21 @@ struct AnniversaryWidgetView: View {
     @Environment(\.widgetFamily) var family
 
     var body: some View {
-        if entry.isLocked {
-            lockedView
-        } else {
-            contentView
+        Group {
+            if entry.isLocked {
+                lockedView
+            } else {
+                contentView
+            }
         }
+        .accessoryWidgetContainer(family: family)
     }
 
     @ViewBuilder
     private var lockedView: some View {
         switch family {
         case .accessoryCircular:
-            ZStack {
-                AccessoryWidgetBackground()
-                Image(systemName: "lock.fill")
-            }
+            Image(systemName: "lock.fill")
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "lock.fill")
@@ -108,11 +108,8 @@ struct AnniversaryWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            ZStack {
-                AccessoryWidgetBackground()
-                Text("\(entry.daysToGo)")
+            Text("\(entry.daysToGo)")
                     .font(.headline)
-            }
         case .accessoryRectangular:
             HStack {
                 Text("💍")
@@ -128,42 +125,59 @@ struct AnniversaryWidgetView: View {
     }
 
     private var smallLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(spacing: 0) {
             Text("Anniversary")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 4)
+            Spacer(minLength: 0)
 
-            Text(entry.dateLabel)
-                .font(entry.style.homeValueFont(for: family))
-                .foregroundStyle(entry.style.themeColor)
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
+            VStack(spacing: 4) {
+                Text(entry.dateLabel)
+                    .font(.system(
+                        size: entry.style.homeValueSize(for: family) * 0.58,
+                        weight: .bold,
+                        design: .rounded
+                    ))
+                    .foregroundStyle(entry.style.themeColor)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
 
-            Text("\(entry.daysToGo) days to go")
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .regular))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+                Text("\(entry.daysToGo) days to go")
+                    .font(.system(size: entry.style.homeTitleSize(for: family), weight: .regular))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
         .widgetBackground(entry.style)
     }
 
     private var mediumLayout: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Anniversary")
-                    .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
-                    .foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            Text("Anniversary")
+                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity)
 
+            Spacer(minLength: 0)
+
+            VStack(spacing: 6) {
                 Text(entry.dateLabel)
                     .font(entry.style.homeValueFont(for: family))
                     .foregroundStyle(entry.style.themeColor)
-                    .minimumScaleFactor(0.5)
+                    .minimumScaleFactor(0.55)
                     .lineLimit(1)
+                    .multilineTextAlignment(.center)
 
                 Text("\(entry.daysToGo) days to go")
                     .font(.system(
@@ -171,12 +185,18 @@ struct AnniversaryWidgetView: View {
                         weight: .medium
                     ))
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
-
+        }
+        .overlay(alignment: .topTrailing) {
             Text("💍")
-                .font(.system(size: entry.style.homeValueSize(for: family) * 0.72))
+                .font(.system(size: entry.style.homeValueSize(for: family) * 0.55))
+                .padding(.top, WidgetLayoutMetrics.homePadding)
+                .padding(.trailing, WidgetLayoutMetrics.homePadding)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
