@@ -6,10 +6,10 @@ Production widget architecture for **Lovelynk**.
 
 | Item | Value |
 |------|--------|
-| App Group | `group.com.lovelynk.app` |
+| App Group | `group.com.lovelynk.ios` |
 | Widget source folder | `ios/LovelynkWidgets/` |
 | Xcode extension target | `LovelynkWidgetsExtension` |
-| Extension bundle id | `com.lovelynk.app.LovelynkWidgets` |
+| Extension bundle id | `com.lovelynk.ios.LovelynkWidgets` |
 
 ## Architecture
 
@@ -60,21 +60,21 @@ URL scheme `lovelynk` is registered in `ios/Runner/Info.plist`.
 
 1. Go to [developer.apple.com](https://developer.apple.com) → Certificates, Identifiers & Profiles → **Identifiers**.
 2. Open **App Groups** (or create one).
-3. Register: **`group.com.lovelynk.app`**  
-   (If you still have `group.com.lovelynk.app.widgetdemo`, you can delete it later — not needed anymore.)
-4. Ensure your **App ID** for `com.lovelynk.app` has App Groups capability enabled and includes `group.com.lovelynk.app`.
+3. Register: **`group.com.lovelynk.ios`**  
+   (If you still have `group.com.lovelynk.ios.widgetdemo`, you can delete it later — not needed anymore.)
+4. Ensure your **App ID** for `com.lovelynk.ios` has App Groups capability enabled and includes `group.com.lovelynk.ios`.
 
 ### 2. Xcode — Runner app
 
 1. Open **`ios/Runner.xcworkspace`**
 2. Select **Runner** target → **Signing & Capabilities**
 3. **App Groups** → remove old `widgetdemo` group if present
-4. Add **`group.com.lovelynk.app`** and check it ✅
+4. Add **`group.com.lovelynk.ios`** and check it ✅
 
 ### 3. Xcode — Widget extension
 
 1. Select **LovelynkWidgetsExtension** target (was LoveWidgetExtension)
-2. **Signing & Capabilities** → same App Group: **`group.com.lovelynk.app`** ✅
+2. **Signing & Capabilities** → same App Group: **`group.com.lovelynk.ios`** ✅
 3. **General** → Minimum Deployments: **iOS 16.0**
 4. Confirm **LovelynkWidgets** folder in Project Navigator contains Swift files
 
@@ -103,12 +103,12 @@ Long-press lock screen → Customize → add any Lovelynk widget
 
 ## How one App Group works for all widgets (and push updates)
 
-You only need **one** App Group (`group.com.lovelynk.app`). Think of it as a **shared folder** on the device that both the main app and the widget extension can read/write.
+You only need **one** App Group (`group.com.lovelynk.ios`). Think of it as a **shared folder** on the device that both the main app and the widget extension can read/write.
 
 ```
 ┌─────────────────────┐         ┌──────────────────────────┐
 │  Lovelynk App       │  write  │  App Group (UserDefaults) │
-│  (Flutter / Runner) │ ──────► │  group.com.lovelynk.app   │
+│  (Flutter / Runner) │ ──────► │  group.com.lovelynk.ios   │
 └─────────────────────┘         │                          │
                                 │  days_together_count = 76 │
 ┌─────────────────────┐  read   │  partner_distance_miles=168│
@@ -154,7 +154,7 @@ So yes — **one App Group is correct**. Push updates one widget by writing that
 | Build error duplicate `@main` | Only `LovelynkWidgetBundle.swift` has `@main` |
 | App Group signing error | Match group id in portal + both targets |
 | Old widget still on home screen | Remove old widget, add new from gallery |
-| Lock screen shows "Please adopt containerBackground API" | Fixed in iOS 17+ — rebuild app, remove & re-add lock widgets |
+| Lock screen shows "Please adopt containerBackground API" | Rebuild app after root `lovelynkContainerBackground`; **remove** old widgets from Home/Lock, then add again |
 | Tap interactive widget does nothing | Rebuild after adding `lovelynk` URL scheme; URL must include `?homeWidget` |
 
 ---
