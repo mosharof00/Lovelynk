@@ -2,7 +2,7 @@ import Foundation
 
 /// App Group + storage keys — must match Dart `WidgetAppGroup`.
 enum WidgetKeys {
-    static let appGroupId = "group.com.lovelynk.app"
+    static let appGroupId = "group.com.lovelynk.ios"
 
     static let globalLocked = "widget_global_locked"
     static let globalLockMessage = "widget_global_lock_message"

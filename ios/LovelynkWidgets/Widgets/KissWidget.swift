@@ -69,7 +69,7 @@ struct KissWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
         .widgetURL(WidgetDeepLinks.kiss)
     }
 
@@ -137,7 +137,6 @@ struct KissWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private var mediumLayout: some View {
@@ -159,7 +158,6 @@ struct KissWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 }
 

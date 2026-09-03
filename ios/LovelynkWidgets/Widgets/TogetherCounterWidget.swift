@@ -88,7 +88,7 @@ struct TogetherCounterWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -164,7 +164,6 @@ struct TogetherCounterWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private var mediumLayout: some View {
@@ -189,7 +188,6 @@ struct TogetherCounterWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 }
 

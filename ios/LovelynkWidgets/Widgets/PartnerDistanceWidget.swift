@@ -81,7 +81,7 @@ struct PartnerDistanceWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -154,7 +154,6 @@ struct PartnerDistanceWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private var mediumLayout: some View {
@@ -185,7 +184,6 @@ struct PartnerDistanceWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     /// J ── ♥ ── M track. Heart stays centered; initials slide toward/away with [proximity].

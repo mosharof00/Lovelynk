@@ -74,7 +74,7 @@ struct InitialsWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -129,7 +129,6 @@ struct InitialsWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private func initialCircle(_ initial: String, diameter: CGFloat) -> some View {
