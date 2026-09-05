@@ -19,7 +19,7 @@ class NotConnectedCard extends GetView<HomeController> {
         return Container(
           margin: EdgeInsets.only(top: 12.h),
           width: double.infinity,
-          padding: EdgeInsets.all(8.w),
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
           decoration: BoxDecoration(
             color: AppColor.white,
             borderRadius: BorderRadius.circular(20.r),
@@ -29,38 +29,30 @@ class NotConnectedCard extends GetView<HomeController> {
           ),
           child: Row(
             children: [
-              Image.asset(AppConfig.appLogo, height: 40.w, width: 40.w),
-              4.width,
+              Image.asset(AppConfig.appLogo, height: 56.w, width: 56.w),
+              12.width,
               Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText(
-                      "Connect with your partner",
-                      style: context.titleSmall,
-                    ),
-                    4.height,
-                    AppText(
-                      "Start sharing moments and see your connection come to life",
-                      style: context.bodySmall.copyWith(color: Colors.grey),
-                    ),
-                  ],
+                child: AppText(
+                  'Connect with your partner',
+                  style: context.titleSmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                  ),
                 ),
               ),
               12.width,
               GlobalButton(
-                onTap: () {},
-                text: "Connect",
+                onTap: controller.goConnectPartner,
+                text: 'Connect',
                 fontSize: 12.sp,
-                height: 26.h,
-                width: 70.w,
+                height: 32.h,
+                width: 84.w,
               ),
             ],
           ),
         );
       } else {
-        return SizedBox.shrink();
+        return const SizedBox.shrink();
       }
     });
   }

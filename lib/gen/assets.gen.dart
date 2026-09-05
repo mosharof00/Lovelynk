@@ -78,6 +78,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/kiss_icon.svg
   String get kissIcon => 'assets/icons/kiss_icon.svg';
 
+  /// File path: assets/icons/love_double_icon.svg
+  String get loveDoubleIcon => 'assets/icons/love_double_icon.svg';
+
   /// File path: assets/icons/love_icon.svg
   String get loveIcon => 'assets/icons/love_icon.svg';
 
@@ -139,6 +142,7 @@ class $AssetsIconsGen {
     homeIcon,
     initialsIcon,
     kissIcon,
+    loveDoubleIcon,
     loveIcon,
     loveMulti,
     moodsIcon,

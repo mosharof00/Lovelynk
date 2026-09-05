@@ -116,15 +116,23 @@ struct TogetherCounterWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text("\(entry.days)d")
-                    .font(.headline)
-        case .accessoryRectangular:
-            HStack {
-                Image(systemName: "heart.fill")
-                Text(counterLine(compact: true)).font(.headline)
+            VStack(spacing: 0) {
+                Text("\(entry.days)")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                Text("days")
+                    .font(.system(size: 9, weight: .medium))
             }
+        case .accessoryRectangular:
+            WidgetCountdownLayout.accessoryRectangular(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds
+            )
         case .accessoryInline:
-            Text("❤️ \(counterLine(compact: true))")
+            Text("Together \(counterLine)")
         case .systemMedium:
             mediumLayout
         default:
@@ -132,7 +140,7 @@ struct TogetherCounterWidgetView: View {
         }
     }
 
-    private func counterLine(compact: Bool) -> String {
+    private var counterLine: String {
         String(
             format: "%02d:%02d:%02d:%02d",
             entry.days,

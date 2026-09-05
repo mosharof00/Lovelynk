@@ -111,7 +111,7 @@ class _DistanceTrack extends StatelessWidget {
           left: centerX - heartHalf,
           top: centerY - heartHalf,
           child:
-          AppSvgIcon(Assets.icons.loveIcon, size:  heartHalf * 1.8, color: AppColor.primary),
+          AppSvgIcon(Assets.icons.loveDoubleIcon, size:  heartHalf * 2.3, color: AppColor.primary),
 
           // Icon(
           //   Icons.favorite_rounded,

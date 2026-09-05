@@ -194,8 +194,17 @@ class AnniversaryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final anniversary = _service.data.value.anniversary;
-      final dateText = DateFormat('d MMM yyyy').format(anniversary);
+      final day = DateFormat('d').format(anniversary);
+      final month = DateFormat('MMM').format(anniversary);
+      final year = DateFormat('yyyy').format(anniversary);
       final daysToGo = _daysToNext(anniversary);
+
+      final dateStyle = TextStyle(
+        fontSize: compact ? 14.sp : 20.sp,
+        fontWeight: FontWeight.w700,
+        color: AppColor.primary,
+        height: 1.05,
+      );
 
       final content = Column(
         mainAxisAlignment: compact
@@ -203,19 +212,14 @@ class AnniversaryWidget extends StatelessWidget {
             : MainAxisAlignment.center,
         mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: AppText(
-              dateText,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: compact ? 13.sp : 20.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColor.primary,
-                height: 1.1,
-              ),
-            ),
+          // Vertical stack: day / month / year
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppText(day, textAlign: TextAlign.center, style: dateStyle),
+              AppText(month, textAlign: TextAlign.center, style: dateStyle),
+              AppText(year, textAlign: TextAlign.center, style: dateStyle),
+            ],
           ),
           if (!compact) SizedBox(height: 6.h),
           AppText(

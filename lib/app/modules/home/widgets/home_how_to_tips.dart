@@ -8,6 +8,7 @@ import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../routes/app_pages.dart';
 
+/// Home tip: open the Home Screen widget setup slides.
 class HomeHowToTips extends StatelessWidget {
   const HomeHowToTips({super.key});
 

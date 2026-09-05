@@ -4,12 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
 
-/// Shared shell for every widget card: title, live body, and footer action(s).
-///
-/// Interactive widgets pass [onSend] + [sendLabel] so the footer shows
-/// "Add Widget | Send …" — the card body itself is not tappable.
-///
-/// Use [compact] on Home (narrow columns) for smaller type / shorter labels.
+/// Interactive widgets pass [onSend] so the footer shows "Add | Send".
+/// Use [compact] on Home (narrow columns). Set [showFooter] false to hide CTAs.
 class LoveWidgetCard extends StatelessWidget {
   const LoveWidgetCard({
     super.key,
@@ -20,6 +16,7 @@ class LoveWidgetCard extends StatelessWidget {
     this.onSend,
     this.sendLabel,
     this.compact = false,
+    this.showFooter = true,
   });
 
   final String title;
@@ -27,11 +24,12 @@ class LoveWidgetCard extends StatelessWidget {
   final bool isUnlocked;
   final VoidCallback onAction;
   final VoidCallback? onSend;
+  /// Kept for call-site compatibility; footer always shows "Send".
   final String? sendLabel;
   final bool compact;
+  final bool showFooter;
 
-  bool get _showSend =>
-      isUnlocked && onSend != null && (sendLabel?.isNotEmpty ?? false);
+  bool get _showSend => isUnlocked && onSend != null;
 
   @override
   Widget build(BuildContext context) {
@@ -42,10 +40,11 @@ class LoveWidgetCard extends StatelessWidget {
     final gapAfterTitle = compact ? 4.h : 10.h;
     final gapBeforeDivider = compact ? 4.h : 8.h;
 
-    final addLabel = compact
-        ? (isUnlocked ? 'Add' : 'Unlock')
-        : (isUnlocked ? 'Add Widget' : 'Unlock Widget');
-    final sendText = compact ? 'Send' : (sendLabel ?? 'Send');
+    final addLabel = _showSend
+        ? (isUnlocked ? 'Add' : (compact ? 'Unlock' : 'Unlock Widget'))
+        : compact
+            ? (isUnlocked ? 'Add' : 'Unlock')
+            : (isUnlocked ? 'Add Widget' : 'Unlock Widget');
 
     return Container(
       padding: EdgeInsets.fromLTRB(padH, padTop, padH, padBottom),
@@ -89,46 +88,48 @@ class LoveWidgetCard extends StatelessWidget {
           Expanded(
             child: compact ? child : Center(child: child),
           ),
-          SizedBox(height: gapBeforeDivider),
-          Divider(
-            height: 1,
-            thickness: 0.6,
-            color: AppColor.inputBorder.withValues(alpha: 0.8),
-          ),
-          SizedBox(height: compact ? 4.h : 6.h),
-          if (_showSend)
-            Row(
-              children: [
-                Expanded(
-                  child: _FooterAction(
-                    label: addLabel,
-                    icon: Icons.add_rounded,
-                    onTap: onAction,
-                    compact: compact,
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: compact ? 12.h : 16.h,
-                  color: AppColor.inputBorder.withValues(alpha: 0.9),
-                ),
-                Expanded(
-                  child: _FooterAction(
-                    label: sendText,
-                    icon: Icons.send_outlined,
-                    onTap: onSend!,
-                    compact: compact,
-                  ),
-                ),
-              ],
-            )
-          else
-            _FooterAction(
-              label: addLabel,
-              icon: isUnlocked ? Icons.add_rounded : Icons.lock_open_rounded,
-              onTap: onAction,
-              compact: compact,
+          if (showFooter) ...[
+            SizedBox(height: gapBeforeDivider),
+            Divider(
+              height: 1,
+              thickness: 0.6,
+              color: AppColor.inputBorder.withValues(alpha: 0.8),
             ),
+            SizedBox(height: compact ? 4.h : 6.h),
+            if (_showSend)
+              Row(
+                children: [
+                  Expanded(
+                    child: _FooterAction(
+                      label: addLabel,
+                      icon: Icons.add_rounded,
+                      onTap: onAction,
+                      compact: compact,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: compact ? 12.h : 16.h,
+                    color: AppColor.inputBorder.withValues(alpha: 0.9),
+                  ),
+                  Expanded(
+                    child: _FooterAction(
+                      label: 'Send',
+                      icon: Icons.send_outlined,
+                      onTap: onSend!,
+                      compact: compact,
+                    ),
+                  ),
+                ],
+              )
+            else
+              _FooterAction(
+                label: addLabel,
+                icon: isUnlocked ? Icons.add_rounded : Icons.lock_open_rounded,
+                onTap: onAction,
+                compact: compact,
+              ),
+          ],
         ],
       ),
     );
