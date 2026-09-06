@@ -8,6 +8,7 @@ import '../../../../core/services/widget_data_service.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
 import 'widget_common.dart';
+import 'widget_accent_scope.dart';
 
 WidgetDataService get _service => Get.find<WidgetDataService>();
 
@@ -111,11 +112,11 @@ class _DistanceTrack extends StatelessWidget {
           left: centerX - heartHalf,
           top: centerY - heartHalf,
           child:
-          AppSvgIcon(Assets.icons.loveIcon, size:  heartHalf * 1.8, color: AppColor.primary),
+          AppSvgIcon(Assets.icons.loveDoubleIcon, size:  heartHalf * 2.3, color: WidgetAccentScope.of(context)),
 
           // Icon(
           //   Icons.favorite_rounded,
-          //   color: AppColor.primary,
+          //   color: WidgetAccentScope.of(context),
           //   size: heartHalf * 2,
           // ),
         ),
@@ -142,13 +143,15 @@ class _PersonDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = WidgetAccentScope.of(context);
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColor.white,
+        // Match native home widget: soft tint, not solid white.
+        color: accent.withValues(alpha: 0.12),
         shape: BoxShape.circle,
-        border: Border.all(color: AppColor.primary, width: 1.5),
+        border: Border.all(color: accent, width: 1.5),
       ),
       alignment: Alignment.center,
       child: AppText(
@@ -156,7 +159,7 @@ class _PersonDot extends StatelessWidget {
         style: TextStyle(
           fontSize: 14.sp,
           fontWeight: FontWeight.w700,
-          color: AppColor.primary,
+          color: accent,
         ),
       ),
     );
@@ -228,16 +231,16 @@ class DaysTogetherWidget extends StatelessWidget {
         children: [
           AppSvgIcon(
             Assets.icons.loveIcon,
-            size: compact ? 22.sp : 30.sp,
-            color: AppColor.primary,
+            size: compact ? 18.sp : 24.sp,
+            color: WidgetAccentScope.of(context),
           ),
           if (!compact) SizedBox(height: 8.h),
           AppText(
             '$days',
             style: TextStyle(
-              fontSize: compact ? 18.sp : 30.sp,
+              fontSize: compact ? 18.sp : 24.sp,
               fontWeight: FontWeight.w700,
-              color: AppColor.primary,
+              color: WidgetAccentScope.of(context),
               height: 1.0,
             ),
           ),
@@ -297,7 +300,7 @@ class PartnerTimeWidget extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 30.sp,
                   fontWeight: FontWeight.w700,
-                  color: AppColor.primary,
+                  color: WidgetAccentScope.of(context),
                   height: 1.0,
                 ),
               ),
@@ -309,7 +312,7 @@ class PartnerTimeWidget extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13.sp,
                     fontWeight: FontWeight.w600,
-                    color: AppColor.primary,
+                    color: WidgetAccentScope.of(context),
                   ),
                 ),
               ),
@@ -362,7 +365,7 @@ class PartnerWeatherWidget extends StatelessWidget {
               AppSvgIcon(
                 weather.iconPath,
                 size: 36.sp,
-                // color: AppColor.primary,
+                // color: WidgetAccentScope.of(context),
               ),
               10.horizontalSpace,
               AppText(
@@ -370,7 +373,7 @@ class PartnerWeatherWidget extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 28.sp,
                   fontWeight: FontWeight.w700,
-                  color: AppColor.primary,
+                  color: WidgetAccentScope.of(context),
                   height: 1.0,
                 ),
               ),
@@ -382,7 +385,7 @@ class PartnerWeatherWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w600,
-              color: AppColor.primary,
+              color: WidgetAccentScope.of(context),
             ),
           ),
           2.verticalSpace,

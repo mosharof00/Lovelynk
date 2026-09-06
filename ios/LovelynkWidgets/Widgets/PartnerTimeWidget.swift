@@ -87,7 +87,7 @@ struct PartnerTimeWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -149,7 +149,6 @@ struct PartnerTimeWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private var mediumLayout: some View {
@@ -169,7 +168,6 @@ struct PartnerTimeWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private func timeDisplay(compact: Bool) -> some View {

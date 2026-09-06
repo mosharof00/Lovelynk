@@ -74,7 +74,7 @@ struct InitialsWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -102,12 +102,12 @@ struct InitialsWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text(entry.userInitial)
-                    .font(.headline)
+            accessoryCircularLayout
         case .accessoryRectangular:
-            initialsRow(fontSize: 14)
+            accessoryRectangularLayout
         case .accessoryInline:
             Text("\(entry.userInitial) ♥ \(entry.partnerInitial)")
+                .font(.headline)
         case .systemMedium:
             homeLayout
         default:
@@ -115,21 +115,47 @@ struct InitialsWidgetView: View {
         }
     }
 
+    /// Fills the lock-screen circular slot with large initials.
+    private var accessoryCircularLayout: some View {
+        HStack(spacing: 2) {
+            Text(entry.userInitial)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+            Image(systemName: "heart.fill")
+                .font(.system(size: 11, weight: .bold))
+            Text(entry.partnerInitial)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+        }
+        .minimumScaleFactor(0.6)
+        .lineLimit(1)
+    }
+
+    /// Large initials for lock-screen rectangular slot.
+    private var accessoryRectangularLayout: some View {
+        HStack(spacing: 10) {
+            Text(entry.userInitial)
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+            Image(systemName: "heart.fill")
+                .font(.system(size: 18, weight: .bold))
+            Text(entry.partnerInitial)
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .minimumScaleFactor(0.5)
+        .lineLimit(1)
+    }
+
     private var homeLayout: some View {
         let diameter = entry.style.initialsCircleDiameter(for: family)
-        let heartSize = diameter * 0.32
+        let heartSize = diameter * 0.42
         let spacing = family == .systemMedium ? 14.0 : 10.0
 
         return HStack(spacing: spacing) {
             initialCircle(entry.userInitial, diameter: diameter)
-            Image(systemName: "heart.fill")
-                .font(.system(size: heartSize))
-                .foregroundStyle(entry.style.themeColor)
+            LoveDoubleIcon(size: heartSize, color: entry.style.themeColor)
             initialCircle(entry.partnerInitial, diameter: diameter)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private func initialCircle(_ initial: String, diameter: CGFloat) -> some View {
@@ -141,20 +167,6 @@ struct InitialsWidgetView: View {
                 Circle()
                     .stroke(entry.style.themeColor, lineWidth: 2)
             )
-    }
-
-    private func initialsRow(fontSize: CGFloat) -> some View {
-        HStack(spacing: 6) {
-            Text(entry.userInitial)
-                .font(.system(size: fontSize, weight: .bold, design: .rounded))
-                .foregroundStyle(entry.style.themeColor)
-            Text("♥")
-                .font(.system(size: fontSize * 0.85))
-                .foregroundStyle(entry.style.themeColor.opacity(0.85))
-            Text(entry.partnerInitial)
-                .font(.system(size: fontSize, weight: .bold, design: .rounded))
-                .foregroundStyle(entry.style.themeColor)
-        }
     }
 }
 

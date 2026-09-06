@@ -16,9 +16,10 @@ struct CompassDialView: View {
 
             ForEach(Array(cardinals.enumerated()), id: \.offset) { index, label in
                 Text(label)
-                    .font(.system(size: max(7, size * 0.12), weight: .semibold))
+                    .font(.system(size: max(7, size * 0.11), weight: .semibold))
                     .foregroundStyle(color)
-                    .offset(cardinalOffset(for: index, radius: size * 0.42))
+                    // Sit just outside the ring so letters don't overlap the stroke.
+                    .offset(cardinalOffset(for: index, radius: size * 0.48))
             }
 
             Image(systemName: "location.north.fill")

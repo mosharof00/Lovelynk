@@ -40,7 +40,7 @@ struct AnniversaryProvider: TimelineProvider {
         )
         let dateLabel = AppGroupStore.string(
             WidgetKeys.Anniversary.dateLabel,
-            default: "12 Oct 2025"
+            default: "12 April 2025"
         )
         let daysToGo = AppGroupStore.int(WidgetKeys.Anniversary.daysToGo, default: 0)
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.Anniversary.widgetId)
@@ -59,7 +59,7 @@ struct AnniversaryProvider: TimelineProvider {
             date: Date(),
             isLocked: false,
             lockMessage: "Locked",
-            dateLabel: "12 Oct 2025",
+            dateLabel: "12 April 2025",
             daysToGo: 41,
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.Anniversary.widgetId)
         )
@@ -80,7 +80,7 @@ struct AnniversaryWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -108,15 +108,37 @@ struct AnniversaryWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text("\(entry.daysToGo)")
-                    .font(.headline)
-        case .accessoryRectangular:
-            HStack {
-                Text("💍")
-                Text("\(entry.daysToGo) days").font(.headline)
+            // Compact vertical: day / month
+            VStack(spacing: 0) {
+                Text(dateDay)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                Text(dateMonthShort.uppercased())
+                    .font(.system(size: 9, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
+        case .accessoryRectangular:
+            // Lock long horizontal: "12 Oct" / "2025"
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Anniversary")
+                    .font(.system(size: 11, weight: .medium))
+                Text("\(dateDay) \(dateMonthShort)")
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+                Text(dateYear)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+                Text("\(entry.daysToGo) days to go")
+                    .font(.system(size: 11, weight: .regular))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         case .accessoryInline:
-            Text("💍 \(entry.dateLabel) · \(entry.daysToGo)d")
+            Text("💍 \(dateDay) \(dateMonthShort) \(dateYear)")
         case .systemMedium:
             mediumLayout
         default:
@@ -124,6 +146,28 @@ struct AnniversaryWidgetView: View {
         }
     }
 
+    /// Parses "12 April 2025" (or similar) into day / month / year.
+    private var dateParts: [String] {
+        entry.dateLabel.split(separator: " ").map(String.init)
+    }
+
+    private var dateDay: String {
+        dateParts.first ?? entry.dateLabel
+    }
+
+    private var dateMonthFull: String {
+        dateParts.count >= 2 ? dateParts[1] : ""
+    }
+
+    private var dateMonthShort: String {
+        String(dateMonthFull.prefix(3))
+    }
+
+    private var dateYear: String {
+        dateParts.count >= 3 ? dateParts[2] : ""
+    }
+
+    /// Home small / default: vertical day / month / year.
     private var smallLayout: some View {
         VStack(spacing: 0) {
             Text("Anniversary")
@@ -134,23 +178,34 @@ struct AnniversaryWidgetView: View {
 
             Spacer(minLength: 0)
 
-            VStack(spacing: 4) {
-                Text(entry.dateLabel)
+            VStack(spacing: 2) {
+                Text(dateDay)
                     .font(.system(
-                        size: entry.style.homeValueSize(for: family) * 0.58,
+                        size: entry.style.homeValueSize(for: family) * 0.55,
                         weight: .bold,
                         design: .rounded
                     ))
                     .foregroundStyle(entry.style.themeColor)
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
-                    .multilineTextAlignment(.center)
+                Text(dateMonthShort)
+                    .font(.system(
+                        size: entry.style.homeValueSize(for: family) * 0.42,
+                        weight: .bold,
+                        design: .rounded
+                    ))
+                    .foregroundStyle(entry.style.themeColor)
+                Text(dateYear)
+                    .font(.system(
+                        size: entry.style.homeValueSize(for: family) * 0.42,
+                        weight: .bold,
+                        design: .rounded
+                    ))
+                    .foregroundStyle(entry.style.themeColor)
 
                 Text("\(entry.daysToGo) days to go")
                     .font(.system(size: entry.style.homeTitleSize(for: family), weight: .regular))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
             }
             .frame(maxWidth: .infinity)
 
@@ -158,9 +213,9 @@ struct AnniversaryWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
+    /// Home medium (long horizontal): "12 Oct" / "2025".
     private var mediumLayout: some View {
         VStack(spacing: 0) {
             Text("Anniversary")
@@ -171,13 +226,23 @@ struct AnniversaryWidgetView: View {
 
             Spacer(minLength: 0)
 
-            VStack(spacing: 6) {
-                Text(entry.dateLabel)
+            VStack(spacing: 4) {
+                Text("\(dateDay) \(dateMonthShort)")
                     .font(entry.style.homeValueFont(for: family))
                     .foregroundStyle(entry.style.themeColor)
                     .minimumScaleFactor(0.55)
                     .lineLimit(1)
                     .multilineTextAlignment(.center)
+
+                Text(dateYear)
+                    .font(.system(
+                        size: entry.style.homeValueSize(for: family) * 0.72,
+                        weight: .bold,
+                        design: .rounded
+                    ))
+                    .foregroundStyle(entry.style.themeColor)
+                    .minimumScaleFactor(0.55)
+                    .lineLimit(1)
 
                 Text("\(entry.daysToGo) days to go")
                     .font(.system(
@@ -200,7 +265,6 @@ struct AnniversaryWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 }
 

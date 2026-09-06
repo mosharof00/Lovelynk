@@ -78,6 +78,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/kiss_icon.svg
   String get kissIcon => 'assets/icons/kiss_icon.svg';
 
+  /// File path: assets/icons/love_double_icon.svg
+  String get loveDoubleIcon => 'assets/icons/love_double_icon.svg';
+
   /// File path: assets/icons/love_icon.svg
   String get loveIcon => 'assets/icons/love_icon.svg';
 
@@ -139,6 +142,7 @@ class $AssetsIconsGen {
     homeIcon,
     initialsIcon,
     kissIcon,
+    loveDoubleIcon,
     loveIcon,
     loveMulti,
     moodsIcon,
@@ -298,8 +302,12 @@ class $AssetsLogosGen {
   /// File path: assets/logos/app_logo.png
   AssetGenImage get appLogo => const AssetGenImage('assets/logos/app_logo.png');
 
+  /// File path: assets/logos/app_logo_small.png
+  AssetGenImage get appLogoSmall =>
+      const AssetGenImage('assets/logos/app_logo_small.png');
+
   /// List of all assets
-  List<AssetGenImage> get values => [appIcon, appLogo];
+  List<AssetGenImage> get values => [appIcon, appLogo, appLogoSmall];
 }
 
 class $AssetsWeatherIconsGen {

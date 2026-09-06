@@ -92,7 +92,7 @@ struct PartnerWeatherWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -120,20 +120,44 @@ struct PartnerWeatherWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text("\(entry.temperature)°")
-                    .font(.headline)
-        case .accessoryRectangular:
-            HStack {
-                Text(WidgetWeatherIcon.emoji(for: entry.iconKey))
-                Text("\(entry.temperature)° \(entry.condition)").font(.headline)
+            VStack(spacing: 0) {
+                Text("\(entry.temperature)°")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                Text(cityShort)
+                    .font(.system(size: 8, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
+        case .accessoryRectangular:
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Text(WidgetWeatherIcon.emoji(for: entry.iconKey))
+                    Text("\(entry.temperature)° \(entry.condition)")
+                        .font(.system(size: 14, weight: .semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                HStack(spacing: 3) {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 9))
+                    Text(entry.city)
+                        .font(.system(size: 11, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         case .accessoryInline:
-            Text("\(WidgetWeatherIcon.emoji(for: entry.iconKey)) \(entry.temperature)° \(entry.city)")
+            Text("\(WidgetWeatherIcon.emoji(for: entry.iconKey)) \(entry.temperature)° · \(entry.city)")
         case .systemMedium:
             mediumLayout
         default:
             smallLayout
         }
+    }
+
+    private var cityShort: String {
+        entry.city.split(separator: ",").first.map(String.init) ?? entry.city
     }
 
     private var smallLayout: some View {
@@ -170,7 +194,6 @@ struct PartnerWeatherWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private var mediumLayout: some View {
@@ -209,7 +232,6 @@ struct PartnerWeatherWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private var cityRow: some View {

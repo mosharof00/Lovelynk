@@ -2,27 +2,14 @@ import SwiftUI
 import WidgetKit
 
 extension View {
+    /// Apply on the **root** of each widget entry view.
+    /// Required on iOS 17+ or the home/lock screen shows:
+    /// "Please adopt containerBackground API".
     @ViewBuilder
-    func widgetBackground(_ style: WidgetStyleConfig) -> some View {
-        if style.useBackground {
-            if #available(iOS 17.0, *) {
-                self.containerBackground(style.backgroundColor, for: .widget)
-            } else {
-                self.background(style.backgroundColor)
-            }
-        } else {
-            if #available(iOS 17.0, *) {
-                self.containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                self.background()
-            }
-        }
-    }
-
-    /// iOS 17+ requires `containerBackground(for: .widget)` on lock-screen accessory widgets.
-    /// Without this, real devices show: "Please adopt containerBackground API".
-    @ViewBuilder
-    func accessoryWidgetContainer(family: WidgetFamily) -> some View {
+    func lovelynkContainerBackground(
+        style: WidgetStyleConfig,
+        family: WidgetFamily
+    ) -> some View {
         if #available(iOS 17.0, *) {
             switch family {
             case .accessoryCircular:
@@ -30,9 +17,18 @@ extension View {
                     AccessoryWidgetBackground()
                 }
             case .accessoryRectangular, .accessoryInline:
-                self.containerBackground(.fill.tertiary, for: .widget)
+                self.containerBackground(for: .widget) {
+                    Color.clear
+                }
             default:
-                self
+                self.containerBackground(for: .widget) {
+                    if style.useBackground {
+                        style.backgroundColor
+                    } else {
+                        // "Background: No" → transparent so wallpaper shows through.
+                        Color.clear
+                    }
+                }
             }
         } else {
             switch family {
@@ -41,8 +37,14 @@ extension View {
                     AccessoryWidgetBackground()
                     self
                 }
-            default:
+            case .accessoryRectangular, .accessoryInline:
                 self
+            default:
+                if style.useBackground {
+                    self.background(style.backgroundColor)
+                } else {
+                    self.background(Color.clear)
+                }
             }
         }
     }

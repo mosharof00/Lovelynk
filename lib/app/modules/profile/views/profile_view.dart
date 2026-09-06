@@ -1,4 +1,3 @@
-import 'package:bulkretail/app/global/animations/fade_in_animation.dart';
 import 'package:bulkretail/app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,6 +8,7 @@ import '../controllers/profile_controller.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_menu_section.dart';
 import '../widgets/profile_promo_banners.dart';
+import '../widgets/profile_subscription_banner.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({super.key});
@@ -19,123 +19,94 @@ class ProfileView extends GetView<ProfileController> {
       backgroundColor: AppColor.background,
       body: SafeArea(
         bottom: false,
-        child:ListView(
+        child: ListView(
           padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 40.h),
           children: [
-            FadeInAnimation(
-              delay: 1,
-              fromLeft: true,
-              shouldAnimate: controller.isFadeInAnimate,
-              child: const ProfileHeader(),
-            ),
-            28.verticalSpace,
-            FadeInAnimation(
-              delay: 2,
-              fromLeft: true,
-              shouldAnimate: controller.isFadeInAnimate,
-              child: ProfileMenuSection(
-                title: 'Account',
-                titleColor: AppColor.textSecondary,
-                items: [
-                  ProfileMenuItemData(
-                    icon: Icons.edit,
-                    label: 'Edit Profile',
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.notifications_outlined,
-                    label: 'Notifications',
-                    onTap: () => Get.toNamed(Routes.NOTIFICATIONS),
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.subscript,
-                    label: 'Manage Subscription',
-                    onTap: () => Get.toNamed(Routes.SUBSCRIPTIONS),
-                  ),
-                ],
-              ),
+            const ProfileHeader(),
+            16.verticalSpace,
+            const ProfileSubscriptionBanner(),
+            22.verticalSpace,
+            ProfileMenuSection(
+              title: 'Account',
+              titleColor: AppColor.textSecondary,
+              items: [
+                ProfileMenuItemData(
+                  icon: Icons.edit,
+                  label: 'Edit Profile',
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.notifications_outlined,
+                  label: 'Notifications',
+                  onTap: () => Get.toNamed(Routes.NOTIFICATIONS),
+                ),
+              ],
             ),
             22.verticalSpace,
-            FadeInAnimation(
-              delay: 3,
-              fromLeft: true,
-              shouldAnimate: controller.isFadeInAnimate,
-              child: ProfileMenuSection(
-                title: 'Your Relationship',
-                titleColor: AppColor.textSecondary,
-                items: [
-                  const ProfileMenuItemData(
-                    icon: Icons.favorite_border_rounded,
-                    label: 'Partner Profile',
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.calendar_today_outlined,
-                    label: 'Our Anniversary',
-                    value: controller.anniversary.value,
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.person_add_alt_1_outlined,
-                    label: 'Invite Partner',
-                    onTap: () => Get.toNamed(Routes.CONNECT_WITH_PARTNER),
-                  ),
-                ],
-              ),
-            ),
-
-            22.verticalSpace,
-            FadeInAnimation(
-              delay: 4,
-              fromLeft: true,
-              shouldAnimate: controller.isFadeInAnimate,
-              child: ProfileMenuSection(
-                title: 'Widgets & Activity',
-                titleColor: AppColor.textSecondary,
-                items: [
-                  ProfileMenuItemData(
-                    icon: Icons.history_rounded,
-                    label: 'Activities',
-                    onTap: () => Get.toNamed(Routes.ACTIVITIES),
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.favorite_rounded,
-                    label: 'Heartbeat',
-                    onTap: () => Get.toNamed(Routes.HEARTBEAT_SUMMARY),
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.volunteer_activism_rounded,
-                    label: 'Kiss',
-                    onTap: () => Get.toNamed(Routes.KISS_SUMMARY),
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.emoji_emotions_outlined,
-                    label: 'Emoji',
-                    onTap: () => Get.toNamed(Routes.EMOJI_SUMMARY),
-                  ),
-                ],
-              ),
+            ProfileMenuSection(
+              title: 'Your Relationship',
+              titleColor: AppColor.textSecondary,
+              items: [
+                const ProfileMenuItemData(
+                  icon: Icons.favorite_border_rounded,
+                  label: 'Partner Profile',
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.calendar_today_outlined,
+                  label: 'Our Anniversary',
+                  value: controller.anniversary.value,
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.person_add_alt_1_outlined,
+                  label: 'Invite Partner',
+                  onTap: () => Get.toNamed(Routes.CONNECT_WITH_PARTNER),
+                ),
+              ],
             ),
             22.verticalSpace,
-            FadeInAnimation(
-              delay: 5,
-              fromLeft: true,
-              shouldAnimate: controller.isFadeInAnimate,
-              child: ProfileMenuSection(
-                title: 'Support',
-                titleColor: AppColor.textSecondary,
-                items: const [
-                  ProfileMenuItemData(
-                    icon: Icons.mail_outline_rounded,
-                    label: 'Contact Us',
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.verified_user_outlined,
-                    label: 'Privacy Policy',
-                  ),
-                  ProfileMenuItemData(
-                    icon: Icons.description_outlined,
-                    label: 'Terms of Use',
-                  ),
-                ],
-              ),
+            ProfileMenuSection(
+              title: 'Widgets & Activity',
+              titleColor: AppColor.textSecondary,
+              items: [
+                ProfileMenuItemData(
+                  icon: Icons.history_rounded,
+                  label: 'Activities',
+                  onTap: () => Get.toNamed(Routes.ACTIVITIES),
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.favorite_rounded,
+                  label: 'Heartbeat',
+                  onTap: () => Get.toNamed(Routes.HEARTBEAT_SUMMARY),
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.volunteer_activism_rounded,
+                  label: 'Kiss',
+                  onTap: () => Get.toNamed(Routes.KISS_SUMMARY),
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.emoji_emotions_outlined,
+                  label: 'Emoji',
+                  onTap: () => Get.toNamed(Routes.EMOJI_SUMMARY),
+                ),
+              ],
+            ),
+            22.verticalSpace,
+            ProfileMenuSection(
+              title: 'Support',
+              titleColor: AppColor.textSecondary,
+              items: const [
+                ProfileMenuItemData(
+                  icon: Icons.mail_outline_rounded,
+                  label: 'Contact Us',
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.verified_user_outlined,
+                  label: 'Privacy Policy',
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.description_outlined,
+                  label: 'Terms of Use',
+                ),
+              ],
             ),
             24.verticalSpace,
             ProfilePromoBanners(

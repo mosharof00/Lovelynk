@@ -155,7 +155,7 @@ class WidgetSyncService extends GetxService {
       case AppWidgetType.anniversary:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.anniversaryDateLabel,
-          DateFormat('d MMM yyyy').format(d.anniversary),
+          DateFormat('d MMMM yyyy').format(d.anniversary),
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.anniversaryDaysToGo,

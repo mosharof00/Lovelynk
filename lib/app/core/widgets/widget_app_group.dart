@@ -2,7 +2,7 @@
 class WidgetAppGroup {
   WidgetAppGroup._();
 
-  static const id = 'group.com.lovelynk.app';
+  static const id = 'group.com.lovelynk.ios';
 
   // ── Global (subscription soft-lock) ─────────────────────────────────────
   static const globalLocked = 'widget_global_locked';

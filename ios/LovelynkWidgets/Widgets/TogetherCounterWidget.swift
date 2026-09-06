@@ -7,10 +7,8 @@ struct TogetherCounterEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
     let lockMessage: String
-    let days: Int
-    let hours: Int
-    let minutes: Int
-    let seconds: Int
+    /// Relationship start — OS timer counts up from this date every second.
+    let since: Date
     let style: WidgetStyleConfig
 }
 
@@ -26,14 +24,10 @@ struct TogetherCounterProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<TogetherCounterEntry>) -> Void) {
-        let now = Date()
-        var entries: [TogetherCounterEntry] = []
-        for secondOffset in 0..<60 {
-            let entryDate = Calendar.current.date(byAdding: .second, value: secondOffset, to: now)!
-            entries.append(readEntry(at: entryDate))
-        }
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
+        let entry = readEntry(at: Date())
+        // Rare reload — live seconds come from Text(_:style: .timer), not timeline entries.
+        let refresh = Calendar.current.date(byAdding: .hour, value: 6, to: Date()) ?? Date().addingTimeInterval(21_600)
+        completion(Timeline(entries: [entry], policy: .after(refresh)))
     }
 
     private func readEntry(at date: Date) -> TogetherCounterEntry {
@@ -43,32 +37,24 @@ struct TogetherCounterProvider: TimelineProvider {
             default: "Locked"
         )
         let since = AppGroupStore.isoDate(WidgetKeys.TogetherCounter.since) ?? date
-        let parts = WidgetTimeMath.durationComponents(from: since, to: date)
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.TogetherCounter.widgetId)
 
         return TogetherCounterEntry(
             date: date,
             isLocked: locked,
             lockMessage: lockMessage,
-            days: parts.days,
-            hours: parts.hours,
-            minutes: parts.minutes,
-            seconds: parts.seconds,
+            since: since,
             style: style
         )
     }
 
     private func sampleEntry(at date: Date) -> TogetherCounterEntry {
         let since = Calendar.current.date(byAdding: .day, value: -76, to: date) ?? date
-        let parts = WidgetTimeMath.durationComponents(from: since, to: date)
         return TogetherCounterEntry(
             date: date,
             isLocked: false,
             lockMessage: "Locked",
-            days: parts.days,
-            hours: parts.hours,
-            minutes: parts.minutes,
-            seconds: parts.seconds,
+            since: since,
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.TogetherCounter.widgetId)
         )
     }
@@ -88,7 +74,7 @@ struct TogetherCounterWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -116,15 +102,21 @@ struct TogetherCounterWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text("\(entry.days)d")
-                    .font(.headline)
+            WidgetLiveTimer.countUp(
+                from: entry.since,
+                font: .system(size: 12, weight: .bold, design: .rounded)
+            )
+            .minimumScaleFactor(0.4)
         case .accessoryRectangular:
-            HStack {
-                Image(systemName: "heart.fill")
-                Text(counterLine(compact: true)).font(.headline)
-            }
+            accessoryRectangularLayout
         case .accessoryInline:
-            Text("❤️ \(counterLine(compact: true))")
+            HStack(spacing: 4) {
+                Text("Together")
+                WidgetLiveTimer.countUp(
+                    from: entry.since,
+                    font: .body.weight(.semibold)
+                )
+            }
         case .systemMedium:
             mediumLayout
         default:
@@ -132,14 +124,17 @@ struct TogetherCounterWidgetView: View {
         }
     }
 
-    private func counterLine(compact: Bool) -> String {
-        String(
-            format: "%02d:%02d:%02d:%02d",
-            entry.days,
-            entry.hours,
-            entry.minutes,
-            entry.seconds
-        )
+    private var accessoryRectangularLayout: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Together for")
+                .font(.system(size: 12, weight: .medium))
+                .lineLimit(1)
+            WidgetLiveTimer.countUp(
+                from: entry.since,
+                font: .system(size: 20, weight: .bold, design: .rounded)
+            )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
     private var smallLayout: some View {
@@ -151,20 +146,21 @@ struct TogetherCounterWidgetView: View {
 
             Spacer(minLength: 0)
 
-            WidgetCountdownLayout.smallGrid(
-                days: entry.days,
-                hours: entry.hours,
-                minutes: entry.minutes,
-                seconds: entry.seconds,
-                style: entry.style,
-                family: family
+            WidgetLiveTimer.countUp(
+                from: entry.since,
+                font: .system(
+                    size: entry.style.homeValueSize(for: family) * 0.42,
+                    weight: .bold,
+                    design: .rounded
+                ),
+                color: entry.style.themeColor
             )
+            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
     private var mediumLayout: some View {
@@ -176,20 +172,21 @@ struct TogetherCounterWidgetView: View {
 
             Spacer(minLength: 0)
 
-            WidgetCountdownLayout.mediumRow(
-                days: entry.days,
-                hours: entry.hours,
-                minutes: entry.minutes,
-                seconds: entry.seconds,
-                style: entry.style,
-                family: family
+            WidgetLiveTimer.countUp(
+                from: entry.since,
+                font: .system(
+                    size: entry.style.homeValueSize(for: family) * 0.55,
+                    weight: .bold,
+                    design: .rounded
+                ),
+                color: entry.style.themeColor
             )
+            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 }
 

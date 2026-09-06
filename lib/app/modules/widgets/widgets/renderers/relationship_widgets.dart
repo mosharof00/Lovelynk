@@ -7,6 +7,7 @@ import '../../../../core/services/compass_service.dart';
 import '../../../../core/services/widget_data_service.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
+import 'widget_accent_scope.dart';
 
 WidgetDataService get _service => Get.find<WidgetDataService>();
 CompassService get _compass => Get.find<CompassService>();
@@ -35,7 +36,7 @@ class LoveCompassWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 13.sp,
               fontWeight: FontWeight.w700,
-              color: AppColor.primary,
+              color: WidgetAccentScope.of(context),
             ),
           ),
 
@@ -73,7 +74,7 @@ class _CompassDial extends StatelessWidget {
             height: ringSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColor.primary, width: 1.5),
+              border: Border.all(color: WidgetAccentScope.of(context), width: 1.5),
             ),
           ),
           Positioned(
@@ -104,7 +105,7 @@ class _CompassDial extends StatelessWidget {
             angle: needleRadians,
             child: Icon(
               Icons.navigation_rounded,
-              color: AppColor.primary,
+              color: WidgetAccentScope.of(context),
               size: 28.sp,
             ),
           ),
@@ -126,7 +127,7 @@ class _CardinalLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 8.sp,
         fontWeight: FontWeight.w600,
-        color: AppColor.primary,
+        color: WidgetAccentScope.of(context),
         height: 1.0,
       ),
     );
@@ -142,15 +143,27 @@ class InitialsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final data = _service.data.value;
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _InitialCircle(label: data.userInitial),
-          8.horizontalSpace,
-          Icon(Icons.favorite_rounded, color: AppColor.primary, size: 20.sp),
-          8.horizontalSpace,
-          _InitialCircle(label: data.partnerInitial),
-        ],
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _InitialCircle(label: data.userInitial),
+                8.horizontalSpace,
+                Icon(
+                  Icons.favorite_rounded,
+                  color: WidgetAccentScope.of(context),
+                  size: 20.sp,
+                ),
+                8.horizontalSpace,
+                _InitialCircle(label: data.partnerInitial),
+              ],
+            ),
+          );
+        },
       );
     });
   }
@@ -168,7 +181,7 @@ class _InitialCircle extends StatelessWidget {
       height: 40.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColor.primary, width: 1.5),
+        border: Border.all(color: WidgetAccentScope.of(context), width: 1.5),
       ),
       alignment: Alignment.center,
       child: AppText(
@@ -176,7 +189,7 @@ class _InitialCircle extends StatelessWidget {
         style: TextStyle(
           fontSize: 18.sp,
           fontWeight: FontWeight.w700,
-          color: AppColor.primary,
+          color: WidgetAccentScope.of(context),
         ),
       ),
     );
@@ -194,8 +207,17 @@ class AnniversaryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final anniversary = _service.data.value.anniversary;
-      final dateText = DateFormat('d MMM yyyy').format(anniversary);
+      final day = DateFormat('d').format(anniversary);
+      final month = DateFormat('MMM').format(anniversary);
+      final year = DateFormat('yyyy').format(anniversary);
       final daysToGo = _daysToNext(anniversary);
+
+      final dateStyle = TextStyle(
+        fontSize: compact ? 14.sp : 20.sp,
+        fontWeight: FontWeight.w700,
+        color: WidgetAccentScope.of(context),
+        height: 1.05,
+      );
 
       final content = Column(
         mainAxisAlignment: compact
@@ -203,19 +225,14 @@ class AnniversaryWidget extends StatelessWidget {
             : MainAxisAlignment.center,
         mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: AppText(
-              dateText,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: compact ? 13.sp : 20.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColor.primary,
-                height: 1.1,
-              ),
-            ),
+          // Vertical stack: day / month / year
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppText(day, textAlign: TextAlign.center, style: dateStyle),
+              AppText(month, textAlign: TextAlign.center, style: dateStyle),
+              AppText(year, textAlign: TextAlign.center, style: dateStyle),
+            ],
           ),
           if (!compact) SizedBox(height: 6.h),
           AppText(

@@ -70,9 +70,6 @@ struct PartnerDistanceWidgetView: View {
     var entry: PartnerDistanceEntry
     @Environment(\.widgetFamily) var family
 
-    /// Miles at which initials sit at opposite edges (fully apart).
-    private let maxMiles: Double = 500
-
     var body: some View {
         Group {
             if entry.isLocked {
@@ -81,7 +78,7 @@ struct PartnerDistanceWidgetView: View {
                 contentView
             }
         }
-        .accessoryWidgetContainer(family: family)
+        .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
     @ViewBuilder
@@ -109,161 +106,104 @@ struct PartnerDistanceWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text("\(entry.miles)")
-                    .font(.headline)
-        case .accessoryRectangular:
-            HStack {
-                Text("📍")
-                Text("\(entry.miles) mi").font(.headline)
-            }
-        case .accessoryInline:
-            Text("📍 \(entry.miles) miles apart")
-        case .systemMedium:
-            mediumLayout
-        default:
-            smallLayout
-        }
-    }
-
-    /// 0 = far apart (edges), 1 = together (next to heart).
-    private var proximity: CGFloat {
-        CGFloat(max(0, min(1, 1 - (Double(entry.miles) / maxMiles))))
-    }
-
-    private var smallLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Our distance")
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
-                .foregroundStyle(.secondary)
-
-            Spacer(minLength: 2)
-
-            Text("\(entry.miles)")
-                .font(entry.style.homeValueFont(for: family))
-                .foregroundStyle(entry.style.themeColor)
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
-
-            Text("miles")
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .regular))
-                .foregroundStyle(.secondary)
-
-            Spacer(minLength: 8)
-
-            distanceTrack(circleSize: 26)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
-    }
-
-    private var mediumLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Our distance")
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
-                .foregroundStyle(.secondary)
-
-            Spacer(minLength: 2)
-
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            VStack(spacing: 0) {
+                LoveDoubleIcon(size: 16, color: .primary)
                 Text("\(entry.miles)")
-                    .font(entry.style.homeValueFont(for: family))
-                    .foregroundStyle(entry.style.themeColor)
-                    .minimumScaleFactor(0.5)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .minimumScaleFactor(0.6)
                     .lineLimit(1)
-                Text("miles")
-                    .font(.system(
-                        size: entry.style.homeTitleSize(for: family) + 4,
-                        weight: .medium
-                    ))
-                    .foregroundStyle(.secondary)
             }
+        case .accessoryRectangular:
+            accessoryRectangularLayout
+        case .accessoryInline:
+            Text("\(entry.miles) mi apart")
+        case .systemMedium:
+            competitorLayout(circleSize: 36, heartSize: 28, titleSize: entry.style.homeTitleSize(for: family) + 2)
+        default:
+            competitorLayout(circleSize: 30, heartSize: 24, titleSize: entry.style.homeTitleSize(for: family))
+        }
+    }
+
+    /// Lock rectangular: compact competitor-style track.
+    private var accessoryRectangularLayout: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Our distance: \(entry.miles) mi")
+                .font(.system(size: 12, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            distanceConnectionRow(circleSize: 22, heartSize: 16, lineColor: .primary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    /// Home screen layout matching competitor: title + initials connected by double heart.
+    private func competitorLayout(
+        circleSize: CGFloat,
+        heartSize: CGFloat,
+        titleSize: CGFloat
+    ) -> some View {
+        VStack(spacing: 0) {
+            Text("Our distance: \(entry.miles) miles")
+                .font(.system(size: titleSize, weight: .semibold))
+                .foregroundStyle(entry.style.themeColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity)
 
             Spacer(minLength: 8)
 
-            distanceTrack(circleSize: 30)
+            distanceConnectionRow(
+                circleSize: circleSize,
+                heartSize: heartSize,
+                lineColor: entry.style.themeColor
+            )
+
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-        .widgetBackground(entry.style)
     }
 
-    /// J ── ♥ ── M track. Heart stays centered; initials slide toward/away with [proximity].
-    private func distanceTrack(circleSize: CGFloat) -> some View {
-        let heartSize = circleSize * 0.5
-        let trackHeight = circleSize + 4
+    private func distanceConnectionRow(
+        circleSize: CGFloat,
+        heartSize: CGFloat,
+        lineColor: Color
+    ) -> some View {
+        HStack(spacing: 0) {
+            initialCircle(entry.userInitial, size: circleSize, color: lineColor)
 
-        return GeometryReader { geo in
-            let width = geo.size.width
-            let centerX = width / 2
-            let halfCircle = circleSize / 2
+            connectionLine(color: lineColor)
 
-            // Closest each initial can sit next to the heart (centers).
-            let nearCenterX = centerX - heartSize / 2 - 6 - halfCircle
-            // Farthest: flush to left/right edges.
-            let farEdgeX = halfCircle
+            LoveDoubleIcon(size: heartSize, color: lineColor)
+                .padding(.horizontal, 4)
 
-            let userX = farEdgeX + (nearCenterX - farEdgeX) * proximity
-            let partnerX = width - userX
+            connectionLine(color: lineColor)
 
-            ZStack {
-                // Soft dots between initials and heart
-                DistanceDotsShape(
-                    leftStart: userX + halfCircle + 4,
-                    leftEnd: centerX - heartSize / 2 - 4,
-                    rightStart: centerX + heartSize / 2 + 4,
-                    rightEnd: partnerX - halfCircle - 4,
-                    y: trackHeight / 2
-                )
-                .stroke(entry.style.themeColor.opacity(0.35), style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [2, 5]))
-
-                Image(systemName: "heart.fill")
-                    .font(.system(size: heartSize))
-                    .foregroundStyle(entry.style.themeColor)
-                    .position(x: centerX, y: trackHeight / 2)
-
-                initialCircle(entry.userInitial, size: circleSize)
-                    .position(x: userX, y: trackHeight / 2)
-
-                initialCircle(entry.partnerInitial, size: circleSize)
-                    .position(x: partnerX, y: trackHeight / 2)
-            }
+            initialCircle(entry.partnerInitial, size: circleSize, color: lineColor)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: trackHeight)
     }
 
-    private func initialCircle(_ initial: String, size: CGFloat) -> some View {
+    private func connectionLine(color: Color) -> some View {
+        Rectangle()
+            .fill(color.opacity(0.55))
+            .frame(height: 1.5)
+            .frame(maxWidth: .infinity)
+    }
+
+    private func initialCircle(_ initial: String, size: CGFloat, color: Color) -> some View {
         Text(initial)
-            .font(.system(size: size * 0.38, weight: .bold, design: .rounded))
-            .foregroundStyle(entry.style.themeColor)
+            .font(.system(size: size * 0.42, weight: .bold, design: .rounded))
+            .foregroundStyle(color)
             .frame(width: size, height: size)
+            .background(
+                Circle()
+                    .fill(color.opacity(0.12))
+            )
             .overlay(
                 Circle()
-                    .stroke(entry.style.themeColor, lineWidth: 1.5)
+                    .stroke(color, lineWidth: 1.5)
             )
-    }
-}
-
-/// Decorative dashed path between the two gaps (user↔heart, heart↔partner).
-private struct DistanceDotsShape: Shape {
-    var leftStart: CGFloat
-    var leftEnd: CGFloat
-    var rightStart: CGFloat
-    var rightEnd: CGFloat
-    var y: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        if leftEnd > leftStart + 4 {
-            path.move(to: CGPoint(x: leftStart, y: y))
-            path.addLine(to: CGPoint(x: leftEnd, y: y))
-        }
-        if rightEnd > rightStart + 4 {
-            path.move(to: CGPoint(x: rightStart, y: y))
-            path.addLine(to: CGPoint(x: rightEnd, y: y))
-        }
-        return path
     }
 }
 
