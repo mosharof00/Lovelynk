@@ -7,12 +7,10 @@ import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
 import '../../../data/widget_catalog/widget_catalog.dart';
-import '../../../global/widgets/app_text.dart';
-import '../../../global/widgets/global_button.dart';
 import '../../../routes/app_pages.dart';
-import '../../main_page/controllers/main_page_controller.dart';
 import '../widgets/dialogs/emoji_send_dialog.dart';
 import '../widgets/dialogs/heartbeat_send_dialog.dart';
+import '../widgets/dialogs/how_to_add_widget_sheet.dart';
 import '../widgets/dialogs/kiss_send_dialog.dart';
 
 class WidgetsController extends GetxController {
@@ -85,19 +83,7 @@ class WidgetsController extends GetxController {
   }
 
   void onAddTap(WidgetDefinition widget) {
-    Get.bottomSheet(
-      _AddWidgetSheet(
-        title: widget.title,
-        onCustomise: () {
-          Get.back();
-          Get.find<MainPageController>().changePage(2);
-        },
-      ),
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-    );
+    HowToAddWidgetSheet.show();
   }
 
   /// Interactive footer "Send …" → branded send dialog.
@@ -158,51 +144,4 @@ class WidgetsController extends GetxController {
 
   /// Dev helper: expire trial to preview locked UI.
   void debugExpireTrial() => _subscription.expireTrial();
-}
-
-class _AddWidgetSheet extends StatelessWidget {
-  const _AddWidgetSheet({required this.title, required this.onCustomise});
-
-  final String title;
-  final VoidCallback onCustomise;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColor.inputBorder,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          AppText(
-            'Add $title',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColor.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const AppText(
-            'Customise this widget in the app, then add it from your iPhone: long-press the Home or Lock screen → + → Lovelynk.',
-            maxLines: 6,
-            style: TextStyle(color: AppColor.textSecondary, height: 1.4),
-          ),
-          const SizedBox(height: 20),
-          GlobalButton(onTap: onCustomise, text: 'Open Customise'),
-        ],
-      ),
-    );
-  }
 }

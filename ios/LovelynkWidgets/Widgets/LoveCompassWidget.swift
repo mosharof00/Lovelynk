@@ -113,13 +113,29 @@ struct LoveCompassWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Image(systemName: "location.north.fill")
-                    .rotationEffect(.degrees(entry.needleDegrees))
+            // Mini dial so lock circular reads as a real compass, not just an arrow.
+            CompassDialView(
+                needleDegrees: entry.needleDegrees,
+                size: 56,
+                color: .primary
+            )
         case .accessoryRectangular:
-            HStack {
-                Image(systemName: "location.north.fill")
-                Text("\(entry.miles) mi → \(entry.partnerLabel)").font(.headline)
+            HStack(spacing: 8) {
+                CompassDialView(
+                    needleDegrees: entry.needleDegrees,
+                    size: 40,
+                    color: .primary
+                )
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(entry.miles) mi")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .lineLimit(1)
+                    Text(entry.partnerLabel)
+                        .font(.system(size: 12, weight: .medium))
+                        .lineLimit(1)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         case .accessoryInline:
             Text("🧭 \(entry.miles)mi → \(entry.partnerLabel)")
         case .systemMedium:

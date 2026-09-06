@@ -40,7 +40,7 @@ class HomeController extends GetxController {
   void toggleConnectedPreview() => isConnected.toggle();
 
   Future<void> closeFadeInAnimate() async {
-    await Future.delayed(Duration(seconds: 6));
+    await Future.delayed(Duration(seconds: 3));
     isFadeInAnimate = false;
   }
 
