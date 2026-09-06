@@ -28,7 +28,7 @@ class WidgetCatalog {
       subtitle: 'How many days you\'ve been together',
       previewValue: '76',
       previewUnit: 'days',
-      icon: Assets.icons.daysTogetherLoveIcon,
+      icon: Assets.icons.loveIcon,
     ),
     WidgetDefinition(
       type: AppWidgetType.togetherCounter,

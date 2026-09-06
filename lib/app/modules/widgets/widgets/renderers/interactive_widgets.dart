@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../../../core/services/widget_data_service.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
+import 'widget_accent_scope.dart';
 
 WidgetDataService get _service => Get.find<WidgetDataService>();
 
@@ -25,7 +26,7 @@ class HeartbeatWidget extends StatelessWidget {
           AppSvgIcon(
             Assets.icons.heartbeatIcon,
             size: 40.sp,
-            color: AppColor.primary,
+            color: WidgetAccentScope.of(context),
           ),
           6.verticalSpace,
           AppText(
@@ -33,7 +34,7 @@ class HeartbeatWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 22.sp,
               fontWeight: FontWeight.w700,
-              color: AppColor.primary,
+              color: WidgetAccentScope.of(context),
               height: 1.0,
             ),
           ),
@@ -67,8 +68,8 @@ class KissWidget extends StatelessWidget {
         children: [
           AppSvgIcon(
             Assets.icons.kissIcon,
-            size: compact ? 22.sp : 40.sp,
-            color: AppColor.primary,
+            size: compact ? 19.sp : 36.sp,
+            color: WidgetAccentScope.of(context),
           ),
           if (!compact) SizedBox(height: 6.h),
           AppText(
@@ -76,7 +77,7 @@ class KissWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: compact ? 18.sp : 22.sp,
               fontWeight: FontWeight.w700,
-              color: AppColor.primary,
+              color: WidgetAccentScope.of(context),
               height: 1.0,
             ),
           ),

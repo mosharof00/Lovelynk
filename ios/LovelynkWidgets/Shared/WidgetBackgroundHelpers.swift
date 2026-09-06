@@ -25,7 +25,8 @@ extension View {
                     if style.useBackground {
                         style.backgroundColor
                     } else {
-                        Color(UIColor.secondarySystemBackground)
+                        // "Background: No" → transparent so wallpaper shows through.
+                        Color.clear
                     }
                 }
             }
@@ -42,7 +43,7 @@ extension View {
                 if style.useBackground {
                     self.background(style.backgroundColor)
                 } else {
-                    self.background(Color(UIColor.secondarySystemBackground))
+                    self.background(Color.clear)
                 }
             }
         }

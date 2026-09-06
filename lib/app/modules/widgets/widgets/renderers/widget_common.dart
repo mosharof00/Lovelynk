@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
+import 'widget_accent_scope.dart';
 
 /// A D : H : M : S countdown/counter row (Together Counter + Next Visit).
 ///
@@ -21,7 +22,7 @@ class CountdownRow extends StatelessWidget {
     final hours = d.inHours % 24;
     final minutes = d.inMinutes % 60;
     final seconds = d.inSeconds % 60;
-    final valueColor = color ?? AppColor.primary;
+    final valueColor = color ?? WidgetAccentScope.of(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

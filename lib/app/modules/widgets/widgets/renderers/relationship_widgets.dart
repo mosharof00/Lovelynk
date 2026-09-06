@@ -7,6 +7,7 @@ import '../../../../core/services/compass_service.dart';
 import '../../../../core/services/widget_data_service.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
+import 'widget_accent_scope.dart';
 
 WidgetDataService get _service => Get.find<WidgetDataService>();
 CompassService get _compass => Get.find<CompassService>();
@@ -35,7 +36,7 @@ class LoveCompassWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 13.sp,
               fontWeight: FontWeight.w700,
-              color: AppColor.primary,
+              color: WidgetAccentScope.of(context),
             ),
           ),
 
@@ -73,7 +74,7 @@ class _CompassDial extends StatelessWidget {
             height: ringSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColor.primary, width: 1.5),
+              border: Border.all(color: WidgetAccentScope.of(context), width: 1.5),
             ),
           ),
           Positioned(
@@ -104,7 +105,7 @@ class _CompassDial extends StatelessWidget {
             angle: needleRadians,
             child: Icon(
               Icons.navigation_rounded,
-              color: AppColor.primary,
+              color: WidgetAccentScope.of(context),
               size: 28.sp,
             ),
           ),
@@ -126,7 +127,7 @@ class _CardinalLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 8.sp,
         fontWeight: FontWeight.w600,
-        color: AppColor.primary,
+        color: WidgetAccentScope.of(context),
         height: 1.0,
       ),
     );
@@ -147,7 +148,7 @@ class InitialsWidget extends StatelessWidget {
         children: [
           _InitialCircle(label: data.userInitial),
           8.horizontalSpace,
-          Icon(Icons.favorite_rounded, color: AppColor.primary, size: 20.sp),
+          Icon(Icons.favorite_rounded, color: WidgetAccentScope.of(context), size: 20.sp),
           8.horizontalSpace,
           _InitialCircle(label: data.partnerInitial),
         ],
@@ -168,7 +169,7 @@ class _InitialCircle extends StatelessWidget {
       height: 40.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColor.primary, width: 1.5),
+        border: Border.all(color: WidgetAccentScope.of(context), width: 1.5),
       ),
       alignment: Alignment.center,
       child: AppText(
@@ -176,7 +177,7 @@ class _InitialCircle extends StatelessWidget {
         style: TextStyle(
           fontSize: 18.sp,
           fontWeight: FontWeight.w700,
-          color: AppColor.primary,
+          color: WidgetAccentScope.of(context),
         ),
       ),
     );
@@ -202,7 +203,7 @@ class AnniversaryWidget extends StatelessWidget {
       final dateStyle = TextStyle(
         fontSize: compact ? 14.sp : 20.sp,
         fontWeight: FontWeight.w700,
-        color: AppColor.primary,
+        color: WidgetAccentScope.of(context),
         height: 1.05,
       );
 

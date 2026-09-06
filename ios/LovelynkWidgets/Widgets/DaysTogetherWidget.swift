@@ -112,16 +112,19 @@ struct DaysTogetherWidgetView: View {
         switch family {
         case .accessoryCircular:
             VStack(spacing: 0) {
-                Text("❤️").font(.caption2)
+                Image(systemName: "heart.fill")
+                    .font(.caption2)
+                    .foregroundStyle(entry.style.themeColor)
                 Text("\(entry.count)").font(.headline)
             }
         case .accessoryRectangular:
             HStack {
-                Text("❤️")
+                Image(systemName: "heart.fill")
+                    .foregroundStyle(entry.style.themeColor)
                 Text("\(entry.count) days").font(.headline)
             }
         case .accessoryInline:
-            Text("❤️ \(entry.count) days")
+            Text("♥ \(entry.count) days")
         case .systemMedium:
             mediumLayout
         default:
@@ -178,8 +181,9 @@ struct DaysTogetherWidgetView: View {
 
             Spacer(minLength: 0)
 
-            Text("❤️")
+            Image(systemName: "heart.fill")
                 .font(.system(size: entry.style.homeValueSize(for: family) * 0.72))
+                .foregroundStyle(entry.style.themeColor)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)

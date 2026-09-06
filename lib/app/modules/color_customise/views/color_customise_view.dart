@@ -8,7 +8,7 @@ import '../../../global/widgets/global_button.dart';
 import '../controllers/color_customise_controller.dart';
 import '../widgets/background_toggle_section.dart';
 import '../widgets/colour_theme_picker.dart';
-import '../widgets/customise_lock_preview.dart';
+import '../widgets/customise_home_preview.dart';
 import '../widgets/font_and_size_selectors.dart';
 import '../widgets/widget_selector_sheet.dart';
 
@@ -66,7 +66,7 @@ class ColorCustomiseView extends GetView<ColorCustomiseController> {
                   ),
                   5.verticalSpace,
                   Center(
-                    child: CustomiseLockPreview(
+                    child: CustomiseHomePreview(
                       widget: controller.selectedWidget,
                       style: style,
                       themeColor: controller.themeColor,
