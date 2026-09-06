@@ -143,13 +143,15 @@ class _PersonDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = WidgetAccentScope.of(context);
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColor.white,
+        // Match native home widget: soft tint, not solid white.
+        color: accent.withValues(alpha: 0.12),
         shape: BoxShape.circle,
-        border: Border.all(color: WidgetAccentScope.of(context), width: 1.5),
+        border: Border.all(color: accent, width: 1.5),
       ),
       alignment: Alignment.center,
       child: AppText(
@@ -157,7 +159,7 @@ class _PersonDot extends StatelessWidget {
         style: TextStyle(
           fontSize: 14.sp,
           fontWeight: FontWeight.w700,
-          color: WidgetAccentScope.of(context),
+          color: accent,
         ),
       ),
     );

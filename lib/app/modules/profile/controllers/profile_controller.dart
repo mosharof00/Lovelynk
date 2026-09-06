@@ -45,7 +45,7 @@ class ProfileController extends GetxController {
   }
 
   Future<void> closeFadeInAnimate() async {
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 1));
     isFadeInAnimate = false;
   }
 

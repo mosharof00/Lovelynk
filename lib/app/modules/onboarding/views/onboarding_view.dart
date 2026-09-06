@@ -27,7 +27,7 @@ class OnboardingView extends GetView<OnboardingController> {
                 children: [
                   Image.asset(AppConfig.appLogo, width: 180.w),
                   Positioned(
-                    top: 115.h,
+                    top: 120.h,
                     left: 50.w,
                     right: 50.w,
                     child: AppText(

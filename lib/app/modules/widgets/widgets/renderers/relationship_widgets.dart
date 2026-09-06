@@ -143,15 +143,27 @@ class InitialsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final data = _service.data.value;
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _InitialCircle(label: data.userInitial),
-          8.horizontalSpace,
-          Icon(Icons.favorite_rounded, color: WidgetAccentScope.of(context), size: 20.sp),
-          8.horizontalSpace,
-          _InitialCircle(label: data.partnerInitial),
-        ],
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _InitialCircle(label: data.userInitial),
+                8.horizontalSpace,
+                Icon(
+                  Icons.favorite_rounded,
+                  color: WidgetAccentScope.of(context),
+                  size: 20.sp,
+                ),
+                8.horizontalSpace,
+                _InitialCircle(label: data.partnerInitial),
+              ],
+            ),
+          );
+        },
       );
     });
   }

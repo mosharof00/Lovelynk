@@ -24,18 +24,27 @@ class CountdownRow extends StatelessWidget {
     final seconds = d.inSeconds % 60;
     final valueColor = color ?? WidgetAccentScope.of(context);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _Unit(value: days, label: 'DAY', color: valueColor),
-        _Colon(color: valueColor),
-        _Unit(value: hours, label: 'HOUR', color: valueColor),
-        _Colon(color: valueColor),
-        _Unit(value: minutes, label: 'MIN', color: valueColor),
-        _Colon(color: valueColor),
-        _Unit(value: seconds, label: 'SEC', color: valueColor),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Unit(value: days, label: 'DAY', color: valueColor),
+              _Colon(color: valueColor),
+              _Unit(value: hours, label: 'HOUR', color: valueColor),
+              _Colon(color: valueColor),
+              _Unit(value: minutes, label: 'MIN', color: valueColor),
+              _Colon(color: valueColor),
+              _Unit(value: seconds, label: 'SEC', color: valueColor),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -49,29 +58,32 @@ class _Unit extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AppText(
-          value.toString().padLeft(2, '0'),
-          style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w700,
-            color: color,
-            height: 1.0,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 1.w),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppText(
+            value.toString().padLeft(2, '0'),
+            style: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w700,
+              color: color,
+              height: 1.0,
+            ),
           ),
-        ),
-        2.verticalSpace,
-        AppText(
-          label,
-          style: TextStyle(
-            fontSize: 8.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColor.textSecondary,
-            letterSpacing: 0.3,
+          2.verticalSpace,
+          AppText(
+            label,
+            style: TextStyle(
+              fontSize: 7.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColor.textSecondary,
+              letterSpacing: 0.2,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -84,11 +96,11 @@ class _Colon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 3.w),
+      padding: EdgeInsets.symmetric(horizontal: 1.w),
       child: AppText(
         ':',
         style: TextStyle(
-          fontSize: 20.sp,
+          fontSize: 16.sp,
           fontWeight: FontWeight.w700,
           color: color,
           height: 1.0,

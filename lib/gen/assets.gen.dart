@@ -302,8 +302,12 @@ class $AssetsLogosGen {
   /// File path: assets/logos/app_logo.png
   AssetGenImage get appLogo => const AssetGenImage('assets/logos/app_logo.png');
 
+  /// File path: assets/logos/app_logo_small.png
+  AssetGenImage get appLogoSmall =>
+      const AssetGenImage('assets/logos/app_logo_small.png');
+
   /// List of all assets
-  List<AssetGenImage> get values => [appIcon, appLogo];
+  List<AssetGenImage> get values => [appIcon, appLogo, appLogoSmall];
 }
 
 class $AssetsWeatherIconsGen {

@@ -7,10 +7,8 @@ struct NextVisitEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
     let lockMessage: String
-    let days: Int
-    let hours: Int
-    let minutes: Int
-    let seconds: Int
+    /// Visit target — OS timer counts down to this date every second.
+    let target: Date?
     let style: WidgetStyleConfig
 }
 
@@ -26,14 +24,14 @@ struct NextVisitProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<NextVisitEntry>) -> Void) {
-        let now = Date()
-        var entries: [NextVisitEntry] = []
-        for secondOffset in 0..<60 {
-            let entryDate = Calendar.current.date(byAdding: .second, value: secondOffset, to: now)!
-            entries.append(readEntry(at: entryDate))
+        let entry = readEntry(at: Date())
+        // Rare reload — live seconds come from Text(_:style: .timer).
+        var refresh = Calendar.current.date(byAdding: .hour, value: 6, to: Date())
+            ?? Date().addingTimeInterval(21_600)
+        if let target = entry.target, target > Date(), target < refresh {
+            refresh = target
         }
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
+        completion(Timeline(entries: [entry], policy: .after(refresh)))
     }
 
     private func readEntry(at date: Date) -> NextVisitEntry {
@@ -43,37 +41,24 @@ struct NextVisitProvider: TimelineProvider {
             default: "Locked"
         )
         let target = AppGroupStore.isoDate(WidgetKeys.NextVisit.targetAt)
-        let parts: (days: Int, hours: Int, minutes: Int, seconds: Int)
-        if let target, target > date {
-            parts = WidgetTimeMath.durationComponents(from: date, to: target)
-        } else {
-            parts = (0, 0, 0, 0)
-        }
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.NextVisit.widgetId)
 
         return NextVisitEntry(
             date: date,
             isLocked: locked,
             lockMessage: lockMessage,
-            days: parts.days,
-            hours: parts.hours,
-            minutes: parts.minutes,
-            seconds: parts.seconds,
+            target: target,
             style: style
         )
     }
 
     private func sampleEntry(at date: Date) -> NextVisitEntry {
-        let target = Calendar.current.date(byAdding: .day, value: 76, to: date) ?? date
-        let parts = WidgetTimeMath.durationComponents(from: date, to: target)
+        let target = Calendar.current.date(byAdding: .day, value: 76, to: date)
         return NextVisitEntry(
             date: date,
             isLocked: false,
             lockMessage: "Locked",
-            days: parts.days,
-            hours: parts.hours,
-            minutes: parts.minutes,
-            seconds: parts.seconds,
+            target: target,
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.NextVisit.widgetId)
         )
     }
@@ -121,30 +106,32 @@ struct NextVisitCountdownWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text("\(entry.days)d")
-                    .font(.headline)
+            WidgetLiveTimer.countDown(
+                to: entry.target,
+                font: .system(size: 12, weight: .bold, design: .rounded)
+            )
+            .minimumScaleFactor(0.4)
         case .accessoryRectangular:
-            HStack {
+            HStack(spacing: 6) {
                 Image(systemName: "airplane")
-                Text(counterLine).font(.headline)
+                WidgetLiveTimer.countDown(
+                    to: entry.target,
+                    font: .headline
+                )
             }
         case .accessoryInline:
-            Text("✈️ \(counterLine)")
+            HStack(spacing: 4) {
+                Text("✈️")
+                WidgetLiveTimer.countDown(
+                    to: entry.target,
+                    font: .body.weight(.semibold)
+                )
+            }
         case .systemMedium:
             mediumLayout
         default:
             smallLayout
         }
-    }
-
-    private var counterLine: String {
-        String(
-            format: "%02d:%02d:%02d:%02d",
-            entry.days,
-            entry.hours,
-            entry.minutes,
-            entry.seconds
-        )
     }
 
     private var smallLayout: some View {
@@ -156,14 +143,16 @@ struct NextVisitCountdownWidgetView: View {
 
             Spacer(minLength: 0)
 
-            WidgetCountdownLayout.smallGrid(
-                days: entry.days,
-                hours: entry.hours,
-                minutes: entry.minutes,
-                seconds: entry.seconds,
-                style: entry.style,
-                family: family
+            WidgetLiveTimer.countDown(
+                to: entry.target,
+                font: .system(
+                    size: entry.style.homeValueSize(for: family) * 0.42,
+                    weight: .bold,
+                    design: .rounded
+                ),
+                color: entry.style.themeColor
             )
+            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
         }
@@ -180,14 +169,16 @@ struct NextVisitCountdownWidgetView: View {
 
             Spacer(minLength: 0)
 
-            WidgetCountdownLayout.mediumRow(
-                days: entry.days,
-                hours: entry.hours,
-                minutes: entry.minutes,
-                seconds: entry.seconds,
-                style: entry.style,
-                family: family
+            WidgetLiveTimer.countDown(
+                to: entry.target,
+                font: .system(
+                    size: entry.style.homeValueSize(for: family) * 0.55,
+                    weight: .bold,
+                    design: .rounded
+                ),
+                color: entry.style.themeColor
             )
+            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
         }
