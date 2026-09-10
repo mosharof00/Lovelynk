@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../../gen/assets.gen.dart';
@@ -14,10 +15,13 @@ class SplashView extends GetView<SplashController> {
     controller;
     return Scaffold(
       backgroundColor: AppColor.white,
-      body: Center(
-        child: Image.asset(
-          Assets.animations.splashGif.path,
-          fit: BoxFit.contain,
+      body: Padding(
+        padding:  EdgeInsets.all(38.w),
+        child: Center(
+          child: Image.asset(
+            Assets.animations.splashGif.path,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
