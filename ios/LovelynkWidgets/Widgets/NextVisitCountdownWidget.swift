@@ -7,7 +7,7 @@ struct NextVisitEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
     let lockMessage: String
-    /// Visit target — OS timer counts down to this date every second.
+    /// Visit target — remaining D/H/M/S computed against [date].
     let target: Date?
     let style: WidgetStyleConfig
 }
@@ -24,14 +24,13 @@ struct NextVisitProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<NextVisitEntry>) -> Void) {
-        let entry = readEntry(at: Date())
-        // Rare reload — live seconds come from Text(_:style: .timer).
-        var refresh = Calendar.current.date(byAdding: .hour, value: 6, to: Date())
-            ?? Date().addingTimeInterval(21_600)
-        if let target = entry.target, target > Date(), target < refresh {
-            refresh = target
+        let now = Date()
+        var entries: [NextVisitEntry] = []
+        for secondOffset in 0..<60 {
+            let entryDate = Calendar.current.date(byAdding: .second, value: secondOffset, to: now) ?? now
+            entries.append(readEntry(at: entryDate))
         }
-        completion(Timeline(entries: [entry], policy: .after(refresh)))
+        completion(Timeline(entries: entries, policy: .atEnd))
     }
 
     private func readEntry(at date: Date) -> NextVisitEntry {
@@ -70,6 +69,13 @@ struct NextVisitCountdownWidgetView: View {
     var entry: NextVisitEntry
     @Environment(\.widgetFamily) var family
 
+    private var parts: (days: Int, hours: Int, minutes: Int, seconds: Int) {
+        guard let target = entry.target, target > entry.date else {
+            return (0, 0, 0, 0)
+        }
+        return WidgetTimeMath.durationComponents(from: entry.date, to: target)
+    }
+
     var body: some View {
         Group {
             if entry.isLocked {
@@ -104,55 +110,57 @@ struct NextVisitCountdownWidgetView: View {
 
     @ViewBuilder
     private var contentView: some View {
+        let p = parts
         switch family {
         case .accessoryCircular:
-            WidgetLiveTimer.countDown(
-                to: entry.target,
-                font: .system(size: 12, weight: .bold, design: .rounded)
+            WidgetCountdownLayout.accessoryCircular(
+                days: p.days,
+                hours: p.hours,
+                minutes: p.minutes,
+                seconds: p.seconds,
+                title: "Visit"
             )
-            .minimumScaleFactor(0.4)
         case .accessoryRectangular:
-            HStack(spacing: 6) {
-                Image(systemName: "airplane")
-                WidgetLiveTimer.countDown(
-                    to: entry.target,
-                    font: .headline
-                )
-            }
+            WidgetCountdownLayout.accessoryRectangular(
+                days: p.days,
+                hours: p.hours,
+                minutes: p.minutes,
+                seconds: p.seconds,
+                title: "Next visit"
+            )
         case .accessoryInline:
-            HStack(spacing: 4) {
-                Text("✈️")
-                WidgetLiveTimer.countDown(
-                    to: entry.target,
-                    font: .body.weight(.semibold)
-                )
-            }
+            Text("✈️ \(p.days)d \(p.hours)h \(p.minutes)m")
+                .font(.body.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.55)
         case .systemMedium:
-            mediumLayout
+            mediumLayout(p)
         default:
-            smallLayout
+            smallLayout(p)
         }
     }
 
-    private var smallLayout: some View {
+    private func smallLayout(
+        _ p: (days: Int, hours: Int, minutes: Int, seconds: Int)
+    ) -> some View {
         VStack(spacing: 0) {
             Text("Next Visit")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 4)
 
-            WidgetLiveTimer.countDown(
-                to: entry.target,
-                font: .system(
-                    size: entry.style.homeValueSize(for: family) * 0.42,
-                    weight: .bold,
-                    design: .rounded
-                ),
-                color: entry.style.themeColor
+            WidgetCountdownLayout.smallGrid(
+                days: p.days,
+                hours: p.hours,
+                minutes: p.minutes,
+                seconds: p.seconds,
+                style: entry.style,
+                family: family
             )
-            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
         }
@@ -160,25 +168,27 @@ struct NextVisitCountdownWidgetView: View {
         .padding(WidgetLayoutMetrics.homePadding)
     }
 
-    private var mediumLayout: some View {
+    private func mediumLayout(
+        _ p: (days: Int, hours: Int, minutes: Int, seconds: Int)
+    ) -> some View {
         VStack(spacing: 0) {
-            Text("Next Visit Countdown")
+            Text("Next Visit")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 4)
 
-            WidgetLiveTimer.countDown(
-                to: entry.target,
-                font: .system(
-                    size: entry.style.homeValueSize(for: family) * 0.55,
-                    weight: .bold,
-                    design: .rounded
-                ),
-                color: entry.style.themeColor
+            WidgetCountdownLayout.mediumRow(
+                days: p.days,
+                hours: p.hours,
+                minutes: p.minutes,
+                seconds: p.seconds,
+                style: entry.style,
+                family: family
             )
-            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
         }

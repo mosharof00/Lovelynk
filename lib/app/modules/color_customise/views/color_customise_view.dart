@@ -109,13 +109,13 @@ class ColorCustomiseView extends GetView<ColorCustomiseController> {
                       onSelected: controller.setThemeColor,
                     ),
                     20.verticalSpace,
-                    BackgroundToggleSection(
-                      useBackground: style.useBackground,
-                      selectedColorId: style.backgroundColorId,
-                      onToggle: controller.setUseBackground,
-                      onColorSelected: controller.setBackgroundColor,
-                    ),
-                    20.verticalSpace,
+                    // BackgroundToggleSection(
+                    //   useBackground: style.useBackground,
+                    //   selectedColorId: style.backgroundColorId,
+                    //   onToggle: controller.setUseBackground,
+                    //   onColorSelected: controller.setBackgroundColor,
+                    // ),
+                    // 20.verticalSpace,
                     FontAndSizeSelectors(
                       font: style.font,
                       textSize: style.textSize,

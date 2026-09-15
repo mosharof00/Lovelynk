@@ -70,7 +70,6 @@ struct KissWidgetView: View {
             }
         }
         .lovelynkContainerBackground(style: entry.style, family: family)
-        .widgetURL(WidgetDeepLinks.kiss)
     }
 
     @ViewBuilder

@@ -1,4 +1,8 @@
-import 'package:bulkretail/app/global/widgets/custom_appbar.dart';
+import 'package:bulkretail/app/core/config/app_config.dart';
+import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
+import 'package:bulkretail/app/core/utils/url_launcher.dart';
+import 'package:bulkretail/app/global/widgets/app_svg_icon.dart';
+import 'package:bulkretail/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -16,135 +20,239 @@ class SubscriptionsView extends GetView<SubscriptionsController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.background,
-      appBar: const CustomAppBar(title: 'Subscription', showBackButton: true),
-      body: Obx(() {
-        final sub = controller.subscription;
-        final state = sub.state.value;
+      body: SafeArea(
+        child: Obx(() {
+          final state = controller.subscription.state.value;
+          final selected =
+              SubscriptionPlan.fromId(controller.selectedPlan.value) ??
+              SubscriptionPlan.yearly;
 
-        return ListView(
-          padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 32.h),
-          children: [
-            const _HeroHeader(),
-            20.verticalSpace,
-            _StatusCard(
-              isPremium: state.isPremium,
-              isOnTrial: state.isOnTrial,
-              trialDaysRemaining: sub.trialDaysRemaining,
-              activePlan: sub.activePlan,
-            ),
-            24.verticalSpace,
-            AppText(
-              'Choose your plan',
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColor.textPrimary,
-              ),
-            ),
-            8.verticalSpace,
-            AppText(
-              'Unlock all 12 widgets for you and your partner.',
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: AppColor.textSecondary,
-                height: 1.4,
-              ),
-            ),
-            16.verticalSpace,
-            for (final plan in SubscriptionPlan.all) ...[
-              _PlanCard(
-                plan: plan,
-                isSelected: controller.selectedPlan.value == plan.id,
-                onTap: () => controller.selectPlan(plan.id),
-              ),
-              12.verticalSpace,
-            ],
-            8.verticalSpace,
-            const _FeatureList(),
-            24.verticalSpace,
-            if (controller.canStartTrial) ...[
-              GlobalButton(
-                onTap: controller.startFreeTrial,
-                text: 'Start 7-day free trial',
-                color: AppColor.secondary,
-              ),
-              12.verticalSpace,
-              AppText(
-                'One-time offer. All widgets unlocked during trial.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: AppColor.hintText,
+          return Column(
+            children: [
+              const _TopBar(),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(20.w, 4.h, 20.w, 20.h),
+                  children: [
+                    const _Header(),
+                    18.verticalSpace,
+                    const _FeatureCards(),
+                    18.verticalSpace,
+                    const _FeatureChecklist(),
+                    16.verticalSpace,
+                    const _PartnerCallout(),
+                    18.verticalSpace,
+                    for (final plan in SubscriptionPlan.all) ...[
+                      _PlanTile(
+                        plan: plan,
+                        isSelected: controller.selectedPlan.value == plan.id,
+                        onTap: () => controller.selectPlan(plan.id),
+                      ),
+                      10.verticalSpace,
+                    ],
+                    if (state.isPremium) ...[
+                      8.verticalSpace,
+                      GlobalButton(
+                        onTap: controller.onManageTap,
+                        text: 'Manage subscription',
+                        isOutlined: true,
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              16.verticalSpace,
+              if (!state.isPremium)
+                _BottomCta(
+                  plan: selected,
+                  canStartTrial: controller.canStartTrial,
+                  onPrimary: controller.canStartTrial
+                      ? controller.startFreeTrial
+                      : controller.subscribe,
+                ),
             ],
-            if (!state.isPremium) ...[
-              GlobalButton(
-                onTap: controller.subscribe,
-                text: state.isOnTrial
-                    ? 'Subscribe now'
-                    : 'Continue with ${SubscriptionPlan.fromId(controller.selectedPlan.value)?.title ?? 'plan'}',
-              ),
-            ] else ...[
-              GlobalButton(
-                onTap: controller.onManageTap,
-                text: 'Manage subscription',
-                isOutlined: true,
-              ),
-            ],
-            16.verticalSpace,
-            AppText(
-              'Payment will be charged to your Apple ID. Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period.',
-              textAlign: TextAlign.center,
-              maxLines: 5,
-              style: TextStyle(
-                fontSize: 10.sp,
-                color: AppColor.hintText,
-                height: 1.45,
-              ),
-            ),
-          ],
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 }
 
-class _HeroHeader extends StatelessWidget {
-  const _HeroHeader();
+class _TopBar extends StatelessWidget {
+  const _TopBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(8.w, 4.h, 12.w, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconButton(
+            onPressed: () => Get.back(),
+            icon: Icon(
+              Icons.close_rounded,
+              size: 24.sp,
+              color: AppColor.textPrimary,
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Image.asset(AppConfig.appLogo, height: 90.w, width: 90.w),
+            ),
+          ),
+          // TextButton(
+          //   onPressed: Get.find<SubscriptionsController>().restorePurchases,
+          //   child: AppText(
+          //     'Restore',
+          //     style: TextStyle(
+          //       fontSize: 14.sp,
+          //       fontWeight: FontWeight.w600,
+          //       color: AppColor.primary.withValues(alpha: 0.75),
+          //     ),
+          //   ),
+          // ),
+          24.width,
+        ],
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppText(
+          '${AppConfig.appName} Premium',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 26.sp,
+            fontWeight: FontWeight.w800,
+            color: AppColor.textPrimary,
+            height: 1.15,
+          ),
+        ),
+        6.verticalSpace,
+        AppText(
+          'More ways to stay close',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+            color: AppColor.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FeatureCards extends StatelessWidget {
+  const _FeatureCards();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _HighlightCard(
+            background: AppColor.primaryLight,
+            icon: Align(
+              alignment: Alignment.center,
+              child: AppSvgIcon(
+                Assets.icons.loveIcon,
+                size: 32.w,
+                color: AppColor.primary,
+              ),
+            ),
+            title: 'Distance',
+            subtitle: 'See how far apart you are',
+          ),
+        ),
+        8.horizontalSpace,
+        Expanded(
+          child: _HighlightCard(
+            background: const Color(0xFFF3E8FF),
+            icon: Align(
+              alignment: Alignment.center,
+              child: AppSvgIcon(
+                Assets.icons.kissIcon,
+                size: 32.w,
+                color: AppColor.primary,
+              ),
+            ),
+            title: 'Kiss',
+            subtitle: 'Send love anytime',
+          ),
+        ),
+        8.horizontalSpace,
+        Expanded(
+          child: _HighlightCard(
+            background: const Color(0xFFDDF4FF),
+            icon: Align(
+              alignment: Alignment.center,
+              child: AppSvgIcon(
+                Assets.icons.happyEmojiIcon,
+                size: 36.w,
+                color: AppColor.secondary,
+              ),
+            ),
+            title: 'Mood',
+            subtitle: "See how they're feeling",
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HighlightCard extends StatelessWidget {
+  const _HighlightCard({
+    required this.background,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final Color background;
+  final Widget icon;
+  final String title;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+      height: 108.h,
+      padding: EdgeInsets.fromLTRB(10.w, 12.h, 10.w, 10.h),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF4FA3), Color(0xFF42C2FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22.r),
+        color: background,
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.favorite_rounded, color: Colors.white, size: 36.sp),
-          10.verticalSpace,
+          icon,
+          const Spacer(),
           AppText(
-            'Lovelynk Premium',
-            style: TextStyle(
-              fontSize: 22.sp,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-          6.verticalSpace,
-          AppText(
-            'Stay close across any distance',
+            title,
             style: TextStyle(
               fontSize: 13.sp,
-              color: Colors.white.withValues(alpha: 0.9),
+              fontWeight: FontWeight.w800,
+              color: AppColor.textPrimary,
+            ),
+          ),
+          2.verticalSpace,
+          AppText(
+            subtitle,
+            maxLines: 2,
+            style: TextStyle(
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w500,
+              color: AppColor.textSecondary,
+              height: 1.25,
             ),
           ),
         ],
@@ -153,102 +261,137 @@ class _HeroHeader extends StatelessWidget {
   }
 }
 
-class _StatusCard extends StatelessWidget {
-  const _StatusCard({
-    required this.isPremium,
-    required this.isOnTrial,
-    required this.trialDaysRemaining,
-    required this.activePlan,
-  });
+class _FeatureChecklist extends StatelessWidget {
+  const _FeatureChecklist();
 
-  final bool isPremium;
-  final bool isOnTrial;
-  final int? trialDaysRemaining;
-  final SubscriptionPlan? activePlan;
+  static const _left = [
+    'All 12 home & lock screen widgets',
+    'Kiss, Heartbeat & Emoji widgets',
+    'Real-time partner updates',
+  ];
+
+  static const _right = [
+    'Unlimited customisation',
+    'Exclusive themes & backgrounds',
+    'One subscription for both of you ❤️',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final (icon, title, subtitle, color) = _statusContent();
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: _ChecklistColumn(items: _left)),
+        10.horizontalSpace,
+        Expanded(child: _ChecklistColumn(items: _right)),
+      ],
+    );
+  }
+}
 
+class _ChecklistColumn extends StatelessWidget {
+  const _ChecklistColumn({required this.items});
+
+  final List<String> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (final item in items) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 18.w,
+                height: 18.w,
+                margin: EdgeInsets.only(top: 1.h),
+                decoration: const BoxDecoration(
+                  color: AppColor.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_rounded,
+                  size: 12.sp,
+                  color: Colors.white,
+                ),
+              ),
+              8.horizontalSpace,
+              Expanded(
+                child: AppText(
+                  item,
+                  maxLines: 3,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: AppColor.textPrimary,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          10.verticalSpace,
+        ],
+      ],
+    );
+  }
+}
+
+class _PartnerCallout extends StatelessWidget {
+  const _PartnerCallout();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.primaryLight,
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Row(
         children: [
-          Container(
-            width: 44.w,
-            height: 44.w,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 22.sp),
+          AppSvgIcon(
+            Assets.icons.lovePartnerIcon,
+            size: 28.sp,
+            color: AppColor.primary,
           ),
-          14.horizontalSpace,
+          12.horizontalSpace,
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w700,
-                    color: AppColor.textPrimary,
-                  ),
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  height: 1.35,
+                  color: AppColor.primary,
+                  fontWeight: FontWeight.w600,
                 ),
-                4.verticalSpace,
-                AppText(
-                  subtitle,
-                  maxLines: 2,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppColor.textSecondary,
-                    height: 1.35,
+                children: const [
+                  TextSpan(
+                    text: 'One subscription. Your partner doesn\'t pay. ',
+                    style: TextStyle(fontWeight: FontWeight.w800),
                   ),
-                ),
-              ],
+                  TextSpan(
+                    text:
+                        'When you subscribe, their account is activated too ❤️',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: AppColor.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
-  (IconData, String, String, Color) _statusContent() {
-    if (isPremium) {
-      final planLabel = activePlan?.title ?? 'Premium';
-      return (
-        Icons.workspace_premium_rounded,
-        'Premium active',
-        'Your $planLabel plan is active. All widgets unlocked.',
-        const Color(0xFFE8B923),
-      );
-    }
-    if (isOnTrial) {
-      final days = trialDaysRemaining ?? 0;
-      return (
-        Icons.timer_outlined,
-        'Free trial active',
-        '$days day${days == 1 ? '' : 's'} left. Subscribe before trial ends to keep widgets.',
-        AppColor.secondary,
-      );
-    }
-    return (
-      Icons.lock_outline_rounded,
-      'Widgets locked',
-      'Start your one-time 7-day trial or subscribe to unlock all widgets.',
-      AppColor.primary,
-    );
-  }
 }
 
-class _PlanCard extends StatelessWidget {
-  const _PlanCard({
+class _PlanTile extends StatelessWidget {
+  const _PlanTile({
     required this.plan,
     required this.isSelected,
     required this.onTap,
@@ -262,23 +405,23 @@ class _PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: BorderRadius.circular(18.r),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(18.r),
         child: Container(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.fromLTRB(14.w, 14.h, 12.w, 14.h),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(18.r),
             border: Border.all(
               color: isSelected ? AppColor.primary : AppColor.inputBorder,
-              width: isSelected ? 2 : 1,
+              width: isSelected ? 2 : 1.2,
             ),
           ),
           child: Row(
             children: [
               _RadioDot(isSelected: isSelected),
-              14.horizontalSpace,
+              12.horizontalSpace,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,7 +432,7 @@ class _PlanCard extends StatelessWidget {
                           plan.title,
                           style: TextStyle(
                             fontSize: 16.sp,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             color: AppColor.textPrimary,
                           ),
                         ),
@@ -302,13 +445,13 @@ class _PlanCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppColor.primaryLight,
-                              borderRadius: BorderRadius.circular(12.r),
+                              borderRadius: BorderRadius.circular(20.r),
                             ),
                             child: AppText(
                               plan.badge!,
                               style: TextStyle(
                                 fontSize: 10.sp,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                                 color: AppColor.primary,
                               ),
                             ),
@@ -318,34 +461,43 @@ class _PlanCard extends StatelessWidget {
                     ),
                     4.verticalSpace,
                     AppText(
-                      plan.periodLabel,
+                      plan.billingLine,
                       style: TextStyle(
-                        fontSize: 12.sp,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColor.textPrimary,
+                      ),
+                    ),
+                    2.verticalSpace,
+                    AppText(
+                      plan.perUserLine,
+                      style: TextStyle(
+                        fontSize: 11.sp,
                         color: AppColor.textSecondary,
                       ),
                     ),
-                    if (plan.savingsLabel != null) ...[
-                      4.verticalSpace,
-                      AppText(
-                        plan.savingsLabel!,
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColor.success,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
-              AppText(
-                plan.formattedPrice,
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColor.textPrimary,
+              if (plan.savingsLabel != null)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColor.primary,
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: AppText(
+                    plan.savingsLabel!,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -367,7 +519,7 @@ class _RadioDot extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: isSelected ? AppColor.primary : AppColor.inputBorder,
+          color: isSelected ? AppColor.primary : const Color(0xFFC8C4D0),
           width: 2,
         ),
       ),
@@ -386,62 +538,118 @@ class _RadioDot extends StatelessWidget {
   }
 }
 
-class _FeatureList extends StatelessWidget {
-  const _FeatureList();
+class _BottomCta extends StatelessWidget {
+  const _BottomCta({
+    required this.plan,
+    required this.canStartTrial,
+    required this.onPrimary,
+  });
 
-  static const _features = [
-    'All 12 home & lock screen widgets',
-    'Unlimited customisation',
-    'Real-time partner updates',
-    'Heartbeat, Kiss & Emoji widgets',
-  ];
+  final SubscriptionPlan plan;
+  final bool canStartTrial;
+  final VoidCallback onPrimary;
 
   @override
   Widget build(BuildContext context) {
+    final thenLine = canStartTrial
+        ? 'Then ${plan.thenPriceLine}. Cancel anytime.'
+        : '${plan.billingLine}. Cancel anytime.';
+
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 12.h),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
+        color: AppColor.background,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          AppText(
-            'What you get',
-            style: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w700,
-              color: AppColor.textPrimary,
-            ),
+          GlobalButton(
+            onTap: onPrimary,
+            text: canStartTrial ? 'Start 7-day free trial' : 'Subscribe now',
           ),
-          12.verticalSpace,
-          for (final feature in _features) ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.check_circle_rounded,
-                  size: 18.sp,
-                  color: AppColor.primary,
+          10.verticalSpace,
+          AppText(
+            thenLine,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12.sp, color: AppColor.textSecondary),
+          ),
+          14.verticalSpace,
+          Row(
+            children: [
+              Expanded(
+                child: Divider(
+                  color: AppColor.inputBorder.withValues(alpha: 0.9),
                 ),
-                10.horizontalSpace,
-                Expanded(
-                  child: AppText(
-                    feature,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: AppColor.textSecondary,
-                      height: 1.35,
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _LegalLink(
+                      label: 'Terms of Use',
+                      onTap: () => UrlLauncher.url(
+                        'https://flutter.pixelstack.cloud/terms',
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w),
+                      child: AppText(
+                        '·',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: AppColor.hintText,
+                        ),
+                      ),
+                    ),
+                    _LegalLink(
+                      label: 'Privacy Policy',
+                      onTap: () => UrlLauncher.url(
+                        'https://flutter.pixelstack.cloud/privacy',
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            10.verticalSpace,
-          ],
+              ),
+              Expanded(
+                child: Divider(
+                  color: AppColor.inputBorder.withValues(alpha: 0.9),
+                ),
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AppText(
+        label,
+        style: TextStyle(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+          color: AppColor.hintText,
+        ),
       ),
     );
   }

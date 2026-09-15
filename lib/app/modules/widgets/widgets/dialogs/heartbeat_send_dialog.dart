@@ -12,7 +12,6 @@ class HeartbeatSendDialog {
   static Future<void> show({
     required String partnerName,
     required VoidCallback onSend,
-    required VoidCallback onViewDetails,
   }) {
     return InteractiveSendDialog.show(
       title: 'Send Heartbeat',
@@ -24,10 +23,6 @@ class HeartbeatSendDialog {
       onSend: () {
         Get.back();
         onSend();
-      },
-      onViewDetails: () {
-        Get.back();
-        onViewDetails();
       },
       hero: Assets.images.heartbeatImage.image(
         width: 120.w,

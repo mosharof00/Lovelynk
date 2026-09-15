@@ -12,7 +12,6 @@ class KissSendDialog {
   static Future<void> show({
     required String partnerName,
     required VoidCallback onSend,
-    required VoidCallback onViewDetails,
   }) {
     return InteractiveSendDialog.show(
       title: 'Send a Kiss',
@@ -24,10 +23,6 @@ class KissSendDialog {
       onSend: () {
         Get.back();
         onSend();
-      },
-      onViewDetails: () {
-        Get.back();
-        onViewDetails();
       },
       hero: Assets.images.kissImage.image(
         width: 128.w,

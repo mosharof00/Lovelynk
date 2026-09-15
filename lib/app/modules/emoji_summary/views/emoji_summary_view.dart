@@ -131,7 +131,6 @@ class _EmojiHeader extends GetView<EmojiSummaryController> {
                       margin: const EdgeInsets.all(16),
                     );
                   },
-                  onViewDetails: () {},
                 );
               },
               text: '',

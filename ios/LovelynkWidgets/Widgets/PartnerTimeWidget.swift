@@ -115,14 +115,28 @@ struct PartnerTimeWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text(entry.timeText)
-                    .font(.caption)
-                    .minimumScaleFactor(0.7)
+            Text("\(entry.timeText) \(entry.period)")
+                .font(.caption)
+                .minimumScaleFactor(0.55)
+                .lineLimit(1)
+                .multilineTextAlignment(.center)
         case .accessoryRectangular:
-            HStack {
-                Image(systemName: "clock.fill")
-                Text("\(entry.timeText) \(entry.period)").font(.headline)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("\(entry.timeText) \(entry.period)")
+                        .font(.system(size: 15, weight: .semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                Text(entry.city)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         case .accessoryInline:
             Text("🕐 \(entry.timeText) \(entry.period)")
         case .systemMedium:

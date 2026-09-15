@@ -107,10 +107,11 @@ struct PartnerDistanceWidgetView: View {
         switch family {
         case .accessoryCircular:
             VStack(spacing: 0) {
-                LoveDoubleIcon(size: 16, color: .primary)
-                Text("\(entry.miles)")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.6)
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("\(entry.miles) mi")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .minimumScaleFactor(0.55)
                     .lineLimit(1)
             }
         case .accessoryRectangular:
@@ -136,7 +137,7 @@ struct PartnerDistanceWidgetView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
-    /// Home screen layout matching competitor: title + initials connected by double heart.
+    /// Home screen layout: title + initials connected by a single heart.
     private func competitorLayout(
         circleSize: CGFloat,
         heartSize: CGFloat,
@@ -174,7 +175,10 @@ struct PartnerDistanceWidgetView: View {
 
             connectionLine(color: lineColor)
 
-            LoveDoubleIcon(size: heartSize, color: lineColor)
+            Image(systemName: "heart.fill")
+                .font(.system(size: heartSize * 0.72, weight: .semibold))
+                .foregroundStyle(lineColor)
+                .frame(width: heartSize, height: heartSize)
                 .padding(.horizontal, 4)
 
             connectionLine(color: lineColor)

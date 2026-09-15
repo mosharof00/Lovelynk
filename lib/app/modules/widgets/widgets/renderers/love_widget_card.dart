@@ -17,6 +17,7 @@ class LoveWidgetCard extends StatelessWidget {
     this.sendLabel,
     this.compact = false,
     this.showFooter = true,
+    this.showLockIcon = true,
   });
 
   final String title;
@@ -28,6 +29,8 @@ class LoveWidgetCard extends StatelessWidget {
   final String? sendLabel;
   final bool compact;
   final bool showFooter;
+  /// Home previews hide the lock; Widgets tab keeps it when locked.
+  final bool showLockIcon;
 
   bool get _showSend => isUnlocked && onSend != null;
 
@@ -76,7 +79,7 @@ class LoveWidgetCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (!isUnlocked)
+              if (showLockIcon && !isUnlocked)
                 Icon(
                   Icons.lock_rounded,
                   size: compact ? 11.sp : 14.sp,
