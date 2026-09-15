@@ -70,7 +70,6 @@ struct HeartbeatWidgetView: View {
             }
         }
         .lovelynkContainerBackground(style: entry.style, family: family)
-        .widgetURL(WidgetDeepLinks.heartbeat)
     }
 
     @ViewBuilder

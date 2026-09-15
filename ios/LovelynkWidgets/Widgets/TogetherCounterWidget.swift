@@ -7,7 +7,7 @@ struct TogetherCounterEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
     let lockMessage: String
-    /// Relationship start — OS timer counts up from this date every second.
+    /// Relationship start — elapsed D/H/M/S computed against [date].
     let since: Date
     let style: WidgetStyleConfig
 }
@@ -24,10 +24,14 @@ struct TogetherCounterProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<TogetherCounterEntry>) -> Void) {
-        let entry = readEntry(at: Date())
-        // Rare reload — live seconds come from Text(_:style: .timer), not timeline entries.
-        let refresh = Calendar.current.date(byAdding: .hour, value: 6, to: Date()) ?? Date().addingTimeInterval(21_600)
-        completion(Timeline(entries: [entry], policy: .after(refresh)))
+        let now = Date()
+        var entries: [TogetherCounterEntry] = []
+        // Tick seconds for ~1 minute, then WidgetKit reloads.
+        for secondOffset in 0..<60 {
+            let entryDate = Calendar.current.date(byAdding: .second, value: secondOffset, to: now) ?? now
+            entries.append(readEntry(at: entryDate))
+        }
+        completion(Timeline(entries: entries, policy: .atEnd))
     }
 
     private func readEntry(at date: Date) -> TogetherCounterEntry {
@@ -66,6 +70,10 @@ struct TogetherCounterWidgetView: View {
     var entry: TogetherCounterEntry
     @Environment(\.widgetFamily) var family
 
+    private var parts: (days: Int, hours: Int, minutes: Int, seconds: Int) {
+        WidgetTimeMath.durationComponents(from: entry.since, to: entry.date)
+    }
+
     var body: some View {
         Group {
             if entry.isLocked {
@@ -100,62 +108,55 @@ struct TogetherCounterWidgetView: View {
 
     @ViewBuilder
     private var contentView: some View {
+        let p = parts
         switch family {
         case .accessoryCircular:
-            WidgetLiveTimer.countUp(
-                from: entry.since,
-                font: .system(size: 12, weight: .bold, design: .rounded)
+            WidgetCountdownLayout.accessoryCircular(
+                days: p.days,
+                hours: p.hours,
+                minutes: p.minutes,
+                seconds: p.seconds,
+                title: "Together"
             )
-            .minimumScaleFactor(0.4)
         case .accessoryRectangular:
-            accessoryRectangularLayout
-        case .accessoryInline:
-            HStack(spacing: 4) {
-                Text("Together")
-                WidgetLiveTimer.countUp(
-                    from: entry.since,
-                    font: .body.weight(.semibold)
-                )
-            }
-        case .systemMedium:
-            mediumLayout
-        default:
-            smallLayout
-        }
-    }
-
-    private var accessoryRectangularLayout: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("Together for")
-                .font(.system(size: 12, weight: .medium))
-                .lineLimit(1)
-            WidgetLiveTimer.countUp(
-                from: entry.since,
-                font: .system(size: 20, weight: .bold, design: .rounded)
+            WidgetCountdownLayout.accessoryRectangular(
+                days: p.days,
+                hours: p.hours,
+                minutes: p.minutes,
+                seconds: p.seconds,
+                title: "Together for"
             )
+        case .accessoryInline:
+            Text("Together \(p.days)d \(p.hours)h \(p.minutes)m")
+                .font(.body.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+        case .systemMedium:
+            mediumLayout(p)
+        default:
+            smallLayout(p)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
-    private var smallLayout: some View {
+    private func smallLayout(
+        _ p: (days: Int, hours: Int, minutes: Int, seconds: Int)
+    ) -> some View {
         VStack(spacing: 0) {
             Text("Together")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 4)
 
-            WidgetLiveTimer.countUp(
-                from: entry.since,
-                font: .system(
-                    size: entry.style.homeValueSize(for: family) * 0.42,
-                    weight: .bold,
-                    design: .rounded
-                ),
-                color: entry.style.themeColor
+            WidgetCountdownLayout.smallGrid(
+                days: p.days,
+                hours: p.hours,
+                minutes: p.minutes,
+                seconds: p.seconds,
+                style: entry.style,
+                family: family
             )
-            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
         }
@@ -163,25 +164,25 @@ struct TogetherCounterWidgetView: View {
         .padding(WidgetLayoutMetrics.homePadding)
     }
 
-    private var mediumLayout: some View {
+    private func mediumLayout(
+        _ p: (days: Int, hours: Int, minutes: Int, seconds: Int)
+    ) -> some View {
         VStack(spacing: 0) {
-            Text("Together Counter")
+            Text("Together for")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 4)
 
-            WidgetLiveTimer.countUp(
-                from: entry.since,
-                font: .system(
-                    size: entry.style.homeValueSize(for: family) * 0.55,
-                    weight: .bold,
-                    design: .rounded
-                ),
-                color: entry.style.themeColor
+            WidgetCountdownLayout.mediumRow(
+                days: p.days,
+                hours: p.hours,
+                minutes: p.minutes,
+                seconds: p.seconds,
+                style: entry.style,
+                family: family
             )
-            .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
         }

@@ -2,20 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services/subscription_service.dart';
-import '../../../core/services/widget_data_service.dart';
-import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
 import '../../../data/widget_catalog/widget_catalog.dart';
 import '../../../routes/app_pages.dart';
-import '../widgets/dialogs/emoji_send_dialog.dart';
-import '../widgets/dialogs/heartbeat_send_dialog.dart';
 import '../widgets/dialogs/how_to_add_widget_sheet.dart';
-import '../widgets/dialogs/kiss_send_dialog.dart';
 
 class WidgetsController extends GetxController {
   late final SubscriptionService _subscription;
-  late final WidgetDataService _data;
 
   final searchController = TextEditingController();
   final searchQuery = ''.obs;
@@ -27,7 +21,6 @@ class WidgetsController extends GetxController {
   void onInit() {
     super.onInit();
     _subscription = Get.find<SubscriptionService>();
-    _data = Get.find<WidgetDataService>();
     searchController.addListener(() {
       searchQuery.value = searchController.text.trim();
     });
@@ -86,58 +79,21 @@ class WidgetsController extends GetxController {
     HowToAddWidgetSheet.show();
   }
 
-  /// Interactive footer "Send …" → branded send dialog.
+  /// Interactive footer "Send …" → widget details screen (send happens there).
   void onSendTap(WidgetDefinition widget) {
-    final partner = _data.data.value.partnerName;
-
     switch (widget.type) {
       case AppWidgetType.heartbeat:
-        HeartbeatSendDialog.show(
-          partnerName: partner,
-          onSend: () {
-            _data.sendHeartbeat();
-            _toast(
-              'Heartbeat sent 💗',
-              'Let them know you\'re thinking of them.',
-            );
-          },
-          onViewDetails: () => Get.toNamed(Routes.HEARTBEAT_SUMMARY),
-        );
+        Get.toNamed(Routes.HEARTBEAT_SUMMARY);
         break;
       case AppWidgetType.kiss:
-        KissSendDialog.show(
-          partnerName: partner,
-          onSend: () {
-            _data.sendKiss();
-            _toast('Kiss sent 💋', 'Your partner will feel the love.');
-          },
-          onViewDetails: () => Get.toNamed(Routes.KISS_SUMMARY),
-        );
+        Get.toNamed(Routes.KISS_SUMMARY);
         break;
       case AppWidgetType.emoji:
-        EmojiSendDialog.show(
-          partnerName: partner,
-          onSend: (emoji) {
-            _data.sendEmoji(emoji);
-            _toast('Emoji sent $emoji', 'Sent to your partner.');
-          },
-          onViewDetails: () => Get.toNamed(Routes.EMOJI_SUMMARY),
-        );
+        Get.toNamed(Routes.EMOJI_SUMMARY);
         break;
       default:
         break;
     }
-  }
-
-  void _toast(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColor.primaryLight,
-      colorText: AppColor.textPrimary,
-      margin: const EdgeInsets.all(16),
-    );
   }
 
   void onUnlockTap() => Get.toNamed(Routes.SUBSCRIPTIONS);

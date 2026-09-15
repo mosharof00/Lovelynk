@@ -63,6 +63,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/email_fill_icon.svg
   String get emailFillIcon => 'assets/icons/email_fill_icon.svg';
 
+  /// File path: assets/icons/happy_emoji_icon.svg
+  String get happyEmojiIcon => 'assets/icons/happy_emoji_icon.svg';
+
   /// File path: assets/icons/heartbeat_icon.svg
   String get heartbeatIcon => 'assets/icons/heartbeat_icon.svg';
 
@@ -86,6 +89,9 @@ class $AssetsIconsGen {
 
   /// File path: assets/icons/love_multi.svg
   String get loveMulti => 'assets/icons/love_multi.svg';
+
+  /// File path: assets/icons/love_partner_icon.svg
+  String get lovePartnerIcon => 'assets/icons/love_partner_icon.svg';
 
   /// File path: assets/icons/moods_icon.svg
   String get moodsIcon => 'assets/icons/moods_icon.svg';
@@ -137,6 +143,7 @@ class $AssetsIconsGen {
     daysTogetherLoveIcon,
     diatanceIcon,
     emailFillIcon,
+    happyEmojiIcon,
     heartbeatIcon,
     homeFillIcon,
     homeIcon,
@@ -145,6 +152,7 @@ class $AssetsIconsGen {
     loveDoubleIcon,
     loveIcon,
     loveMulti,
+    lovePartnerIcon,
     moodsIcon,
     morningIcon,
     noteDoneIcon,

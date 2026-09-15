@@ -14,7 +14,6 @@ class EmojiSendDialog {
   static Future<void> show({
     required String partnerName,
     required ValueChanged<String> onSend,
-    required VoidCallback onViewDetails,
   }) {
     final selected = '😍'.obs;
 
@@ -29,10 +28,6 @@ class EmojiSendDialog {
         final emoji = selected.value;
         Get.back();
         onSend(emoji);
-      },
-      onViewDetails: () {
-        Get.back();
-        onViewDetails();
       },
       hero: Obx(
         () => Text(

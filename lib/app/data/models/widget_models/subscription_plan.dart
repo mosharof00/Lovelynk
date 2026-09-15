@@ -8,7 +8,9 @@ class SubscriptionPlan {
     required this.id,
     required this.title,
     required this.price,
-    required this.periodLabel,
+    required this.billingLine,
+    required this.perUserLine,
+    required this.thenPriceLine,
     this.badge,
     this.savingsLabel,
   });
@@ -16,24 +18,30 @@ class SubscriptionPlan {
   final SubscriptionPlanId id;
   final String title;
   final int price;
-  final String periodLabel;
+  final String billingLine;
+  final String perUserLine;
+  final String thenPriceLine;
   final String? badge;
   final String? savingsLabel;
 
-  String get formattedPrice => '৳$price';
+  String get formattedPrice => thenPriceLine;
 
   static const monthly = SubscriptionPlan(
     id: SubscriptionPlanId.monthly,
     title: 'Monthly',
     price: 699,
-    periodLabel: 'per month',
+    billingLine: '£6.99 / month for 2 users',
+    perUserLine: '£3.50 / user / month',
+    thenPriceLine: '£6.99/month',
   );
 
   static const yearly = SubscriptionPlan(
     id: SubscriptionPlanId.yearly,
     title: 'Yearly',
     price: 2999,
-    periodLabel: 'per year',
+    billingLine: '£29.99 / year for 2 users',
+    perUserLine: '£1.25 / user / month',
+    thenPriceLine: '£29.99/year',
     badge: 'Best value',
     savingsLabel: 'Save 64%',
   );

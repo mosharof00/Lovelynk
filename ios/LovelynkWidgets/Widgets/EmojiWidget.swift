@@ -74,7 +74,6 @@ struct EmojiWidgetView: View {
             }
         }
         .lovelynkContainerBackground(style: entry.style, family: family)
-        .widgetURL(WidgetDeepLinks.emoji)
     }
 
     @ViewBuilder

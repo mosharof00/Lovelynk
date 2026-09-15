@@ -63,4 +63,16 @@ class SubscriptionsController extends GetxController {
   void onManageTap() {
     // TODO(StoreKit): open App Store subscription management.
   }
+
+  Future<void> restorePurchases() async {
+    // TODO(StoreKit): restore purchases from App Store.
+    Get.snackbar(
+      'Restore',
+      'No previous purchases found.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColor.primaryLight,
+      colorText: AppColor.textPrimary,
+      margin: const EdgeInsets.all(16),
+    );
+  }
 }

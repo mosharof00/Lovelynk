@@ -114,7 +114,7 @@ class _KissHeader extends GetView<KissSummaryController> {
             right: 50.w,
             bottom: 20.h,
             child: GlobalButton(
-              onTap: controller.sendKiss,
+              onTap: controller.onSendTap,
               text: '',
               height: 40.h,
               widget: Row(
