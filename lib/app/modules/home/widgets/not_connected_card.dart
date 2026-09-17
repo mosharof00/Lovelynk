@@ -9,14 +9,77 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-class NotConnectedCard extends GetView<HomeController> {
+class NotConnectedCard extends StatefulWidget {
   const NotConnectedCard({super.key});
 
   @override
+  State<NotConnectedCard> createState() => _NotConnectedCardState();
+}
+
+class _NotConnectedCardState extends State<NotConnectedCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _beat;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _beat = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+
+    // Soft double-pulse (heartbeat): up-down, pause, up-down, pause.
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: 1.035)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 12,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.035, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 12,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: 1.05)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 14,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.05, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 14,
+      ),
+      TweenSequenceItem(
+        tween: ConstantTween(1.0),
+        weight: 48,
+      ),
+    ]).animate(_beat);
+  }
+
+  @override
+  void dispose() {
+    _beat.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final controller = Get.find<HomeController>();
+
     return Obx(() {
-      if (!controller.isConnected.value) {
-        return Container(
+      final connected = controller.isConnected.value;
+      if (connected) {
+        if (_beat.isAnimating) _beat.stop();
+        return const SizedBox.shrink();
+      }
+
+      if (!_beat.isAnimating) _beat.repeat();
+
+      return ScaleTransition(
+        scale: _scale,
+        child: Container(
           margin: EdgeInsets.only(top: 12.h),
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
@@ -26,6 +89,13 @@ class NotConnectedCard extends GetView<HomeController> {
             border: Border.all(
               color: AppColor.inputBorder.withValues(alpha: 0.5),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColor.primary.withValues(alpha: 0.10),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -50,10 +120,8 @@ class NotConnectedCard extends GetView<HomeController> {
               ),
             ],
           ),
-        );
-      } else {
-        return const SizedBox.shrink();
-      }
+        ),
+      );
     });
   }
 }

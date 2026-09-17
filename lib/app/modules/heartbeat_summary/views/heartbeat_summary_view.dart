@@ -118,7 +118,7 @@ class _HeartbeatHeader extends GetView<HeartbeatSummaryController> {
             right: 50.w,
             bottom: 20.h,
             child: GlobalButton(
-              onTap: controller.sendHeartbeat,
+              onTap: controller.onSendTap,
               text: '',
               height: 40.h,
               widget: Row(

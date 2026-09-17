@@ -112,13 +112,11 @@ class _DistanceTrack extends StatelessWidget {
           left: centerX - heartHalf,
           top: centerY - heartHalf,
           child:
-          AppSvgIcon(Assets.icons.loveDoubleIcon, size:  heartHalf * 2.3, color: WidgetAccentScope.of(context)),
-
-          // Icon(
-          //   Icons.favorite_rounded,
-          //   color: WidgetAccentScope.of(context),
-          //   size: heartHalf * 2,
-          // ),
+          AppSvgIcon(
+            Assets.icons.loveIcon,
+            size: heartHalf * 2,
+            color: WidgetAccentScope.of(context),
+          ),
         ),
         Positioned(
           left: userX - radius,

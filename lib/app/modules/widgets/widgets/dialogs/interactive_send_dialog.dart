@@ -13,7 +13,7 @@ import '../../../../global/widgets/global_button.dart';
 /// Shared “send” dialog shell for Heartbeat / Kiss / Emoji.
 ///
 /// Soft frosted panel, hero art with two white rings, floating love icons,
-/// partner tip card with setup-guide CTA, “View details”, and Send.
+/// partner tip card with setup-guide CTA, and Send.
 class InteractiveSendDialog extends StatefulWidget {
   const InteractiveSendDialog({
     super.key,
@@ -21,7 +21,6 @@ class InteractiveSendDialog extends StatefulWidget {
     required this.message,
     required this.sendLabel,
     required this.onSend,
-    required this.onViewDetails,
     required this.hero,
     required this.partnerName,
     required this.widgetLabel,
@@ -33,7 +32,6 @@ class InteractiveSendDialog extends StatefulWidget {
   final String message;
   final String sendLabel;
   final VoidCallback onSend;
-  final VoidCallback onViewDetails;
 
   /// Center image / emoji (rings + floating hearts wrap this).
   final Widget hero;
@@ -55,7 +53,6 @@ class InteractiveSendDialog extends StatefulWidget {
     required String message,
     required String sendLabel,
     required VoidCallback onSend,
-    required VoidCallback onViewDetails,
     required Widget hero,
     required String partnerName,
     required String widgetLabel,
@@ -68,7 +65,6 @@ class InteractiveSendDialog extends StatefulWidget {
         message: message,
         sendLabel: sendLabel,
         onSend: onSend,
-        onViewDetails: onViewDetails,
         hero: hero,
         partnerName: partnerName,
         widgetLabel: widgetLabel,
@@ -214,21 +210,6 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
                                 },
                               ),
                             ],
-                            16.verticalSpace,
-                            GestureDetector(
-                              onTap: widget.onViewDetails,
-                              behavior: HitTestBehavior.opaque,
-                              child: AppText(
-                                'View details',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColor.primary,
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: AppColor.primary,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),
