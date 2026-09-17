@@ -9,6 +9,7 @@ import '../widgets/profile_header.dart';
 import '../widgets/profile_menu_section.dart';
 import '../widgets/profile_promo_banners.dart';
 import '../widgets/profile_subscription_banner.dart';
+import '../../widgets/widgets/dialogs/how_to_add_widget_sheet.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({super.key});
@@ -67,6 +68,11 @@ class ProfileView extends GetView<ProfileController> {
               title: 'Widgets & Activity',
               titleColor: AppColor.textSecondary,
               items: [
+                ProfileMenuItemData(
+                  icon: Icons.widgets_outlined,
+                  label: 'Widget Setup Guide',
+                  onTap: HowToAddWidgetSheet.show,
+                ),
                 ProfileMenuItemData(
                   icon: Icons.history_rounded,
                   label: 'Activities',
