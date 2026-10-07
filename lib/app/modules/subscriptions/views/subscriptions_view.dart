@@ -85,7 +85,7 @@ class _TopBar extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(8.w, 4.h, 12.w, 0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           IconButton(
             onPressed: () => Get.back(),

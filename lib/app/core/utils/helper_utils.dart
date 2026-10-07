@@ -126,8 +126,10 @@ class HelperUtils {
   }
 
   static Future<void> deleteMainControllers() async {
-    Get.put(MainPageController(), permanent: false);
     Get.delete<MainPageController>(force: true);
+    // Permanent from initMainControllers; must go so the next account
+    // doesn't see the previous user's data.
+    Get.delete<HomeController>(force: true);
 
     // if (Get.isRegistered<CartController>()) {
     //   Get.delete<CartController>(force: true);

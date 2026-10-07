@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 import 'package:bulkretail/app/core/network/api_client.dart';
+import 'package:bulkretail/app/core/network/supabase/supabase_service.dart';
 import 'package:bulkretail/app/core/services/subscription_service.dart';
 import 'auth_repository.dart';
 import 'product_repository.dart';
+import 'user_repository.dart';
 
 class AppRepositoryBinding extends Bindings {
   @override
@@ -14,9 +16,15 @@ class AppRepositoryBinding extends Bindings {
       Get.put<SubscriptionService>(SubscriptionService(), permanent: true);
     }
 
-    // Repositories — lazy, created only when first Get.find() is called
+    // Repositories — lazy, created only when first Get.find() is called.
+    // SupabaseService is registered in main() before runApp.
     Get.lazyPut<IAuthRepository>(
-          () => AuthRepository(Get.find<ApiClient>()),
+      () => AuthRepository(Get.find<SupabaseService>()),
+      fenix: true,
+    );
+
+    Get.lazyPut<IUserRepository>(
+      () => UserRepository(Get.find<SupabaseService>()),
       fenix: true,
     );
 

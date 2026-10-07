@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:bulkretail/app/core/extensions/text_style_extension.dart';
 import 'package:bulkretail/app/core/theme/app_color.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -87,6 +88,9 @@ class AppInputTextFormField extends StatelessWidget {
     this.style,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     this.labelSpacing = 5,
+    this.inputFormatters,
+    this.maxLength,
+    this.autofillHints,
   });
 
   final String? label;
@@ -116,10 +120,16 @@ class AppInputTextFormField extends StatelessWidget {
   final TextStyle? style;
   final AutovalidateMode autovalidateMode;
   final double labelSpacing;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
+  final Iterable<String>? autofillHints;
 
   @override
   Widget build(BuildContext context) {
     final field = TextFormField(
+      inputFormatters: inputFormatters,
+      maxLength: maxLength,
+      autofillHints: autofillHints,
       readOnly: readOnly,
       onTap: onTap,
       controller: controller,
@@ -145,7 +155,7 @@ class AppInputTextFormField extends StatelessWidget {
         borderRadius: borderRadius,
         showBorder: showBorder,
         enabledBorderColor: enabledBorderColor,
-      ),
+      ).copyWith(counterText: maxLength == null ? null : ''),
     );
 
     if (label == null && labelWidget == null) {

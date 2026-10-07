@@ -43,6 +43,9 @@ dependencies:
   geolocator: ^14.0.3
   flutter_compass: ^0.8.1
   emoji_picker_flutter: ^4.5.3
+  supabase_flutter: ^2.18.0
+  package_info_plus: ^10.2.2
+  flutter_timezone: ^5.1.1
 
 dev_dependencies:
   flutter_test:

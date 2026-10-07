@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/services/session_service.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/helper_utils.dart';
 import '../../../routes/app_pages.dart';
@@ -37,7 +38,7 @@ class ProfileController extends GetxController {
       okText: 'Logout',
       cancelText: 'Cancel',
       okOnPress: () async {
-        await HelperUtils.clearUser();
+        await SessionService.to.signOut();
         await HelperUtils.deleteMainControllers();
         Get.offAllNamed(Routes.LOGIN);
       },

@@ -89,10 +89,12 @@ class LoginView extends GetView<LoginController> {
                 },
               ),
               28.verticalSpace,
-              GlobalButton(
-                text: 'Sign In',
-                onTap: controller.login,
-
+              Obx(
+                () => GlobalButton(
+                  text: 'Sign In',
+                  onTap: controller.login,
+                  isLoading: controller.isLoading.value,
+                ),
               ),
               18.verticalSpace,
               Row(

@@ -28,6 +28,7 @@ class GlobalButton extends StatelessWidget {
     this.widget,
     this.textStyle,
     this.isOutlined = false,
+    this.isLoading = false,
   });
 
   final VoidCallback onTap;
@@ -49,6 +50,9 @@ class GlobalButton extends StatelessWidget {
   final bool isDisabled;
   final TextStyle? textStyle;
   final bool isOutlined;
+
+  /// Shows a spinner instead of the label and ignores taps.
+  final bool isLoading;
 
   /// Optional gradient override. Defaults to solid [AppColor.primary].
   LinearGradient? _resolveGradient() {
@@ -75,7 +79,7 @@ class GlobalButton extends StatelessWidget {
     final resolvedGradient = _resolveGradient();
 
     return CupertinoButton(
-      onPressed: isDisabled ? null : onTap,
+      onPressed: isDisabled || isLoading ? null : onTap,
       padding: padding ?? EdgeInsets.zero,
       child: Container(
         height: resolvedHeight,
@@ -91,7 +95,11 @@ class GlobalButton extends StatelessWidget {
           ),
           boxShadow: isDisabled ? null : boxShadow,
         ),
-        child: widget ??
+        child: isLoading
+            ? Center(
+                child: CupertinoActivityIndicator(color: _resolveTextColor()),
+              )
+            : widget ??
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,

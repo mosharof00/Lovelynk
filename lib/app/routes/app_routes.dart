@@ -13,6 +13,7 @@ abstract class Routes {
   static const AUTH = _Paths.AUTH;
   static const LOGIN = _Paths.AUTH + _Paths.LOGIN;
   static const REGISTER = _Paths.AUTH + _Paths.REGISTER;
+  static const VERIFY_OTP = _Paths.AUTH + _Paths.VERIFY_OTP;
   static const COLOR_CUSTOMISE = _Paths.COLOR_CUSTOMISE;
   static const WIDGETS = _Paths.WIDGETS;
   static const SUBSCRIPTIONS = _Paths.SUBSCRIPTIONS;
@@ -37,6 +38,7 @@ abstract class _Paths {
   static const AUTH = '/auth';
   static const LOGIN = '/login';
   static const REGISTER = '/register';
+  static const VERIFY_OTP = '/verify-otp';
   static const COLOR_CUSTOMISE = '/color-customise';
   static const WIDGETS = '/widgets';
   static const SUBSCRIPTIONS = '/subscriptions';

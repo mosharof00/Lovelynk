@@ -99,7 +99,17 @@ class ConnectWithPartnerController extends GetxController {
       currentStep.value--;
       return;
     }
-    Get.back();
+    skipForNow();
+  }
+
+  /// Opened from Home → just close. Opened right after sign-up (root route)
+  /// → continue into the app unpaired.
+  void skipForNow() {
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back();
+    } else {
+      Get.offAllNamed(Routes.MAIN_PAGE);
+    }
   }
 
   @override

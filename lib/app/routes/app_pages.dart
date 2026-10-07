@@ -7,6 +7,8 @@ import '../modules/auth/login/bindings/login_binding.dart';
 import '../modules/auth/login/views/login_view.dart';
 import '../modules/auth/register/bindings/register_binding.dart';
 import '../modules/auth/register/views/register_view.dart';
+import '../modules/auth/verify_otp/bindings/verify_otp_binding.dart';
+import '../modules/auth/verify_otp/views/verify_otp_view.dart';
 import '../modules/auth/views/auth_view.dart';
 import '../modules/color_customise/bindings/color_customise_binding.dart';
 import '../modules/color_customise/views/color_customise_view.dart';
@@ -98,6 +100,11 @@ class AppPages {
           name: _Paths.REGISTER,
           page: () => const RegisterView(),
           binding: RegisterBinding(),
+        ),
+        GetPage(
+          name: _Paths.VERIFY_OTP,
+          page: () => const VerifyOtpView(),
+          binding: VerifyOtpBinding(),
         ),
       ],
     ),

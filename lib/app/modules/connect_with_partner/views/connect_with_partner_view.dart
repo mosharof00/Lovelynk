@@ -132,6 +132,21 @@ class _PartnerNameStep extends GetView<ConnectWithPartnerController> {
               return null;
             },
           ),
+          16.verticalSpace,
+          Center(
+            child: GestureDetector(
+              onTap: controller.skipForNow,
+              child: AppText(
+                'Skip for now',
+                style: context.titleSmall.copyWith(
+                  color: AppColor.primary,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColor.primary,
+                ),
+              ),
+            ),
+          ),
           const Spacer(),
           GlobalButton(
             text: 'Continue',

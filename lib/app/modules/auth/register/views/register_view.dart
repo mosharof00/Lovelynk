@@ -74,6 +74,9 @@ class RegisterView extends GetView<RegisterController> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Name is required';
                   }
+                  if (value.trim().length > 60) {
+                    return 'Name must be 60 characters or less';
+                  }
                   return null;
                 },
               ),
@@ -136,9 +139,12 @@ class RegisterView extends GetView<RegisterController> {
                 },
               ),
               28.verticalSpace,
-              GlobalButton(
-                text: 'Continue',
-                onTap: controller.register,
+              Obx(
+                () => GlobalButton(
+                  text: 'Continue',
+                  onTap: controller.register,
+                  isLoading: controller.isLoading.value,
+                ),
               ),
               18.verticalSpace,
               Row(

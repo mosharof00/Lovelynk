@@ -1,16 +1,19 @@
 import 'package:get/get.dart';
 
+import '../../../core/services/session_service.dart';
 import '../../../core/services/subscription_service.dart';
+import '../../../core/utils/logger.dart';
+import '../../../data/models/user_models/session_bootstrap.dart';
 import '../../../routes/app_pages.dart';
 import '../../main_page/controllers/main_page_controller.dart';
 
 class HomeController extends GetxController {
-  /// Mock partner connection for Phase 1 UI. Toggle to preview both layouts.
-  final isConnected = true.obs;
+  /// From [SessionService.bootstrap]; the toggle below is for UI preview only.
+  final isConnected = false.obs;
   bool isFadeInAnimate = true;
 
-  final userName = 'Jasper'.obs;
-  final partnerName = 'Milla'.obs;
+  final userName = ''.obs;
+  final partnerName = ''.obs;
   final distanceLabel = '168'.obs;
   final distanceUnit = 'miles apart'.obs;
   final daysTogether = '83'.obs;
@@ -44,17 +47,34 @@ class HomeController extends GetxController {
     isFadeInAnimate = false;
   }
 
-  /// Called on home load — later fetches user + subscription from Supabase.
   Future<void> loadUser() async {
-    // TODO(Supabase): fetch user profile and call
-    // _subscription.applyFromUser(...)
+    final session = SessionService.to;
+    // Launch bootstrap may have failed offline; retry once here.
+    if (session.bootstrap.value == null && session.hasSession) {
+      try {
+        await session.load();
+      } catch (e) {
+        Log.w('Home: session bootstrap failed: $e');
+      }
+    }
+    // TODO(RevenueCat): drive SubscriptionService from session.access.
     await _subscription.refreshFromUser();
+  }
+
+  void _applySession(SessionBootstrap? data) {
+    if (data == null) return;
+    userName.value = data.user.firstName;
+    isConnected.value = data.isPaired;
+    partnerName.value = data.couple?.partner.displayName ?? '';
   }
 
   @override
   void onInit() {
     super.onInit();
     _subscription = Get.find<SubscriptionService>();
+    final session = SessionService.to;
+    _applySession(session.bootstrap.value);
+    ever<SessionBootstrap?>(session.bootstrap, _applySession);
     loadUser();
     closeFadeInAnimate();
   }
