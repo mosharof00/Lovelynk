@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../../core/theme/app_color.dart';
 import '../controllers/home_controller.dart';
 import '../widgets/home_affirmation_card.dart';
 import '../widgets/home_header.dart';
@@ -63,18 +62,6 @@ class HomeView extends GetView<HomeController> {
                       20.verticalSpace,
                       const HomeHowToTips(),
                       16.verticalSpace,
-                      Center(
-                        child: TextButton(
-                          onPressed: controller.toggleConnectedPreview,
-                          child: Text(
-                            'Preview: toggle solo / connected',
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              color: AppColor.hintText,
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

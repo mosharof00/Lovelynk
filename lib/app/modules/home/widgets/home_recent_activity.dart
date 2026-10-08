@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/theme/app_color.dart';
+import '../../../core/utils/partner_guard.dart';
 import '../../../global/widgets/app_text.dart';
 import '../controllers/home_controller.dart';
 
@@ -43,7 +44,7 @@ class HomeRecentActivity extends GetView<HomeController> {
                 const Spacer(),
                 if (connected)
                   GestureDetector(
-                    onTap: () => Get.toNamed(Routes.ACTIVITIES),
+                    onTap: () => PartnerGuard.open(Routes.ACTIVITIES),
                     behavior: HitTestBehavior.opaque,
                     child: AppText(
                       'View all',
@@ -101,25 +102,32 @@ class HomeRecentActivity extends GetView<HomeController> {
                 ),
               )
             else
-              Column(
-                children: [
-                  _ActivityRow(
-                    text: '${controller.partnerName.value} sent you 3 kisses',
-                    time: '2m ago',
-                  ),
-                  _ActivityRow(
-                    text:
-                        'You held ${controller.partnerName.value}\'s heartbeat',
-                    time: '1h ago',
-                  ),
-                  _ActivityRow(
-                    text:
-                        '${controller.partnerName.value} checked your compass',
-                    time: '3h ago',
-                    showDivider: false,
-                  ),
-                ],
-              ),
+              Builder(builder: (_) {
+                final items = controller.recentActivity;
+                if (items.isEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.h),
+                    child: AppText(
+                      'No activity yet. Send a kiss or heartbeat to ${controller.partnerName.value}!',
+                      maxLines: 2,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: AppColor.textSecondary,
+                      ),
+                    ),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (var i = 0; i < items.length; i++)
+                      _ActivityRow(
+                        text: items[i].text,
+                        time: controller.timeAgo(items[i].at),
+                        showDivider: i < items.length - 1,
+                      ),
+                  ],
+                );
+              }),
           ],
         ),
       );

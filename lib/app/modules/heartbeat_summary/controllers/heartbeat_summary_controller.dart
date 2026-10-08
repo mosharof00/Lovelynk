@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/services/widget_data_service.dart';
 import '../../../core/theme/app_color.dart';
+import '../../../core/utils/partner_guard.dart';
 import '../../../data/models/widget_models/reaction_activity.dart';
 import '../../widgets/widgets/dialogs/heartbeat_send_dialog.dart';
 
@@ -27,6 +28,7 @@ class HeartbeatSummaryController extends GetxController {
   String timeLabel(DateTime at) => DateFormat('h:mm a').format(at);
 
   void onSendTap() {
+    if (!PartnerGuard.ensurePaired()) return;
     HeartbeatSendDialog.show(
       partnerName: partnerName,
       onSend: () {

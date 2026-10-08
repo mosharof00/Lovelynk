@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services/subscription_service.dart';
+import '../../../core/utils/partner_guard.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
 import '../../../data/widget_catalog/widget_catalog.dart';
@@ -83,13 +84,13 @@ class WidgetsController extends GetxController {
   void onSendTap(WidgetDefinition widget) {
     switch (widget.type) {
       case AppWidgetType.heartbeat:
-        Get.toNamed(Routes.HEARTBEAT_SUMMARY);
+        PartnerGuard.open(Routes.HEARTBEAT_SUMMARY);
         break;
       case AppWidgetType.kiss:
-        Get.toNamed(Routes.KISS_SUMMARY);
+        PartnerGuard.open(Routes.KISS_SUMMARY);
         break;
       case AppWidgetType.emoji:
-        Get.toNamed(Routes.EMOJI_SUMMARY);
+        PartnerGuard.open(Routes.EMOJI_SUMMARY);
         break;
       default:
         break;

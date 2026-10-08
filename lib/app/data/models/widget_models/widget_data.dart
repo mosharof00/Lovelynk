@@ -1,4 +1,5 @@
 import '../../../core/utils/weather_icon_mapper.dart';
+import '../user_models/session_bootstrap.dart';
 
 /// Weather shown by the Partner Weather widget.
 class PartnerWeather {
@@ -80,6 +81,43 @@ class WidgetData {
 
   DateTime partnerTime(DateTime now) =>
       now.toUtc().add(Duration(hours: partnerUtcOffsetHours));
+
+  /// Real values from the session. Unpaired users get neutral defaults
+  /// (0 days, 0 miles, no partner). Distance, compass and weather stay at
+  /// defaults until the location / weather features are connected.
+  factory WidgetData.fromSession(SessionBootstrap? session) {
+    final now = DateTime.now();
+    final couple = session?.couple;
+    final partner = couple?.partner;
+    final togetherSince = couple?.togetherSince ?? couple?.createdAt ?? now;
+    final offsetMinutes =
+        partner?.utcOffsetMinutes ?? now.timeZoneOffset.inMinutes;
+
+    return WidgetData(
+      userName: session?.user.firstName ?? '',
+      partnerName: partner?.displayName ?? '',
+      distanceMiles: 0,
+      togetherSince: togetherSince,
+      partnerUtcOffsetHours: (offsetMinutes / 60).round(),
+      partnerCity: _cityFromTimezone(partner?.timezone),
+      partnerWeather: PartnerWeather.fromOpenWeather(
+        temperature: 0,
+        condition: '--',
+        conditionId: 803,
+        iconCode: '04d',
+      ),
+      nextVisit: couple?.nextVisitAt ?? now,
+      anniversary: couple?.togetherSince ?? now,
+      compassBearing: 0,
+      compassMiles: 0,
+    );
+  }
+
+  /// "Australia/Sydney" → "Sydney".
+  static String _cityFromTimezone(String? tz) {
+    if (tz == null || !tz.contains('/')) return '';
+    return tz.split('/').last.replaceAll('_', ' ');
+  }
 
   factory WidgetData.mock() {
     final now = DateTime.now();

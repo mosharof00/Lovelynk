@@ -11,26 +11,37 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../routes/app_pages.dart';
 import '../network/api_exception.dart';
+import '../network/supabase/supabase_endpoints.dart';
 import 'local_store_service.dart';
 import '../utils/helper_utils.dart';
 import '../utils/logger.dart';
 
-/// Holds the signed-in user's session data (user, couple, access) for the
-/// whole app and keeps it in sync with Supabase Auth.
+enum CoupleEvent { paired, left }
+
+/// Single source of truth for the signed-in user's state (profile, couple,
+/// access). Screens read [bootstrap] / the getters below and react with
+/// `Obx` / `ever`, so pairing or disconnecting updates every screen at once.
 class SessionService extends GetxService with WidgetsBindingObserver {
   static SessionService get to => Get.find<SessionService>();
 
   final Rxn<SessionBootstrap> bootstrap = Rxn<SessionBootstrap>();
 
+  /// Pairing changes pushed by the server (realtime) or detected on refresh.
+  final _coupleEvents = StreamController<CoupleEvent>.broadcast();
+  Stream<CoupleEvent> get coupleEvents => _coupleEvents.stream;
+
   StreamSubscription<AuthState>? _authSub;
+  RealtimeChannel? _channel;
   bool _signingOut = false;
 
   IAuthRepository get _authRepo => Get.find<IAuthRepository>();
   IUserRepository get _userRepo => Get.find<IUserRepository>();
+  SupabaseClient get _client => Supabase.instance.client;
 
-  bool get hasSession => Supabase.instance.client.auth.currentSession != null;
+  bool get hasSession => _client.auth.currentSession != null;
   AppUser? get user => bootstrap.value?.user;
   CoupleSummary? get couple => bootstrap.value?.couple;
+  PartnerSummary? get partner => couple?.partner;
   AccessStatus? get access => bootstrap.value?.access;
   bool get isPaired => couple != null;
 
@@ -45,7 +56,7 @@ class SessionService extends GetxService with WidgetsBindingObserver {
       HiveService.write(_recoveryPendingKey, value);
 
   SessionService init() {
-    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen(
+    _authSub = _client.auth.onAuthStateChange.listen(
       _onAuthStateChange,
       onError: (Object e) => Log.w('Auth state stream error: $e'),
     );
@@ -62,7 +73,7 @@ class SessionService extends GetxService with WidgetsBindingObserver {
   /// Loads `get_session_bootstrap`. Signs out if the account is not allowed
   /// in the app or the session is no longer valid.
   Future<SessionBootstrap> load() async {
-    final session = Supabase.instance.client.auth.currentSession;
+    final session = _client.auth.currentSession;
     if (session != null && !isAppUser(session)) {
       await signOut();
       throw ApiException(
@@ -73,10 +84,9 @@ class SessionService extends GetxService with WidgetsBindingObserver {
 
     try {
       final data = await _userRepo.getSessionBootstrap();
-      bootstrap.value = data;
-      HelperUtils.userId = data.user.id;
-      HelperUtils.isLogin = true;
+      apply(data);
       unawaited(touch());
+      _subscribeRealtime();
       return data;
     } on ApiException catch (e) {
       if (e.code == '42501') {
@@ -87,6 +97,29 @@ class SessionService extends GetxService with WidgetsBindingObserver {
         await signOut();
       }
       rethrow;
+    }
+  }
+
+  /// Best-effort reload (resume, realtime event, polling). Never throws.
+  Future<void> refresh() async {
+    if (!hasSession || bootstrap.value == null) return;
+    try {
+      await load();
+    } catch (e) {
+      Log.w('Session refresh failed: $e');
+    }
+  }
+
+  /// Sets new session data (e.g. returned by accept_invite / leave_couple)
+  /// and emits a [CoupleEvent] when the paired state flips.
+  void apply(SessionBootstrap data) {
+    final wasPaired = bootstrap.value?.isPaired;
+    bootstrap.value = data;
+    HelperUtils.userId = data.user.id;
+    HelperUtils.isLogin = true;
+
+    if (wasPaired != null && wasPaired != data.isPaired) {
+      _coupleEvents.add(data.isPaired ? CoupleEvent.paired : CoupleEvent.left);
     }
   }
 
@@ -108,6 +141,7 @@ class SessionService extends GetxService with WidgetsBindingObserver {
 
   Future<void> signOut() async {
     _signingOut = true;
+    await _unsubscribeRealtime();
     try {
       await _authRepo.signOut();
     } catch (e) {
@@ -124,6 +158,42 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     await HelperUtils.clearUser();
   }
 
+  // ── Realtime (foreground only, one private channel per user) ──────
+
+  void _subscribeRealtime() {
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null || _channel != null) return;
+
+    _channel = _client
+        .channel(
+          SupabaseRealtime.userTopic(uid),
+          opts: const RealtimeChannelConfig(private: true),
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.couplePaired,
+          callback: (_) => refresh(),
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.coupleLeft,
+          callback: (_) => refresh(),
+        )
+        .subscribe((status, error) {
+          Log.i('[Realtime] user channel: $status ${error ?? ''}');
+        });
+  }
+
+  Future<void> _unsubscribeRealtime() async {
+    final channel = _channel;
+    _channel = null;
+    if (channel != null) {
+      try {
+        await _client.removeChannel(channel);
+      } catch (e) {
+        Log.w('[Realtime] remove channel failed: $e');
+      }
+    }
+  }
+
   void _onAuthStateChange(AuthState state) {
     // Unexpected sign-out while in the app (refresh token revoked, user
     // deleted/banned, signed out elsewhere): send the user to login.
@@ -131,6 +201,7 @@ class SessionService extends GetxService with WidgetsBindingObserver {
         !_signingOut &&
         bootstrap.value != null) {
       Log.w('Session ended unexpectedly, redirecting to login');
+      _unsubscribeRealtime();
       _clearLocal().then((_) async {
         await HelperUtils.deleteMainControllers();
         Get.offAllNamed(Routes.LOGIN);
@@ -140,14 +211,25 @@ class SessionService extends GetxService with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && bootstrap.value != null) {
-      touch();
+    if (bootstrap.value == null) return;
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // Catches anything missed while in the background.
+        refresh();
+        break;
+      case AppLifecycleState.paused:
+        _unsubscribeRealtime();
+        break;
+      default:
+        break;
     }
   }
 
   @override
   void onClose() {
     _authSub?.cancel();
+    _unsubscribeRealtime();
+    _coupleEvents.close();
     WidgetsBinding.instance.removeObserver(this);
     super.onClose();
   }

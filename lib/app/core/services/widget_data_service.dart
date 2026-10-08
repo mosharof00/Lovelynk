@@ -3,19 +3,22 @@ import 'dart:async';
 import 'package:get/get.dart';
 
 import '../../data/models/widget_models/reaction_activity.dart';
+import '../../data/models/user_models/session_bootstrap.dart';
 import '../../data/models/widget_models/widget_data.dart';
+import '../widgets/widget_sync_service.dart';
+import 'session_service.dart';
 
 /// Central source of live widget data for the whole app.
 ///
-/// Both the Widgets screen and (later) the Home screen read from here, so every
-/// widget shows the same values. Currently seeded with [WidgetData.mock];
-/// [refreshFromBackend] is the single seam where Supabase will plug in.
+/// Both the Widgets screen and the Home screen read from here, so every
+/// widget shows the same values. Couple data comes from [SessionService];
+/// interaction counts are local until the interactions RPCs are connected.
 ///
 /// Interactive widget cards always show **partner-side** values (what they
 /// sent you). Summary screens show both sides.
 class WidgetDataService extends GetxService {
-  /// The relationship data snapshot. Changes only when data actually changes.
-  final data = WidgetData.mock().obs;
+  /// The relationship data snapshot, derived from [SessionService.bootstrap].
+  final data = WidgetData.fromSession(null).obs;
 
   /// Ticks every second so live counters / clocks can rebuild. Widgets read
   /// this inside a small [Obx] so only the changing text repaints.
@@ -24,10 +27,10 @@ class WidgetDataService extends GetxService {
   // ── Heartbeat ─────────────────────────────────────────────────────
 
   /// Heartbeats received from the partner (small widget shows this).
-  final heartbeatsFromPartner = 90.obs;
+  final heartbeatsFromPartner = 0.obs;
 
   /// Heartbeats I sent to the partner.
-  final heartbeatsFromMe = 57.obs;
+  final heartbeatsFromMe = 0.obs;
 
   /// Today's heartbeat activity (newest first).
   final heartbeatActivity = <ReactionActivity>[].obs;
@@ -35,24 +38,24 @@ class WidgetDataService extends GetxService {
   // ── Kiss ──────────────────────────────────────────────────────────
 
   /// Kisses received from the partner (small widget shows this).
-  final kissesFromPartner = 42.obs;
+  final kissesFromPartner = 0.obs;
 
   /// Kisses I sent to the partner.
-  final kissesFromMe = 28.obs;
+  final kissesFromMe = 0.obs;
 
   final kissActivity = <ReactionActivity>[].obs;
 
   // ── Emoji ─────────────────────────────────────────────────────────
 
   /// Recent emojis received from the partner (small widget shows these).
-  final emojisFromPartner = <String>['😍', '😘', '🥰'].obs;
+  final emojisFromPartner = <String>[].obs;
 
   /// Recent emojis I sent (summary / history only — not on the widget card).
-  final emojisFromMe = <String>['🔥', '😂', '😊'].obs;
+  final emojisFromMe = <String>[].obs;
 
   /// Total emoji sends (header counts on summary).
-  final emojiCountFromPartner = 36.obs;
-  final emojiCountFromMe = 19.obs;
+  final emojiCountFromPartner = 0.obs;
+  final emojiCountFromMe = 0.obs;
 
   final emojiActivity = <ReactionActivity>[].obs;
 
@@ -63,92 +66,42 @@ class WidgetDataService extends GetxService {
       const Duration(seconds: 1),
       (_) => now.value = DateTime.now(),
     );
-    _seedActivities();
+    _applySession(SessionService.to.bootstrap.value);
+    ever<SessionBootstrap?>(SessionService.to.bootstrap, _applySession);
     return this;
   }
 
-  void _seedActivities() {
-    final now = DateTime.now();
-    final partner = data.value.partnerName;
+  String? _coupleId;
 
-    heartbeatActivity.assignAll([
-      ReactionActivity(
-        senderName: partner,
-        isFromMe: false,
-        count: 5,
-        at: now.subtract(const Duration(minutes: 12)),
-      ),
-      ReactionActivity(
-        senderName: partner,
-        isFromMe: false,
-        count: 7,
-        at: now.subtract(const Duration(minutes: 48)),
-      ),
-      ReactionActivity(
-        senderName: 'Me',
-        isFromMe: true,
-        count: 3,
-        at: now.subtract(const Duration(hours: 1, minutes: 20)),
-      ),
-      ReactionActivity(
-        senderName: partner,
-        isFromMe: false,
-        count: 53,
-        at: now.subtract(const Duration(hours: 2, minutes: 5)),
-      ),
-    ]);
+  /// Rebuilds widget data from the session. Interaction counts and history
+  /// reset when the couple changes (connect / disconnect / other account);
+  /// they are filled from the server once interactions are connected.
+  void _applySession(SessionBootstrap? session) {
+    data.value = WidgetData.fromSession(session);
 
-    kissActivity.assignAll([
-      ReactionActivity(
-        senderName: partner,
-        isFromMe: false,
-        count: 3,
-        at: now.subtract(const Duration(minutes: 20)),
-      ),
-      ReactionActivity(
-        senderName: 'Me',
-        isFromMe: true,
-        count: 2,
-        at: now.subtract(const Duration(minutes: 55)),
-      ),
-      ReactionActivity(
-        senderName: partner,
-        isFromMe: false,
-        count: 8,
-        at: now.subtract(const Duration(hours: 1, minutes: 40)),
-      ),
-    ]);
+    final coupleId = session?.couple?.id;
+    if (coupleId != _coupleId) {
+      _coupleId = coupleId;
+      _resetInteractions();
+    }
 
-    emojiActivity.assignAll([
-      ReactionActivity(
-        senderName: partner,
-        isFromMe: false,
-        count: 1,
-        emoji: '😍',
-        at: now.subtract(const Duration(minutes: 8)),
-      ),
-      ReactionActivity(
-        senderName: partner,
-        isFromMe: false,
-        count: 1,
-        emoji: '😘',
-        at: now.subtract(const Duration(minutes: 35)),
-      ),
-      ReactionActivity(
-        senderName: 'Me',
-        isFromMe: true,
-        count: 1,
-        emoji: '🔥',
-        at: now.subtract(const Duration(hours: 1)),
-      ),
-      ReactionActivity(
-        senderName: partner,
-        isFromMe: false,
-        count: 1,
-        emoji: '🥰',
-        at: now.subtract(const Duration(hours: 2, minutes: 15)),
-      ),
-    ]);
+    if (Get.isRegistered<WidgetSyncService>()) {
+      Get.find<WidgetSyncService>().syncAll();
+    }
+  }
+
+  void _resetInteractions() {
+    heartbeatsFromPartner.value = 0;
+    heartbeatsFromMe.value = 0;
+    heartbeatActivity.clear();
+    kissesFromPartner.value = 0;
+    kissesFromMe.value = 0;
+    kissActivity.clear();
+    emojisFromPartner.clear();
+    emojisFromMe.clear();
+    emojiCountFromPartner.value = 0;
+    emojiCountFromMe.value = 0;
+    emojiActivity.clear();
   }
 
   @override

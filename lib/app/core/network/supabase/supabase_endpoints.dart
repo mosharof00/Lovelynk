@@ -6,6 +6,23 @@ class SupabaseRpc {
   static const getSessionBootstrap = 'get_session_bootstrap';
   static const getMyAccess = 'get_my_access';
   static const touchSession = 'touch_session';
+
+  // Pairing
+  static const getMyInvite = 'get_my_invite';
+  static const createInvite = 'create_invite';
+  static const cancelInvite = 'cancel_invite';
+  static const acceptInvite = 'accept_invite';
+  static const leaveCouple = 'leave_couple';
+}
+
+/// Realtime Broadcast on the private `user:{id}` channel.
+class SupabaseRealtime {
+  SupabaseRealtime._();
+
+  static String userTopic(String userId) => 'user:$userId';
+
+  static const couplePaired = 'couple.paired';
+  static const coupleLeft = 'couple.left';
 }
 
 /// Supabase table / view names (`supabase.from(...)`).

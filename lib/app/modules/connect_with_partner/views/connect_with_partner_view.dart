@@ -1,5 +1,7 @@
 import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -129,6 +131,9 @@ class _PartnerNameStep extends GetView<ConnectWithPartnerController> {
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return "Partner's name is required";
+              }
+              if (value.trim().length > 40) {
+                return 'Name must be 40 characters or less';
               }
               return null;
             },
@@ -273,32 +278,88 @@ class _ConnectCodeStep extends GetView<ConnectWithPartnerController> {
               ],
             ),
             24.verticalSpace,
-            AppText(
-              controller.inviteCode,
-              style: context.headlineLarge.copyWith(
-                color: AppColor.primary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            8.verticalSpace,
-            AppText(
-              'Expires in 59 minutes',
-              style: context.bodySmall.copyWith(color: AppColor.hintText),
-              textAlign: TextAlign.center,
-            ),
+            Obx(() {
+              if (controller.isLoadingInvite.value &&
+                  controller.invite.value == null) {
+                return SizedBox(
+                  height: 70.h,
+                  child: const Center(child: CupertinoActivityIndicator()),
+                );
+              }
+              final invite = controller.invite.value;
+              if (invite == null || invite.isExpired) {
+                return Column(
+                  children: [
+                    AppText(
+                      invite == null
+                          ? "Couldn't load your code"
+                          : 'Your code has expired',
+                      style: context.bodyMedium.copyWith(
+                        color: AppColor.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    TextButton(
+                      onPressed: controller.loadInvite,
+                      child: AppText(
+                        'Get a new code',
+                        style: context.titleSmall.copyWith(
+                          color: AppColor.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Column(
+                children: [
+                  GestureDetector(
+                    onTap: controller.copyCode,
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AppText(
+                          controller.inviteCodeDisplay,
+                          style: context.headlineLarge.copyWith(
+                            color: AppColor.primary,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        8.horizontalSpace,
+                        Icon(
+                          Icons.copy_rounded,
+                          size: 18.sp,
+                          color: AppColor.hintText,
+                        ),
+                      ],
+                    ),
+                  ),
+                  8.verticalSpace,
+                  AppText(
+                    controller.expiresLabel.value,
+                    style: context.bodySmall.copyWith(color: AppColor.hintText),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              );
+            }),
             20.verticalSpace,
             GlobalButton(
               text: 'Send code',
               isOutlined: true,
-              onTap: controller.sendCode,
+              onTap: controller.shareCode,
             ),
             28.verticalSpace,
             AppInputTextFormField(
               controller: controller.partnerCodeController,
               hintText: "Enter your partner's code",
               keyboardType: TextInputType.number,
+              maxLength: 8,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               prefixIcon: Icon(
                 Icons.vpn_key_outlined,
                 color: AppColor.hintText,
@@ -315,9 +376,12 @@ class _ConnectCodeStep extends GetView<ConnectWithPartnerController> {
               },
             ),
             28.verticalSpace,
-            GlobalButton(
-              text: 'Connect',
-              onTap: controller.connect,
+            Obx(
+              () => GlobalButton(
+                text: 'Connect',
+                onTap: controller.connect,
+                isLoading: controller.isConnecting.value,
+              ),
             ),
             24.verticalSpace,
           ],
