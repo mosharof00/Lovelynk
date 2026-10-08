@@ -1,3 +1,4 @@
+import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -132,25 +133,32 @@ class _PartnerNameStep extends GetView<ConnectWithPartnerController> {
               return null;
             },
           ),
-          16.verticalSpace,
-          Center(
-            child: GestureDetector(
-              onTap: controller.skipForNow,
-              child: AppText(
-                'Skip for now',
-                style: context.titleSmall.copyWith(
-                  color: AppColor.primary,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
-                  decorationColor: AppColor.primary,
-                ),
-              ),
-            ),
-          ),
+          // 16.verticalSpace,
+          // Center(
+          //   child: GestureDetector(
+          //     onTap: controller.skipForNow,
+          //     child: AppText(
+          //       'Skip for now',
+          //       style: context.titleSmall.copyWith(
+          //         color: AppColor.primary,
+          //         fontWeight: FontWeight.w600,
+          //         decoration: TextDecoration.underline,
+          //         decorationColor: AppColor.primary,
+          //       ),
+          //     ),
+          //   ),
+          // ),
           const Spacer(),
           GlobalButton(
             text: 'Continue',
             onTap: controller.nextFromName,
+          ),
+          12.height,
+          GlobalButton(
+            text: 'Skip for now',
+            onTap: controller.skipForNow,
+            color: Colors.grey,
+            textColor: Colors.white,
           ),
           24.verticalSpace,
         ],

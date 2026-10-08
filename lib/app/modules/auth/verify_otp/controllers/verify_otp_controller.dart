@@ -10,7 +10,8 @@ import '../../../../data/repositories/auth_repository.dart';
 import '../../../../global/widgets/global_snackbar.dart';
 import '../../../../routes/app_pages.dart';
 
-/// Expects `Get.arguments = {'email': String}`.
+/// Expects `Get.arguments = {'email': String, 'purpose': OtpPurpose}`.
+/// `purpose` defaults to [OtpPurpose.signup].
 class VerifyOtpController extends GetxController {
   final IAuthRepository _authRepository = Get.find<IAuthRepository>();
 
@@ -18,6 +19,7 @@ class VerifyOtpController extends GetxController {
   final codeController = TextEditingController();
 
   late final String email;
+  late final OtpPurpose purpose;
 
   final isVerifying = false.obs;
   final isResending = false.obs;
@@ -27,17 +29,24 @@ class VerifyOtpController extends GetxController {
 
   int get codeLength => AppConfig.emailOtpLength;
 
+  bool get isRecovery => purpose == OtpPurpose.recovery;
+
+  String get title => isRecovery ? 'Check your email' : 'Verify your email';
+
+  String get subtitle => isRecovery
+      ? 'Enter the $codeLength-digit code we sent to\n$email to reset your password'
+      : 'Enter the $codeLength-digit code we sent to\n$email';
+
   @override
   void onInit() {
     super.onInit();
     final args = Get.arguments;
     email = args is Map ? (args['email'] as String? ?? '') : '';
-    // A code was just sent by sign-up / login.
+    purpose = args is Map && args['purpose'] is OtpPurpose
+        ? args['purpose'] as OtpPurpose
+        : OtpPurpose.signup;
+    // A code was just sent by the previous screen.
     _startCooldown();
-  }
-
-  void onCodeChanged(String value) {
-    if (value.length == codeLength) verify();
   }
 
   Future<void> verify() async {
@@ -47,10 +56,17 @@ class VerifyOtpController extends GetxController {
 
     isVerifying.value = true;
     try {
-      await _authRepository.verifySignUpOtp(
+      await _authRepository.verifyOtp(
         email: email,
         token: codeController.text,
+        purpose: purpose,
       );
+
+      if (isRecovery) {
+        SessionService.to.setRecoveryPending(true);
+        Get.offNamed(Routes.RESET_PASSWORD, arguments: {'email': email});
+        return;
+      }
       await SessionService.to.load();
       Get.offAllNamed(Routes.CONNECT_WITH_PARTNER);
     } catch (e) {
@@ -65,7 +81,8 @@ class VerifyOtpController extends GetxController {
     if (resendSeconds.value > 0 || isResending.value) return;
     isResending.value = true;
     try {
-      await _authRepository.resendSignUpOtp(email);
+      await _authRepository.resendOtp(email: email, purpose: purpose);
+      codeController.clear();
       globalSnackBar(
         title: 'Code sent',
         message: 'We sent a new code to $email',

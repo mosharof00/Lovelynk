@@ -6,8 +6,10 @@ import '../../../../core/network/handle_exceptions.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/utils/helper_utils.dart';
 import '../../../../data/repositories/auth_repository.dart';
+import '../../../../global/widgets/global_snackbar.dart';
 import '../../../../routes/app_pages.dart';
 
+/// Optional `Get.arguments = {'email': String}` to prefill (e.g. after reset).
 class LoginController extends GetxController {
   final IAuthRepository _authRepository = Get.find<IAuthRepository>();
 
@@ -16,6 +18,15 @@ class LoginController extends GetxController {
   final passwordController = TextEditingController();
 
   final isLoading = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    if (args is Map && args['email'] is String) {
+      emailController.text = args['email'] as String;
+    }
+  }
 
   Future<void> login() async {
     if (isLoading.value) return;
@@ -33,6 +44,7 @@ class LoginController extends GetxController {
       await HelperUtils.initMainControllers();
       Get.offAllNamed(Routes.MAIN_PAGE);
     } on ApiException catch (e) {
+      // Unverified accounts can't sign in; they must verify first.
       if (e.code == ApiErrorCode.emailNotConfirmed) {
         await _openVerification(email);
         return;
@@ -45,22 +57,35 @@ class LoginController extends GetxController {
     }
   }
 
-  /// Account exists but the email was never verified: send a fresh code.
   Future<void> _openVerification(String email) async {
     try {
-      await _authRepository.resendSignUpOtp(email);
+      await _authRepository.resendOtp(email: email, purpose: OtpPurpose.signup);
     } on ApiException catch (e) {
-      // A code was sent recently; the user can still enter it.
-      if (e.code != 'over_email_send_rate_limit') {
+      // A code was sent within the last minute; it is still valid.
+      if (e.code != ApiErrorCode.emailRateLimit) {
         handleException(e, context: 'Resend OTP');
         return;
       }
     }
-    Get.toNamed(Routes.VERIFY_OTP, arguments: {'email': email});
+    globalSnackBar(
+      title: 'Verify your email',
+      message: 'Enter the code we sent to $email to activate your account.',
+    );
+    Get.toNamed(
+      Routes.VERIFY_OTP,
+      arguments: {'email': email, 'purpose': OtpPurpose.signup},
+    );
   }
 
   void goToRegister() {
     Get.toNamed(Routes.REGISTER);
+  }
+
+  void goToForgotPassword() {
+    Get.toNamed(
+      Routes.FORGOT_PASSWORD,
+      arguments: {'email': emailController.text.trim()},
+    );
   }
 
   @override

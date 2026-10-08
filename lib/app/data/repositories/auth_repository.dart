@@ -11,6 +11,15 @@ enum SignUpOutcome {
   signedIn,
 }
 
+/// Which email code the Verify OTP screen is handling.
+enum OtpPurpose {
+  /// "Confirm signup" template.
+  signup,
+
+  /// "Reset password" template.
+  recovery,
+}
+
 abstract class IAuthRepository {
   Session? get currentSession;
 
@@ -22,14 +31,23 @@ abstract class IAuthRepository {
     required String password,
   });
 
-  Future<Session> verifySignUpOtp({
+  Future<Session> signIn({required String email, required String password});
+
+  /// Verifies a sign-up or recovery code. Both return a signed-in session.
+  Future<Session> verifyOtp({
     required String email,
     required String token,
+    required OtpPurpose purpose,
   });
 
-  Future<void> resendSignUpOtp(String email);
+  Future<void> resendOtp({required String email, required OtpPurpose purpose});
 
-  Future<Session> signIn({required String email, required String password});
+  /// Emails a recovery code. Succeeds even if the email isn't registered,
+  /// so the app never reveals which emails have accounts.
+  Future<void> sendPasswordResetOtp(String email);
+
+  /// Requires the session from a verified recovery code.
+  Future<void> updatePassword(String newPassword);
 
   Future<void> signOut();
 }
@@ -40,6 +58,8 @@ class AuthRepository implements IAuthRepository {
   AuthRepository(this._supabase);
 
   GoTrueClient get _auth => _supabase.auth;
+
+  String _normalise(String email) => email.trim().toLowerCase();
 
   @override
   Session? get currentSession => _auth.currentSession;
@@ -55,7 +75,7 @@ class AuthRepository implements IAuthRepository {
   }) {
     return _supabase.handleRequest(
       () => _auth.signUp(
-        email: email.trim().toLowerCase(),
+        email: _normalise(email),
         password: password,
         data: {'full_name': fullName.trim()},
       ),
@@ -64,6 +84,7 @@ class AuthRepository implements IAuthRepository {
         if (res.session != null) return SignUpOutcome.signedIn;
         // With email confirmation on, an already-confirmed email returns an
         // obfuscated user with no identities instead of an error.
+        // An unconfirmed email returns the user and re-sends the code.
         if (res.user?.identities?.isEmpty ?? false) {
           throw ApiException(
             'An account with this email already exists. Please sign in.',
@@ -77,39 +98,69 @@ class AuthRepository implements IAuthRepository {
   }
 
   @override
-  Future<Session> verifySignUpOtp({
-    required String email,
-    required String token,
-  }) {
-    return _supabase.handleRequest(
-      () => _auth.verifyOTP(
-        email: email.trim().toLowerCase(),
-        token: token.trim(),
-        type: OtpType.signup,
-      ),
-      (dynamic data) => _requireSession(data as AuthResponse),
-      'Verify sign-up OTP',
-    );
-  }
-
-  @override
-  Future<void> resendSignUpOtp(String email) {
-    return _supabase.handleRequest(
-      () => _auth.resend(type: OtpType.signup, email: email.trim().toLowerCase()),
-      (_) {},
-      'Resend sign-up OTP',
-    );
-  }
-
-  @override
   Future<Session> signIn({required String email, required String password}) {
     return _supabase.handleRequest(
       () => _auth.signInWithPassword(
-        email: email.trim().toLowerCase(),
+        email: _normalise(email),
         password: password,
       ),
       (dynamic data) => _requireSession(data as AuthResponse),
       'Sign in',
+    );
+  }
+
+  @override
+  Future<Session> verifyOtp({
+    required String email,
+    required String token,
+    required OtpPurpose purpose,
+  }) {
+    return _supabase.handleRequest(
+      () => _auth.verifyOTP(
+        email: _normalise(email),
+        token: token.trim(),
+        type: switch (purpose) {
+          OtpPurpose.signup => OtpType.signup,
+          OtpPurpose.recovery => OtpType.recovery,
+        },
+      ),
+      (dynamic data) => _requireSession(data as AuthResponse),
+      'Verify ${purpose.name} OTP',
+    );
+  }
+
+  @override
+  Future<void> resendOtp({
+    required String email,
+    required OtpPurpose purpose,
+  }) {
+    switch (purpose) {
+      case OtpPurpose.signup:
+        return _supabase.handleRequest(
+          () => _auth.resend(type: OtpType.signup, email: _normalise(email)),
+          (_) {},
+          'Resend signup OTP',
+        );
+      case OtpPurpose.recovery:
+        return sendPasswordResetOtp(email);
+    }
+  }
+
+  @override
+  Future<void> sendPasswordResetOtp(String email) {
+    return _supabase.handleRequest(
+      () => _auth.resetPasswordForEmail(_normalise(email)),
+      (_) {},
+      'Send password reset OTP',
+    );
+  }
+
+  @override
+  Future<void> updatePassword(String newPassword) {
+    return _supabase.handleRequest(
+      () => _auth.updateUser(UserAttributes(password: newPassword)),
+      (_) {},
+      'Update password',
     );
   }
 

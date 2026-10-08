@@ -43,7 +43,7 @@ class SupabaseService extends GetxService {
       return mapper(data);
     } catch (e, stacktrace) {
       final exception = ApiException.fromSupabase(e);
-      Log.e('[$apiName] $exception');
+      Log.e('[$apiName] $exception\nCause: $e');
       if (exception.code == null) Log.e(stacktrace);
       throw exception;
     }

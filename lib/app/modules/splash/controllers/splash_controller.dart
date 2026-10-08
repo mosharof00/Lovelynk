@@ -66,6 +66,13 @@ class SplashController extends GetxController {
       return;
     }
 
+    // App was closed mid password reset: don't enter with that session.
+    if (session.isRecoveryPending) {
+      await session.signOut();
+      Get.offAllNamed(Routes.LOGIN);
+      return;
+    }
+
     try {
       await session.load().timeout(const Duration(seconds: 10));
     } on ApiException catch (e) {

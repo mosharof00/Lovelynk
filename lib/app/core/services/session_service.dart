@@ -11,6 +11,7 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../routes/app_pages.dart';
 import '../network/api_exception.dart';
+import 'local_store_service.dart';
 import '../utils/helper_utils.dart';
 import '../utils/logger.dart';
 
@@ -32,6 +33,16 @@ class SessionService extends GetxService with WidgetsBindingObserver {
   CoupleSummary? get couple => bootstrap.value?.couple;
   AccessStatus? get access => bootstrap.value?.access;
   bool get isPaired => couple != null;
+
+  static const _recoveryPendingKey = 'password_recovery_pending';
+
+  /// True between a verified recovery code and saving the new password.
+  /// That session must not be used to enter the app.
+  bool get isRecoveryPending =>
+      HiveService.read<bool>(_recoveryPendingKey) ?? false;
+
+  void setRecoveryPending(bool value) =>
+      HiveService.write(_recoveryPendingKey, value);
 
   SessionService init() {
     _authSub = Supabase.instance.client.auth.onAuthStateChange.listen(
@@ -109,6 +120,7 @@ class SessionService extends GetxService with WidgetsBindingObserver {
 
   Future<void> _clearLocal() async {
     bootstrap.value = null;
+    setRecoveryPending(false);
     await HelperUtils.clearUser();
   }
 

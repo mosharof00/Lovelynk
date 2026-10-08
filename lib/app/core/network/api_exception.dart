@@ -52,6 +52,16 @@ class ApiException implements Exception {
   factory ApiException.fromSupabase(Object error) {
     if (error is ApiException) return error;
 
+    // gotrue also throws AuthRetryableFetchException for HTTP 5xx, which is a
+    // server failure (e.g. SMTP rejected), not a connectivity problem.
+    if (error is AuthRetryableFetchException && error.statusCode != null) {
+      return ApiException(
+        'Something went wrong on our side. Please try again in a moment.',
+        statusCode: int.tryParse(error.statusCode!),
+        code: ApiErrorCode.server,
+      );
+    }
+
     if (error is AuthRetryableFetchException ||
         error is SocketException ||
         error is TimeoutException) {
@@ -91,7 +101,9 @@ class ApiException implements Exception {
       case 'weak_password':
         return 'Password is too weak. Use at least 8 characters with letters and numbers.';
       case 'over_email_send_rate_limit':
-        return 'Too many emails sent. Please wait a moment and try again.';
+        return 'A code was sent recently. Please wait a minute before requesting another.';
+      case 'same_password':
+        return 'New password must be different from your current password.';
       case 'over_request_rate_limit':
         return 'Too many attempts. Please wait a moment and try again.';
       case 'user_banned':
@@ -124,7 +136,9 @@ class ApiErrorCode {
   ApiErrorCode._();
 
   static const network = 'network_error';
+  static const server = 'server_error';
   static const emailNotConfirmed = 'email_not_confirmed';
   static const notAppAccount = 'not_app_account';
   static const accountExists = 'user_already_exists';
+  static const emailRateLimit = 'over_email_send_rate_limit';
 }

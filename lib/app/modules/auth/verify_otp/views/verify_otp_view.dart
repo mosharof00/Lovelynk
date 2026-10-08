@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:pinput/pinput.dart';
 
 import '../../../../core/extensions/text_style_extension.dart';
 import '../../../../core/theme/app_color.dart';
-import '../../../../global/widgets/app_input_text_form_field.dart';
 import '../../../../global/widgets/app_text.dart';
 import '../../../../global/widgets/global_button.dart';
 import '../controllers/verify_otp_controller.dart';
@@ -15,6 +15,17 @@ class VerifyOtpView extends GetView<VerifyOtpController> {
 
   @override
   Widget build(BuildContext context) {
+    final defaultPinTheme = PinTheme(
+      width: 48.w,
+      height: 56.h,
+      textStyle: context.headlineLarge.copyWith(color: AppColor.textPrimary),
+      decoration: BoxDecoration(
+        color: AppColor.inputFill,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: AppColor.inputBorder),
+      ),
+    );
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -46,7 +57,9 @@ class VerifyOtpView extends GetView<VerifyOtpController> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.mark_email_read_outlined,
+                      controller.isRecovery
+                          ? Icons.lock_reset_rounded
+                          : Icons.mark_email_read_outlined,
                       color: AppColor.primary,
                       size: 34.sp,
                     ),
@@ -54,7 +67,7 @@ class VerifyOtpView extends GetView<VerifyOtpController> {
                 ),
                 20.verticalSpace,
                 AppText(
-                  'Verify your email',
+                  controller.title,
                   style: context.headlineLarge.copyWith(
                     color: AppColor.textPrimary,
                   ),
@@ -62,38 +75,41 @@ class VerifyOtpView extends GetView<VerifyOtpController> {
                 ),
                 8.verticalSpace,
                 AppText(
-                  'Enter the ${controller.codeLength}-digit code we sent to\n${controller.email}',
+                  controller.subtitle,
                   style: context.bodyMedium.copyWith(
                     color: AppColor.textSecondary,
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 3,
+                  maxLines: 4,
                 ),
                 32.verticalSpace,
-                AutofillGroup(
-                  child: AppInputTextFormField(
-                    controller: controller.codeController,
-                    hintText: '•' * controller.codeLength,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    maxLength: controller.codeLength,
-                    autofillHints: const [AutofillHints.oneTimeCode],
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    style: context.headlineLarge.copyWith(
-                      color: AppColor.textPrimary,
-                      letterSpacing: 8,
-                    ),
-                    autovalidateMode: AutovalidateMode.disabled,
-                    onChanged: controller.onCodeChanged,
-                    validator: (value) {
-                      if ((value ?? '').length != controller.codeLength) {
-                        return 'Enter the ${controller.codeLength}-digit code';
-                      }
-                      return null;
-                    },
+                Pinput(
+                  length: controller.codeLength,
+                  controller: controller.codeController,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  separatorBuilder: (_) => SizedBox(width: 8.w),
+                  defaultPinTheme: defaultPinTheme,
+                  focusedPinTheme: defaultPinTheme.copyDecorationWith(
+                    border: Border.all(color: AppColor.primary, width: 1.4),
                   ),
+                  submittedPinTheme: defaultPinTheme.copyDecorationWith(
+                    color: AppColor.primaryLight,
+                    border: Border.all(color: AppColor.primary),
+                  ),
+                  errorPinTheme: defaultPinTheme.copyDecorationWith(
+                    border: Border.all(color: AppColor.error),
+                  ),
+                  pinputAutovalidateMode: PinputAutovalidateMode.disabled,
+                  validator: (value) {
+                    if ((value ?? '').length != controller.codeLength) {
+                      return 'Enter the ${controller.codeLength}-digit code';
+                    }
+                    return null;
+                  },
                 ),
-                24.verticalSpace,
+                28.verticalSpace,
                 Obx(
                   () => GlobalButton(
                     text: 'Verify',

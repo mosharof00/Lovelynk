@@ -24,6 +24,8 @@ abstract class Routes {
   static const EMOJI_SUMMARY = _Paths.EMOJI_SUMMARY;
   static const ACTIVITIES = _Paths.ACTIVITIES;
   static const NOTIFICATIONS = _Paths.NOTIFICATIONS;
+  static const FORGOT_PASSWORD = _Paths.AUTH + _Paths.FORGOT_PASSWORD;
+  static const RESET_PASSWORD = _Paths.AUTH + _Paths.RESET_PASSWORD;
 }
 
 abstract class _Paths {
@@ -49,4 +51,6 @@ abstract class _Paths {
   static const EMOJI_SUMMARY = '/emoji-summary';
   static const ACTIVITIES = '/activities';
   static const NOTIFICATIONS = '/notifications';
+  static const FORGOT_PASSWORD = '/forgot-password';
+  static const RESET_PASSWORD = '/reset-password';
 }

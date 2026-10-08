@@ -88,7 +88,20 @@ class LoginView extends GetView<LoginController> {
                   return null;
                 },
               ),
-              28.verticalSpace,
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: controller.goToForgotPassword,
+                  child: AppText(
+                    'Forgot password?',
+                    style: context.titleSmall.copyWith(
+                      color: AppColor.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              12.verticalSpace,
               Obx(
                 () => GlobalButton(
                   text: 'Sign In',
