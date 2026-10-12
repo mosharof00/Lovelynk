@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/network/handle_exceptions.dart';
 import '../../../core/services/session_service.dart';
+import '../../../core/utils/helper_utils.dart';
 import '../../../core/utils/logger.dart';
 import '../../../data/models/couple_models/pairing_invite.dart';
 import '../../../data/repositories/couple_repository.dart';
@@ -15,7 +16,7 @@ import '../../../global/widgets/global_snackbar.dart';
 import '../../../routes/app_pages.dart';
 import '../widgets/all_set_dialog.dart';
 
-/// Step 0 partner nickname → step 1 anniversary (skippable) → step 2 share
+/// Step 0 partner nickname (optional) → step 1 anniversary (skippable) → step 2 share
 /// my code / enter theirs. Whoever enters the other's code pairs both; the
 /// code owner is told via realtime (with polling as a fallback).
 class ConnectWithPartnerController extends GetxController {
@@ -56,9 +57,15 @@ class ConnectWithPartnerController extends GetxController {
     return DateFormat('MMM d, yyyy').format(date);
   }
 
+  /// True when opened as the first screen after sign-up / first verification
+  /// (`Get.arguments = {'fromSignup': true}`); false from Home / Profile.
+  late final bool isFromSignup;
+
   @override
   void onInit() {
     super.onInit();
+    final args = Get.arguments;
+    isFromSignup = args is Map && args['fromSignup'] == true;
     _coupleSub = SessionService.to.coupleEvents.listen((event) {
       if (event == CoupleEvent.paired) _onPaired();
     });
@@ -69,6 +76,13 @@ class ConnectWithPartnerController extends GetxController {
   void nextFromName() {
     if (!(nameFormKey.currentState?.validate() ?? false)) return;
     FocusManager.instance.primaryFocus?.unfocus();
+    currentStep.value = 1;
+  }
+
+  /// The nickname is optional; skipping clears anything typed.
+  void skipName() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    partnerNameController.clear();
     currentStep.value = 1;
   }
 
@@ -85,8 +99,8 @@ class ConnectWithPartnerController extends GetxController {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: Theme.of(context).colorScheme.primary,
-                ),
+              primary: Theme.of(context).colorScheme.primary,
+            ),
           ),
           child: child!,
         );
@@ -134,7 +148,8 @@ class ConnectWithPartnerController extends GetxController {
     await SharePlus.instance.share(
       ShareParams(
         subject: 'Connect with me on Lovelynk',
-        text: 'Connect with me on Lovelynk 💕\n'
+        text:
+            'Connect with me on Lovelynk 💕\n'
             'Open the app and enter my code: $code\n'
             '(valid for 24 hours)',
       ),
@@ -204,32 +219,32 @@ class ConnectWithPartnerController extends GetxController {
     _completed = true;
     _stopTimers();
     Log.i('[Connect] Paired with ${SessionService.to.partner?.displayName}');
-    Get.dialog(
-      AllSetDialog(onLetsGo: goToMain),
-      barrierDismissible: false,
-    );
+    Get.dialog(AllSetDialog(onLetsGo: goToMain), barrierDismissible: false);
   }
 
   void goToMain() {
     Get.back(); // close dialog
+    goToHome();
+  }
+
+  /// Leaves the flow unpaired. Only offered right after sign-up.
+  Future<void> goToHome() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    await HelperUtils.initMainControllers();
     Get.offAllNamed(Routes.MAIN_PAGE);
   }
+
+  bool get showBackButton => currentStep.value > 0 || !isFromSignup;
 
   void back() {
     if (currentStep.value > 0) {
       currentStep.value--;
       return;
     }
-    skipForNow();
-  }
-
-  /// Opened from Home → just close. Opened right after sign-up (root route)
-  /// → continue into the app unpaired.
-  void skipForNow() {
-    if (Get.key.currentState?.canPop() ?? false) {
-      Get.back();
+    if (isFromSignup) {
+      goToHome();
     } else {
-      Get.offAllNamed(Routes.MAIN_PAGE);
+      Get.back();
     }
   }
 

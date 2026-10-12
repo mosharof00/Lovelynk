@@ -19,50 +19,60 @@ class ConnectWithPartnerView extends GetView<ConnectWithPartnerController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24.w),
-        child: Column(
-          children: [
-            12.verticalSpace,
-            Row(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) controller.back();
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Column(
               children: [
-                IconButton(
-                  onPressed: controller.back,
-                  icon: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 20.sp,
-                    color: AppColor.textPrimary,
-                  ),
-                ),
-                Expanded(
-                  child: Obx(
-                    () => _StepDots(
-                      current: controller.currentStep.value,
-                      total: ConnectWithPartnerController.totalSteps,
+                12.verticalSpace,
+                Row(
+                  children: [
+                    Obx(
+                      () => controller.showBackButton
+                          ? IconButton(
+                              onPressed: controller.back,
+                              icon: Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                size: 20.sp,
+                                color: AppColor.textPrimary,
+                              ),
+                            )
+                          : SizedBox(width: 48.w),
                     ),
-                  ),
+                    Expanded(
+                      child: Obx(
+                        () => _StepDots(
+                          current: controller.currentStep.value,
+                          total: ConnectWithPartnerController.totalSteps,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 48.w),
+                  ],
                 ),
-                SizedBox(width: 48.w),
+                20.verticalSpace,
+                Expanded(
+                  child: Obx(() {
+                    switch (controller.currentStep.value) {
+                      case 0:
+                        return const _PartnerNameStep();
+                      case 1:
+                        return const _AnniversaryStep();
+                      default:
+                        return const _ConnectCodeStep();
+                    }
+                  }),
+                ),
               ],
             ),
-            20.verticalSpace,
-            Expanded(
-              child: Obx(() {
-                switch (controller.currentStep.value) {
-                  case 0:
-                    return const _PartnerNameStep();
-                  case 1:
-                    return const _AnniversaryStep();
-                  default:
-                    return const _ConnectCodeStep();
-                }
-              }),
-            ),
-          ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -112,7 +122,7 @@ class _PartnerNameStep extends GetView<ConnectWithPartnerController> {
           ),
           8.verticalSpace,
           AppText(
-            'Personalises everything.',
+            'Optional · Personalises everything.',
             style: context.bodyMedium.copyWith(color: AppColor.textSecondary),
             textAlign: TextAlign.center,
           ),
@@ -129,42 +139,37 @@ class _PartnerNameStep extends GetView<ConnectWithPartnerController> {
               ),
             ),
             validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return "Partner's name is required";
-              }
-              if (value.trim().length > 40) {
+              if ((value ?? '').trim().length > 40) {
                 return 'Name must be 40 characters or less';
               }
               return null;
             },
           ),
-          // 16.verticalSpace,
-          // Center(
-          //   child: GestureDetector(
-          //     onTap: controller.skipForNow,
-          //     child: AppText(
-          //       'Skip for now',
-          //       style: context.titleSmall.copyWith(
-          //         color: AppColor.primary,
-          //         fontWeight: FontWeight.w600,
-          //         decoration: TextDecoration.underline,
-          //         decorationColor: AppColor.primary,
-          //       ),
-          //     ),
-          //   ),
-          // ),
+          16.verticalSpace,
+          Center(
+            child: GestureDetector(
+              onTap: controller.skipName,
+              child: AppText(
+                'Skip this step',
+                style: context.titleSmall.copyWith(
+                  color: AppColor.primary,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColor.primary,
+                ),
+              ),
+            ),
+          ),
           const Spacer(),
-          GlobalButton(
-            text: 'Continue',
-            onTap: controller.nextFromName,
-          ),
-          12.height,
-          GlobalButton(
-            text: 'Skip for now',
-            onTap: controller.skipForNow,
-            color: Colors.grey,
-            textColor: Colors.white,
-          ),
+          GlobalButton(text: 'Continue', onTap: controller.nextFromName),
+          if (controller.isFromSignup) ...[
+            12.height,
+            GlobalButton(
+              text: 'Go to Home',
+              isOutlined: true,
+              onTap: controller.goToHome,
+            ),
+          ],
           24.verticalSpace,
         ],
       ),
@@ -255,9 +260,7 @@ class _ConnectCodeStep extends GetView<ConnectWithPartnerController> {
             8.verticalSpace,
             AppText(
               'Share your code or enter theirs',
-              style: context.bodyMedium.copyWith(
-                color: AppColor.textSecondary,
-              ),
+              style: context.bodyMedium.copyWith(color: AppColor.textSecondary),
               textAlign: TextAlign.center,
             ),
             32.verticalSpace,

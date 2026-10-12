@@ -68,7 +68,10 @@ class VerifyOtpController extends GetxController {
         return;
       }
       await SessionService.to.load();
-      Get.offAllNamed(Routes.CONNECT_WITH_PARTNER);
+      Get.offAllNamed(
+        Routes.CONNECT_WITH_PARTNER,
+        arguments: {'fromSignup': true},
+      );
     } catch (e) {
       codeController.clear();
       handleException(e, context: 'Verify OTP');

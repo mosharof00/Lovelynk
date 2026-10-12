@@ -35,7 +35,10 @@ class RegisterController extends GetxController {
 
       if (outcome == SignUpOutcome.signedIn) {
         await SessionService.to.load();
-        Get.offAllNamed(Routes.CONNECT_WITH_PARTNER);
+        Get.offAllNamed(
+          Routes.CONNECT_WITH_PARTNER,
+          arguments: {'fromSignup': true},
+        );
         return;
       }
       _openVerify(email);

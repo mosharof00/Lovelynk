@@ -1,0 +1,497 @@
+# LoveLynk — Production Build Plan
+
+The goal is to make every screen and all 12 widgets run on real data, end to end. Follow the phases **in order**. Each phase depends on the ones before it. Inside a phase, do the steps top to bottom.
+
+Every step is tagged with who does it:
+
+- **[Dev]** — code: Flutter, Swift, SQL or Edge Functions.
+- **[You]** — configuration only you can do: consoles, accounts, keys, store setup.
+- **[Test]** — what has to pass before the step counts as done.
+
+---
+
+## 0. Where we are today (October 2026)
+
+| Area | Status |
+|---|---|
+| Auth: sign up, email OTP, login, forgot/reset password | Real (Supabase) |
+| Session bootstrap, `touch_session`, realtime pair/leave | Real |
+| Connect with partner: invite code, accept, realtime + polling | Real |
+| Database schema: users, couples, location, weather, interactions, notifications, push devices, subscriptions, storage, admin | Created and applied (16 migrations) |
+| Interactions (heartbeat, kiss, emoji) | **Mock** — local counters only, never sent, partner side always 0 |
+| Location, distance, compass | **Mock** — partner hard-coded to Sydney, distance always 0, own location never uploaded |
+| Weather | **Mock** — 0° / "--"; no API, no Edge Function |
+| Notifications screen | **Mock** — 6 hard-coded items; no FCM, no APNs |
+| Subscription / paywall | **Mock** — Hive flag; no RevenueCat, no StoreKit |
+| Profile: edit, avatar, settings, delete account, support | Placeholders or missing |
+| 12 iOS widgets (home + lock screen) | UI done; data partly real, partly mock; no interactivity; no refresh while the app is closed |
+| Android widgets | Not started |
+| Edge Functions, cron jobs | None exist; `pg_cron` and `pg_net` not installed |
+
+Already done in this round:
+- [x] Connect screen: partner name is optional, "Skip this step" text, and "Go to Home" shown only after sign-up or first verification (`fromSignup` argument).
+- [x] Pinput downgraded to 6.0.2 (fixes the Material crash).
+- [x] Reset password returns to the existing Login route with `Get.until`.
+
+---
+
+## Phase 1 — Foundation and cleanup
+
+*Why first:* every later phase builds on clean config, a correct logout, and no template leftovers.
+
+### 1.1 Environment and configuration
+- [ ] **[Dev]** Move secrets and URLs out of `AppConfig` into `--dart-define-from-file`: `env/dev.json` and `env/prod.json`, both git-ignored, plus a committed `env/example.json`.
+- [ ] **[Dev]** Add `dev` and `prod` flavours on iOS (schemes) and Android (`productFlavors`), each pointing at its own Supabase project.
+- [ ] **[You]** Create a second Supabase project for **dev/staging**. Keep `yvfolpaqchdmqdluprpo` for production.
+- [ ] **[Dev]** Add the Supabase CLI setup: `supabase/config.toml`, `supabase/functions/`, and a `seed.sql` for local work.
+
+### 1.2 Remove template leftovers
+- [ ] **[Dev]** Delete the `products` module, `Routes.PRODUCTS`, `product_repository.dart`, `products_model.dart` and `product_layout.dart`.
+- [ ] **[Dev]** Delete the Dio stack (`api_client.dart`, `api_endpoints.dart`, `auth_interceptor.dart`) and the `ApiClient` registration.
+- [ ] **[Dev]** Delete the unused `AuthView`/`AuthController` placeholders and the unused global widgets listed in the audit.
+- [ ] **[Dev]** Clean up `HelperUtils`: remove the demo Pinterest avatar URLs, token and role statics, and the cart comments.
+- [ ] **[Dev]** Remove `WidgetData.mock()`, `WidgetsController.debugExpireTrial`, the commented `'meeza'` Firebase init, and `AppConfig.domainUrl`/`projectID`.
+- [ ] **[Dev]** Clean up `pubspec.yaml`:
+  - Fix the description.
+  - Move `flutter_lints` under `dev_dependencies` (it is currently mis-indented).
+  - Remove `dio`, `change_app_package_name`, `flutter_rating_bar`, `badges`, `google_nav_bar`, `flutter_staggered_grid_view` and `loading_animation_widget` if they are no longer used.
+- [ ] **[Dev]** Rename the module class `WidgetsBinding`, which clashes with Flutter's own `WidgetsBinding`.
+
+### 1.3 Session hygiene
+- [ ] **[Dev]** Write one `SessionService.resetAll()` that runs on logout, account deletion and unexpected sign-out. It must:
+  - Delete every user-scoped controller: Home, MainPage, Profile, Widgets, Customise, Notifications, Activities and the summary screens.
+  - Reset `WidgetDataService` and `SubscriptionService`. The Hive subscription keys currently leak to the next account.
+  - Clear the App Group widget data, so the partner's name and location are no longer on the lock screen, then reload all widgets.
+  - Keep the Supabase session key safe. `SecureStorageService.clearAll` currently wipes it too, so scope the clear to app keys only.
+- [ ] **[Dev]** Onboarding: set `setOnBoardShowed` so onboarding only appears on first install.
+- [ ] **[Dev]** Login when the user is not paired: go to Connect (`fromSignup: true`) instead of Home.
+- [ ] **[Dev]** Main page: switch to `IndexedStack` so tabs keep their state.
+
+### 1.4 App gate from `app_settings`
+- [ ] **[Dev]** At Splash, read the public keys `min_ios_version`, `maintenance_mode`, `maintenance_message`, `terms_url`, `privacy_url` and `support_email`.
+- [ ] **[Dev]** Add a force-update screen and a maintenance screen.
+- [ ] **[You]** Host the Terms and Privacy pages (for example `lovelynk.io/terms` and `/privacy`) and set their URLs in `app_settings`.
+
+### 1.5 Observability
+- [ ] **[You]** Create a Firebase project "LoveLynk". It is needed again in Phase 6. Add an iOS app `com.lovelynk.ios` and an Android app (final package from Phase 9).
+- [ ] **[Dev]** Add Firebase Crashlytics, or Sentry if you prefer, plus basic analytics events: signup, paired, interaction sent, paywall view, purchase.
+
+**[Test]**
+- A clean install shows onboarding once.
+- Logout then login as a different user shows no old data, either in the app or in the widgets.
+- The dev and prod builds talk to different Supabase projects.
+
+---
+
+## Phase 2 — Profile, account and settings
+
+*Why now:* everything here is account-level. Later phases add settings to these screens (location sharing, notifications, subscription).
+
+### 2.1 Backend
+- [ ] **[Dev]** Migration: add RPC `update_my_profile(p_full_name, p_avatar_path)`. It trims the name, enforces 1–60 characters, and checks that the avatar path sits in the caller's own `{uid}/` folder.
+- [ ] **[Dev]** Migration: add a trigger on `auth.users` delete, or do it inside `delete-account`, that **archives the couple first**. Today a deleted user leaves the partner in an active one-member couple.
+- [ ] **[Dev]** Edge Function `delete-account`, which:
+  1. archives the couple and broadcasts `couple.left`;
+  2. removes the user's `avatars` and `support-attachments` folders;
+  3. deletes the auth user;
+  4. increments the `deleted_users` metric.
+- [ ] **[Dev]** Migration: add RPC `submit_support_ticket(category, subject, message, attachment_paths, app_version, device_model, os_version)`, limited to 5 per day.
+
+### 2.2 App
+- [ ] **[Dev]** Edit Profile screen: name, plus an avatar picked with `image_picker`, cropped and compressed, uploaded to `avatars/{uid}/avatar.jpg`. Display it through signed URLs with caching.
+- [ ] **[Dev]** Replace every `demoProfileImage` with the real avatar or a fallback showing initials. This covers Home, Profile and the partner card.
+- [ ] **[Dev]** Partner Profile screen (read-only): avatar, name, your nickname for them, together since, partner city and local time.
+- [ ] **[Dev]** Settings screen:
+  - Units (mi/km). Fix the "km" chip, which currently shows while the unit is miles.
+  - Location sharing toggle (wired up in Phase 3).
+  - Notification preferences (wired up in Phase 6).
+  - Change password.
+  - App version.
+- [ ] **[Dev]** Contact Us / Support form, with up to 3 attachments in `support-attachments`.
+- [ ] **[Dev]** Privacy Policy and Terms links open the `app_settings` URLs. Rate Us uses `in_app_review`.
+- [ ] **[Dev]** Delete Account flow: a confirmation that requires typing "DELETE", then a call to `delete-account`, then `resetAll()`, then Login. App Store rules require this.
+- [ ] **[Dev]** Remove the placeholder `language`, `locationPermission` and `syncStatus` fields from `ProfileController`.
+
+**[Test]**
+- An avatar uploaded by one partner shows on the other partner's phone.
+- Deleting an account returns the partner to the unpaired state.
+- Every Profile row does something.
+
+---
+
+## Phase 3 — Couple data and real-time partner sync
+
+*Why now:* most widgets depend on couple fields (`together_since`, `next_visit_at`, nickname). Those fields must be editable and must sync live before we add location and interactions.
+
+### 3.1 Backend
+- [ ] **[Dev]** Migration: add RPC `update_couple(p_together_since, p_next_visit_at)`.
+  - Validate dates in the **user's timezone**, not UTC. Today Australian users can be rejected for choosing "today".
+  - `next_visit_at` must be in the future, or null.
+  - Broadcast `couple.updated` to the partner.
+- [ ] **[Dev]** Migration: add RPC `update_partner_nickname(p_nickname)`. It broadcasts `couple.updated` to both partners.
+- [ ] **[Dev]** Revoke direct UPDATE grants on `couples` and `couple_members`, so every change goes through the RPCs and is broadcast.
+- [ ] **[Dev]** `accept_invite`: map the unique-index race error (`23505`) to a friendly `LK004`.
+- [ ] **[Dev]** Add a global, per-code attempt limit on `accept_invite` to block distributed guessing of invite codes.
+
+### 3.2 App
+- [ ] **[Dev]** `SessionService`: handle `couple.updated` by calling `refresh()`.
+- [ ] **[Dev]** Edit anniversary (Profile → Our Anniversary) and set or edit next visit (Home card and Profile), with date pickers.
+- [ ] **[Dev]** Unpaired and "no date" states. Stop falling back to "now" for `togetherSince`, `nextVisit` and `anniversary`; show a "Set date" prompt instead.
+- [ ] **[Dev]** Connect screen:
+  - Automatically regenerate an expired code.
+  - Add a "Get a new code" button.
+  - Use `get_my_invite` when the step opens.
+  - Call `cancel_invite` when leaving unpaired.
+  - Optional: a universal link `https://lovelynk.io/join/{code}`.
+- [ ] **[Dev]** Home:
+  - Greeting based on the time of day.
+  - Pull-to-refresh.
+  - Error and offline banner.
+  - Tapping a widget preview when unlocked opens the Widgets tab.
+- [ ] **[Dev]** Partner Time: store and use the partner's **IANA timezone** (e.g. `Australia/Sydney`), not whole UTC hours. This fixes +5:30 and +5:45 offsets and daylight-saving changes.
+
+**[Test]** When partner A edits the anniversary, partner B's app updates within about 1 second while open, or on next launch.
+
+---
+
+## Phase 4 — Location, distance and Love Compass
+
+*Why now:* distance, the compass and weather all need real coordinates.
+
+### 4.1 Strategy (agreed design)
+- **Send on movement**, with thresholds that adapt to speed. Add a minimum time between sends and a heartbeat when the user is still.
+
+  | State | Distance threshold | Minimum interval |
+  |---|---|---|
+  | Still or walking | 150 m | 1 min |
+  | Driving | 1–2 km | 3–5 min |
+  | Over 150 km/h (train, plane) | — | 15 min |
+  | Heartbeat when not moving | — | 30–60 min (foreground) |
+
+- Drop readings with accuracy worse than 100 m, and drop jumps that imply an impossible speed.
+- Store **one row per user** (`user_locations`) and overwrite it. Coordinates are rounded to 4 decimal places (about 11 m).
+- The partner **reads** the location when needed: on app open or resume, on Home, and on widget refresh. Realtime is used only while the compass screen is open.
+- iOS background: use **significant location change** (about 500 m) first. Continuous background tracking is a later option, and needs "Always" permission plus a strong App Store justification.
+
+### 4.2 Backend
+- [ ] **[Dev]** Migration: add RPC `update_my_location(lat, lng, accuracy_m, city, country_code)`. It:
+  - rounds the coordinates;
+  - throttles on the server (60 seconds, or less than 100 m);
+  - returns `{accepted, next_allowed_at}`;
+  - closes the delete-then-insert loophole in the throttle;
+  - checks `location_sharing_enabled` first.
+- [ ] **[Dev]** Migration: add `users.location_sharing_enabled boolean default true`. When it is false, the partner's view of your location returns null and the app shows "Location paused".
+- [ ] **[Dev]** Add a view or RPC `get_partner_snapshot()` that returns the partner's location (lat, lng, city, updated_at), weather and timezone in one call. Add it to `get_session_bootstrap` as `partner_live`.
+- [ ] **[Dev]** Optional: when the location changes by more than 500 m, broadcast `partner.location` to the partner.
+
+### 4.3 App
+- [ ] **[Dev]** Write a `LocationSyncService` that owns the gate logic above, an offline queue (latest point only), and `P0429` handling.
+- [ ] **[Dev]** Permission flow:
+  - Move the pre-prompt from Splash to **after pairing**, or to the first Home visit.
+  - Handle "denied forever" with a link to Settings.
+  - Ask for "Always" later, separately, with a clear explanation.
+- [ ] **[Dev]** iOS background: add `UIBackgroundModes: location` and start significant-change monitoring when "Always" is granted. Android: a foreground service only if we decide to support background tracking there.
+- [ ] **[Dev]** Reverse geocoding for `city`/`country_code` (the `geocoding` package, on device).
+- [ ] **[Dev]** `CompassService`: replace the hard-coded Sydney coordinates with the partner snapshot. Calculate bearing and distance from real coordinates, in the user's chosen unit.
+- [ ] **[Dev]** Home distance card and the Partner Distance widget data: real distance, plus a "last updated" label and a "location paused" state.
+- [ ] **[Dev]** Settings: the location sharing toggle calls the backend.
+- [ ] **[You]** Write the App Store location usage text and privacy label: "Precise location — App Functionality — linked to user".
+
+**[Test]**
+- Two real devices show the correct distance and compass direction.
+- About 10–20 writes per hour while driving.
+- No writes while sitting still, apart from the heartbeat.
+- Turning sharing off hides your location from the partner.
+
+---
+
+## Phase 5 — Partner weather
+
+*Depends on Phase 4 (coordinates).*
+
+- [ ] **[You]** Create an OpenWeather account and API key, and add it as a Supabase secret `OPENWEATHER_API_KEY`.
+- [ ] **[Dev]** Edge Function `refresh-weather`, which:
+  1. takes a `user_id` (or is called for the caller);
+  2. reads `user_locations`;
+  3. skips the call if `user_weather.fetched_at` is less than 30 minutes old and the location moved less than 5 km;
+  4. calls OpenWeather `/weather`;
+  5. upserts `user_weather`.
+- [ ] **[Dev]** Trigger it from `update_my_location` when the position changes a lot, plus a `pg_cron` job every 30–60 minutes for active users, which needs `pg_cron` + `pg_net` (Phase 10.1).
+- [ ] **[Dev]** App: fill `PartnerWeather.fromOpenWeather` from `get_partner_snapshot` (the 9 SVG icon mapping already exists). Show partner weather on Home too.
+
+**[Test]** The partner's weather matches their real city, the icon shows day or night correctly, and the API is called no more than about 2 times per user per hour.
+
+---
+
+## Phase 6 — Push notifications and the notification centre
+
+*Why before interactions:* sending a heartbeat, kiss or emoji is useless unless the partner gets a push, and widgets can only refresh while the app is closed through push.
+
+### 6.1 Configuration
+- [ ] **[You]** Apple Developer:
+  - Create an **APNs Auth Key (.p8)** and upload it to Firebase Cloud Messaging.
+  - Turn on Push Notifications for `com.lovelynk.ios`.
+  - Regenerate the provisioning profiles.
+- [ ] **[You]** Download `GoogleService-Info.plist` (and `google-services.json` for Android) and share them securely.
+- [ ] **[You]** Create a Firebase service account JSON and add it as the Supabase secret `FIREBASE_SERVICE_ACCOUNT`.
+- [ ] **[Dev]** Xcode setup:
+  - `aps-environment` entitlement.
+  - `UIBackgroundModes: remote-notification`.
+  - A new **Notification Service Extension** target in the same App Group, used for widget refresh in Phase 8.
+
+### 6.2 Backend
+- [ ] **[Dev]** Migration: add RPCs:
+  - `register_push_device(token, platform, app_version)`, which upserts on `fcm_token` and moves the token to the new user if it already exists;
+  - `unregister_push_device(token)`;
+  - `mark_notifications_read(ids)`, `mark_all_notifications_read()` and `unread_notification_count()`;
+  - `get_notification_preferences()` and `update_notification_preferences(...)`.
+- [ ] **[Dev]** Edge Function `push-dispatch`. It:
+  - is called by a database webhook on `notifications` insert;
+  - checks the user's preferences and quiet hours (in the user's timezone);
+  - sends FCM to every one of the user's devices, with the badge set to the unread count;
+  - deletes tokens that FCM reports as invalid.
+- [ ] **[Dev]** Write `notifications` rows for these events:
+  - partner paired or left;
+  - anniversary or next visit changed by the partner;
+  - interactions (Phase 7);
+  - subscription events (Phase 9);
+  - announcements.
+- [ ] **[Dev]** Security fix: hide `push_devices.fcm_token` from admins with a column grant or a view.
+
+### 6.3 App
+- [ ] **[Dev]** Add `firebase_core`, `firebase_messaging` and `flutter_local_notifications`.
+- [ ] **[Dev]** Ask for notification permission after pairing.
+- [ ] **[Dev]** Register the token on login and on token refresh. Unregister it on logout.
+- [ ] **[Dev]** Handle the three cases: app in the foreground (in-app banner), in the background, and opened from a terminated state.
+- [ ] **[Dev]** Deep-link router: map `data.route` to a screen (Heartbeat, Kiss or Emoji summary, Notifications, Profile, Subscriptions).
+- [ ] **[Dev]** Notifications screen:
+  - Use the real `notifications` table, with cursor pagination.
+  - Pull-to-refresh.
+  - Swipe to delete.
+  - Mark read when tapped.
+  - Show a live unread **badge** on `NotificationBellButton`, updated by a realtime `notification.new` broadcast.
+- [ ] **[Dev]** Notification preferences screen in Settings: heartbeat, kiss, emoji, relationship, subscription, announcements, and quiet hours.
+
+**[Test]**
+- A push arrives with the app in the foreground, in the background, and after the app was killed.
+- Tapping a push opens the right screen.
+- Quiet hours are respected.
+- After logout, that device receives no pushes.
+
+---
+
+## Phase 7 — Interactions: heartbeat, kiss and emoji
+
+*Depends on Phases 3 and 6.*
+
+### 7.1 Backend
+- [ ] **[Dev]** Migration: add RPC `send_interaction(p_kind, p_count, p_emoji)`. It:
+  - requires an active couple;
+  - is rate-limited (for example 60 per minute and 1,000 per day per kind);
+  - inserts into `interactions` and upserts `interaction_totals` (`total`, `recent_emojis` up to 9, `last_sent_at`);
+  - creates a `notifications` row for the partner, whose push is grouped or collapsed so that 10 quick taps produce one push;
+  - broadcasts `interaction.new` to the partner;
+  - returns the new totals.
+- [ ] **[Dev]** Migration: add RPC `get_interaction_summary()`. It returns, for each kind, totals from the partner and from me, today's counts, the partner's 3 most recent emojis, and the last sent time.
+- [ ] **[Dev]** Migration: add RPC `get_interaction_feed(p_kind, p_before, p_limit)`, cursor-paginated, for Activities and the summary screens.
+- [ ] **[Dev]** Security fix: stop admins reading `interaction_totals.recent_emojis`.
+
+### 7.2 App
+- [ ] **[Dev]** Write an `InteractionRepository` and replace the mock counters and lists in `WidgetDataService` with server data, kept in memory for the session.
+- [ ] **[Dev]** Optimistic send: update the UI straight away, roll back on error, and **combine quick taps** into one RPC call (for example 600 ms debounce with `count = n`).
+- [ ] **[Dev]** Realtime `interaction.new`: update counts and the feed, show an in-app "Milla sent you a kiss 💋", and sync the widgets.
+- [ ] **[Dev]** Heartbeat, Kiss and Emoji summary screens:
+  - Real "from partner" and "from me" totals.
+  - Today's list and history with pagination.
+  - Loading, empty and error states.
+  - Remove the fake "sent" snackbars.
+- [ ] **[Dev]** Activities screen: real merged feed with pagination and filters.
+- [ ] **[Dev]** Home "Recent activity": the latest 3 items from the feed.
+- [ ] **[Dev]** The "Send them the setup guide →" tip sends a real share link or push to the partner.
+
+**[Test]**
+- When partner A sends 5 heartbeats, partner B's counter shows +5 within about 1 second while their app is open, and B gets one grouped push.
+- After a restart, the counts are still there.
+- The rate limit shows a friendly message.
+
+---
+
+## Phase 8 — The 12 widgets: production pass
+
+*Depends on Phases 3–7, which provide all real data.*
+
+### 8.1 Data correctness, per widget
+
+| # | Widget | Change needed |
+|---|---|---|
+| 1 | Partner Distance | Real distance in the chosen unit, plus a "last updated" age; show a "paused" state when sharing is off. |
+| 2 | Days Together | Store `together_since` and **calculate in Swift**, so the count rolls over at midnight without the app opening. |
+| 3 | Together Counter | Replace the 60 one-second entries with `Text(date, style: .timer)` / `WidgetLiveTimer`. Use a days + hh:mm:ss format. |
+| 4 | Partner Time | Use the IANA timezone with `TimeZone(identifier:)` in Swift; the clock uses `Text(date, style: .time)` with one timeline entry per minute. |
+| 5 | Partner Weather | Real weather from Phase 5, with an "as of" time. |
+| 6 | Next Visit | Real `next_visit_at`, shown with `.timer` style; "Set a date" when empty. |
+| 7 | Love Compass | Widgets can't read the device heading, so show **distance + direction to the partner**, with an arrow relative to north, instead of a frozen needle. |
+| 8 | Initials | Remove the J/M fallback; show a neutral placeholder. |
+| 9 | Anniversary | Store the date and calculate days-to-go in Swift. |
+| 10 | Heartbeat | Partner's real total. |
+| 11 | Kiss | Partner's real total. |
+| 12 | Emoji | Partner's 3 most recent emojis. |
+
+For all 12:
+- [ ] **[Dev]** A shared "not paired" state and a "signed out" state.
+- [ ] **[Dev]** Privacy: mark partner name and location with `.privacySensitive()` so they are hidden on the locked lock screen.
+- [ ] **[Dev]** Tested in the `accented` / `vibrant` rendering modes and the iOS 18 tinted home screen.
+- [ ] **[Dev]** Clear data when the subscription lock is active, not just the lock flag.
+
+### 8.2 Refresh while the app is closed
+- [ ] **[Dev]** The Notification Service Extension from Phase 6 reads the widget payload from push data (for example `widget: {kind, keys}`), writes the App Group keys, and calls `WidgetCenter.shared.reloadTimelines(ofKind:)`.
+- [ ] **[Dev]** `push-dispatch` attaches a widget payload to interaction, location and weather events. Silent pushes are only a best-effort fallback.
+- [ ] **[Dev]** Timeline policy: interaction widgets `.after(30 min)`; distance and weather `.after(30–60 min)`; date widgets `.after(midnight)`.
+
+### 8.3 Taps and interactivity
+- [ ] **[Dev]** Each widget gets its own `widgetURL`, for example `lovelynk://widget/heartbeat`. `WidgetDeepLinkService` routes it to the right screen, and waits until the session is ready.
+- [ ] **[Dev]** **Interactive send on iOS 17+:** `AppIntent` + `Button(intent:)` on Heartbeat, Kiss and Emoji. The intent calls `send_interaction` straight from the extension.
+  - The extension gets a short-lived access token and refresh token through a **shared Keychain access group**.
+  - On iOS 16 it falls back to opening the app.
+  - The widget descriptions must match the real behaviour ("Tap to send one back").
+- [ ] **[You]** Turn on the Keychain Sharing capability for both targets, and regenerate the profiles.
+- [ ] **[Dev]** Update `docs/WIDGET_NATIVE_SETUP.md` to match the code.
+
+**[Test]**
+- All 12 widgets show real data on the home screen and in all 3 lock screen sizes.
+- The partner's kiss updates the widget within about a minute while the app is killed.
+- Tapping Heartbeat on the widget sends one without opening the app (iOS 17+).
+- Logout clears every widget.
+
+---
+
+## Phase 9 — Subscriptions (RevenueCat)
+
+*Can start configuration in parallel with Phase 6; the code is done here, because widget locking and partner-shared premium rely on everything above.*
+
+### 9.1 Configuration
+- [ ] **[You]** App Store Connect:
+  - Sign the **Paid Apps agreement** and add tax and banking details.
+  - Create a subscription group "LoveLynk Plus" with **monthly £6.99** and **yearly £29.99**, each with a **7-day free trial** (introductory offer).
+  - Add localisations and review screenshots.
+- [ ] **[You]** Create the App Store Connect **In-App Purchase key** (and the App Store Server Notifications URL, pointed at RevenueCat).
+- [ ] **[You]** Create the RevenueCat project:
+  - Add the iOS app and the IAP key.
+  - Entitlement `plus`; offering `default` with the monthly and yearly packages.
+  - Webhook URL set to the Supabase Edge Function, with an auth header (`REVENUECAT_WEBHOOK_AUTH` secret).
+- [ ] **[You]** Google Play Console products, when Android ships.
+
+### 9.2 Backend
+- [ ] **[Dev]** Edge Function `revenuecat-webhook`. It:
+  - checks the auth header and skips duplicate events (idempotent on `event_id`);
+  - logs each event to `private.revenuecat_events`;
+  - upserts `subscription_entitlements` and inserts `subscription_transactions`;
+  - creates subscription notifications: trial ending, billing issue, expired;
+  - broadcasts `access.changed` to the user **and their partner**, because premium is shared through the partner.
+
+### 9.3 App
+- [ ] **[Dev]** Add `purchases_flutter`. Call `Purchases.logIn(supabaseUserId)` after login and `logOut` on logout.
+- [ ] **[Dev]** Rebuild `SubscriptionService` to read the **server** `access` (from the bootstrap plus `access.changed`) as the source of truth, with RevenueCat `CustomerInfo` for an instant update after purchase. Delete the Hive mock.
+- [ ] **[Dev]** Paywall:
+  - Localised prices from offerings.
+  - Trial eligibility.
+  - Purchase, restore and cancelled-purchase states.
+  - Real Terms and Privacy links.
+  - "Manage subscription" through `showManageSubscriptions`.
+- [ ] **[Dev]** Lock rules: what free users see, and what Plus (yours or your partner's) unlocks. Applies to the widgets, Customise and the Home previews. Fix the trial banner text for users who never started a trial.
+- [ ] **[Dev]** Profile: subscription status row, showing "Plus via Milla" when premium comes from the partner.
+
+**[Test]**
+- A sandbox purchase unlocks the buyer **and** the partner within seconds.
+- Cancel then expire locks both.
+- Restore works.
+- After a refund, access is removed.
+
+---
+
+## Phase 10 — Backend operations, security and data retention
+
+### 10.1 Scheduled jobs (install `pg_cron` and `pg_net`)
+- [ ] **[Dev]** `refresh_active_weather` every 30–60 minutes.
+- [ ] **[Dev]** `dispatch_scheduled_broadcasts` every 5 minutes, using Edge Function `broadcast-dispatch` (batches of 500).
+- [ ] **[Dev]** `anniversary_reminders` daily, in each user's timezone.
+- [ ] **[Dev]** `compute_daily_metrics` daily.
+- [ ] **[Dev]** Purges:
+  - interactions older than 90 days (keep the totals);
+  - notifications older than 90 days;
+  - consumed or expired invites;
+  - `rate_limits` windows;
+  - archived couples past `purge_after`;
+  - stale push devices (90 days);
+  - RevenueCat events (180 days);
+  - unverified auth users older than 7 days.
+
+### 10.2 Security hardening
+- [ ] **[You]** Supabase Auth:
+  - Turn on **leaked-password protection**.
+  - Set up **custom SMTP via Resend** with SPF, DKIM and DMARC on `lovelynk.io` in GoDaddy DNS.
+  - Brand the OTP email template.
+  - Turn on Realtime "private channels only".
+- [ ] **[Dev]** Require `aal2` (MFA) in `private.is_admin()`.
+- [ ] **[Dev]** Enforce `users.banned_at` in `require_app_user()`.
+- [ ] **[Dev]** Check that the `private` schema is not exposed by the Data API.
+- [ ] **[Dev]** Run the Supabase security and performance advisors and fix every warning.
+
+### 10.3 Admin panel (separate track)
+- [ ] **[Dev]** RPCs: `admin_list_users`, `admin_list_couples`, `admin_dashboard_today`, `admin_update_ticket` (the reply creates a notification), `admin_create_broadcast` / `admin_cancel_broadcast`, `admin_update_setting`.
+- [ ] **[Dev]** Edge Function `admin-manage`: create or deactivate admins; ban, unban or delete users (archiving the couple first).
+- [ ] **[You]** Decide the admin panel stack and hosting (for example Next.js on Vercel).
+
+---
+
+## Phase 11 — Android parity
+
+*Do this only once iOS is feature-complete. Decide the scope first.*
+
+- [ ] **[You]** Decide the final Android package: keep `com.lovelynk.app` or switch to `com.lovelynk.android`. Then create the Play Console app and the **upload keystore**.
+- [ ] **[Dev]** Release signing config (it currently uses the debug key). Add the `INTERNET` and `POST_NOTIFICATIONS` permissions, a deep-link intent filter for `lovelynk://`, and the FCM `google-services.json`.
+- [ ] **[Dev]** Android home-screen widgets for all 12, using Jetpack Glance and reading the same `home_widget` keys. Pass `androidName` in `HomeWidget.updateWidget`.
+- [ ] **[Dev]** Location: a foreground service only if we support background tracking on Android.
+- [ ] **[Dev]** RevenueCat with Play Billing products.
+
+---
+
+## Phase 12 — QA, compliance and release
+
+- [ ] **[Dev]** Tests:
+  - Unit tests for location gating, distance and bearing, and the widget data builders.
+  - Repository tests against a local Supabase.
+  - A two-device end-to-end checklist: pairing, interactions, location, push, purchase.
+- [ ] **[Dev]** Localisation-ready strings, and accessibility (Dynamic Type, VoiceOver labels on widgets).
+- [ ] **[Dev]** Performance: app start under 2 seconds, no rebuild storms in `Obx`, image caching.
+- [ ] **[You]** App Store privacy labels: email, name, precise location, user content (interactions), purchases, identifiers (FCM), crash data.
+- [ ] **[You]** App Review notes:
+  - A demo couple: two test accounts that are already paired.
+  - The location justification.
+  - Where to find account deletion.
+- [ ] **[You]** Store listing: screenshots of the widgets and lock screen, the description, keywords, and the support URL.
+- [ ] **[Dev]** Release pipeline: version bump, `flutter build ipa --flavor prod`, TestFlight, then the production release.
+
+---
+
+## Configuration checklist (your side, collected in one place)
+
+| When | Item |
+|---|---|
+| Phase 1 | Dev Supabase project · Terms/Privacy pages hosted · Firebase project |
+| Phase 4 | Location usage text and privacy label |
+| Phase 5 | OpenWeather API key → Supabase secret |
+| Phase 6 | APNs .p8 key → Firebase · Push capability · `GoogleService-Info.plist` / `google-services.json` · Firebase service account → Supabase secret |
+| Phase 8 | Keychain Sharing capability on both targets · regenerate profiles |
+| Phase 9 | Paid Apps agreement · subscription products + trials · IAP key · RevenueCat project, entitlement, offering, webhook secret |
+| Phase 10 | Leaked-password protection · Resend SMTP + GoDaddy DNS (SPF/DKIM/DMARC) · Realtime private-only · admin panel hosting |
+| Phase 11 | Android package decision · Play Console · upload keystore · Play products |
+| Phase 12 | Privacy labels · review demo accounts · store listing |
+
+## Decisions needed before their phase
+
+1. **Background location (Phase 4):** start with "while using" plus iOS significant-change, or go straight to "Always" continuous tracking?
+2. **Interactive widgets (Phase 8):** is iOS 17+ one-tap send required? On iOS 16 it would open the app instead.
+3. **What is free and what is Plus (Phase 9):** which widgets and features are free?
+4. **Android scope (Phase 11):** do we ship Android at the same launch or later?
+5. **Sign in with Apple / Google:** not planned. If you add a third-party login later, Apple requires Sign in with Apple too.
