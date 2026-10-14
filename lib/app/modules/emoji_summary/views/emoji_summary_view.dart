@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../../../gen/assets.gen.dart';
 import '../../../core/services/widget_data_service.dart';
 import '../../../core/theme/app_color.dart';
+import '../../../core/utils/partner_guard.dart';
 import '../../../data/models/widget_models/reaction_activity.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/custom_appbar.dart';
@@ -117,6 +118,7 @@ class _EmojiHeader extends GetView<EmojiSummaryController> {
             bottom: 20.h,
             child: GlobalButton(
               onTap: () {
+                if (!PartnerGuard.ensurePaired()) return;
                 final partner = controller.partnerName;
                 EmojiSendDialog.show(
                   partnerName: partner,

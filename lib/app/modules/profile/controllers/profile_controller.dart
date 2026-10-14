@@ -1,32 +1,96 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:in_app_review/in_app_review.dart';
+import 'package:intl/intl.dart';
 
+import '../../../core/network/handle_exceptions.dart';
+import '../../../core/services/app_settings_service.dart';
+import '../../../core/services/session_service.dart';
+import '../../../core/utils/couple_editor.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/helper_utils.dart';
+import '../../../core/utils/logger.dart';
+import '../../../global/widgets/global_snackbar.dart';
+import '../../../data/models/user_models/session_bootstrap.dart';
+import '../../../data/repositories/couple_repository.dart';
 import '../../../routes/app_pages.dart';
 
 class ProfileController extends GetxController {
+  final ICoupleRepository _coupleRepository = Get.find<ICoupleRepository>();
+
   bool isFadeInAnimate = true;
 
+  final userName = ''.obs;
+  final avatarPath = RxnString();
+  final isPaired = false.obs;
+  final partnerName = ''.obs;
+  final anniversary = ''.obs;
+  final nextVisit = ''.obs;
+  final isDisconnecting = false.obs;
+  Worker? _sessionWorker;
 
-  final userName = 'Jasper'.obs;
-  final anniversary = '12 Oct 2022'.obs;
-  final language = 'English'.obs;
-  final locationPermission = 'Always'.obs;
-  final syncStatus = 'All Good'.obs;
-  final avatarUrl = HelperUtils.demoProfileImage.obs;
+  void onProfileTap() => Get.toNamed(Routes.EDIT_PROFILE);
 
-  void onProfileTap() {
-    // TODO: open edit profile
-  }
+  void onPartnerProfileTap() => Get.toNamed(Routes.PARTNER_PROFILE);
 
+  void onSettingsTap() => Get.toNamed(Routes.SETTINGS);
+
+  void onContactUsTap() => Get.toNamed(Routes.CONTACT_US);
 
   void onReferTap() {
-    // TODO: open referral
+    // TODO(Phase 9): referral / share invite
   }
 
-  void onRateTap() {
-    // TODO: open App Store rating
+  Future<void> onRateTap() async {
+    final review = InAppReview.instance;
+    try {
+      if (await review.isAvailable()) {
+        await review.requestReview();
+        return;
+      }
+    } catch (e) {
+      Log.w('Rate: requestReview failed: $e');
+    }
+    final appStoreId = AppSettingsService.to.appStoreId;
+    if (appStoreId != null) {
+      await review.openStoreListing(appStoreId: appStoreId);
+    } else {
+      globalSnackBar(
+        title: 'Not available yet',
+        message: 'Rating will be available once LoveLynk is on the App Store.',
+      );
+    }
+  }
+
+  void onInvitePartnerTap() => Get.toNamed(Routes.CONNECT_WITH_PARTNER);
+
+  void onDisconnectTap(BuildContext context) {
+    final partner = partnerName.value.isEmpty ? 'your partner' : partnerName.value;
+    DialogUtils.showDialog(
+      context: context,
+      dialogType: DialogType.warning,
+      title: 'Disconnect partner?',
+      description:
+          'You and $partner will stop sharing heartbeats, kisses, location and widgets. '
+          'If you reconnect with $partner within 30 days, your history comes back.',
+      okText: 'Disconnect',
+      cancelText: 'Cancel',
+      okOnPress: _disconnect,
+    );
+  }
+
+  Future<void> _disconnect() async {
+    if (isDisconnecting.value) return;
+    isDisconnecting.value = true;
+    try {
+      final session = await _coupleRepository.leaveCouple();
+      SessionService.to.apply(session);
+    } catch (e) {
+      handleException(e, context: 'Disconnect partner');
+    } finally {
+      isDisconnecting.value = false;
+    }
   }
 
   Future<void> onLogoutTap(BuildContext context) async {
@@ -37,12 +101,36 @@ class ProfileController extends GetxController {
       okText: 'Logout',
       cancelText: 'Cancel',
       okOnPress: () async {
-        await HelperUtils.clearUser();
+        await SessionService.to.signOut();
         await HelperUtils.deleteMainControllers();
         Get.offAllNamed(Routes.LOGIN);
       },
     );
   }
+
+  void _applySession(SessionBootstrap? data) {
+    final couple = data?.couple;
+    userName.value = data?.user.fullName ?? '';
+    avatarPath.value = data?.user.avatarPath;
+    isPaired.value = couple != null;
+    partnerName.value = couple?.partner.displayName ?? '';
+    final since = couple?.togetherSince;
+    anniversary.value =
+        since == null ? 'Set date' : DateFormat('d MMM yyyy').format(since);
+
+    final visit = couple?.nextVisitAt?.toLocal();
+    final now = DateTime.now();
+    nextVisit.value =
+        visit == null || visit.isBefore(DateTime(now.year, now.month, now.day))
+            ? 'Set date'
+            : DateFormat('d MMM yyyy').format(visit);
+  }
+
+  void onAnniversaryTap(BuildContext context) =>
+      CoupleEditor.editAnniversary(context);
+
+  void onNextVisitTap(BuildContext context) =>
+      CoupleEditor.nextVisitActions(context);
 
   Future<void> closeFadeInAnimate() async {
     await Future.delayed(Duration(seconds: 1));
@@ -51,9 +139,16 @@ class ProfileController extends GetxController {
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
-
+    final session = SessionService.to;
+    _applySession(session.bootstrap.value);
+    _sessionWorker = ever<SessionBootstrap?>(session.bootstrap, _applySession);
     closeFadeInAnimate();
+  }
+
+  @override
+  void onClose() {
+    _sessionWorker?.dispose();
+    super.onClose();
   }
 }

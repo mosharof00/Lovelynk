@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:bulkretail/app/core/utils/helper_utils.dart';
-import 'package:bulkretail/app/global/widgets/cached_image.dart';
+import 'package:bulkretail/app/global/widgets/initials_avatar.dart';
 import 'package:bulkretail/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -38,9 +37,9 @@ class PartnerDistanceCard extends GetView<HomeController> {
       final chip = connected
           ? _DistanceChip(
               value: controller.distanceLabel.value,
-              unit: _shortUnit(controller.distanceUnit.value),
+              unit: controller.distanceUnit,
             )
-          : const _LockedChip();
+          : _LockedChip(unit: controller.distanceUnit);
 
       return Container(
         width: double.infinity,
@@ -98,8 +97,9 @@ class PartnerDistanceCard extends GetView<HomeController> {
                     top: size.height * _ArcGeom.endY - 26.w,
                     child: _AvatarSlot(
                       label: 'You',
+                      name: controller.userName.value,
+                      avatarPath: controller.userAvatarPath.value,
                       showAdd: false,
-                      imageUrl: HelperUtils.demoProfileImage,
                     ),
                   ),
                   Positioned(
@@ -109,11 +109,14 @@ class PartnerDistanceCard extends GetView<HomeController> {
                       label: connected
                           ? controller.partnerName.value
                           : 'Add Partner',
-                      showAdd: !connected,
-                      onTap: connected ? null : controller.goConnectPartner,
-                      imageUrl: connected
-                          ? HelperUtils.partnerDemoProfileImage
+                      name: connected ? controller.partnerName.value : '',
+                      avatarPath: connected
+                          ? controller.partnerAvatarPath.value
                           : null,
+                      showAdd: !connected,
+                      onTap: connected
+                          ? controller.goPartnerProfile
+                          : controller.goConnectPartner,
                     ),
                   ),
                 ],
@@ -125,17 +128,12 @@ class PartnerDistanceCard extends GetView<HomeController> {
     });
   }
 
-  /// "miles apart" → "mi" / "kilometers apart" → "km"
-  static String _shortUnit(String unit) {
-    final lower = unit.toLowerCase();
-    if (lower.contains('km') || lower.contains('kilometer')) return 'km';
-    if (lower.contains('mile')) return 'mi';
-    return unit;
-  }
 }
 
 class _LockedChip extends StatelessWidget {
-  const _LockedChip();
+  const _LockedChip({required this.unit});
+
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +156,7 @@ class _LockedChip extends StatelessWidget {
           Icon(Icons.lock_rounded, size: 14.sp, color: AppColor.textPrimary),
           4.horizontalSpace,
           AppText(
-            'km',
+            unit,
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w600,
@@ -221,15 +219,17 @@ class _DistanceChip extends StatelessWidget {
 class _AvatarSlot extends StatelessWidget {
   const _AvatarSlot({
     required this.label,
+    required this.name,
     required this.showAdd,
+    this.avatarPath,
     this.onTap,
-    this.imageUrl,
   });
 
   final String label;
+  final String name;
+  final String? avatarPath;
   final bool showAdd;
   final VoidCallback? onTap;
-  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -253,22 +253,11 @@ class _AvatarSlot extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: imageUrl != null
-                    ? CachedImage(
-                        imgUrl: imageUrl!,
-                        height: 52.w,
-                        width: 52.w,
-                        borderRadius: 50.r,
-                      )
-                    : CircleAvatar(
-                        radius: 26.r,
-                        backgroundColor: AppColor.primaryLight,
-                        child: Icon(
-                          Icons.person_rounded,
-                          color: AppColor.primary.withValues(alpha: 0.7),
-                          size: 26.sp,
-                        ),
-                      ),
+                child: InitialsAvatar(
+                  name: name,
+                  avatarPath: avatarPath,
+                  size: 52.w,
+                ),
               ),
               if (showAdd)
                 Positioned(

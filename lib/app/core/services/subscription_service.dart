@@ -112,6 +112,15 @@ class SubscriptionService extends GetxService {
     await _syncWidgets();
   }
 
+  /// Logout: forget this account's state so the next one starts clean.
+  void clear() {
+    for (final key in [_statusKey, _trialEndsKey, _planIdKey, _hasUsedTrialKey]) {
+      HiveService.box?.delete(key);
+    }
+    state.value = SubscriptionState.expired();
+    hasUsedTrial.value = false;
+  }
+
   // ── Storage ─────────────────────────────────────────────────────────────
 
   void loadFromStorage() {

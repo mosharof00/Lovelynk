@@ -9,10 +9,7 @@ import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/global_button.dart';
 
 class AllSetDialog extends StatelessWidget {
-  const AllSetDialog({
-    super.key,
-    required this.onLetsGo,
-  });
+  const AllSetDialog({super.key, required this.onLetsGo});
 
   final VoidCallback onLetsGo;
 
@@ -35,11 +32,7 @@ class AllSetDialog extends StatelessWidget {
                   size: 88.sp,
                   color: AppColor.primary,
                 ),
-                Icon(
-                  Icons.check_rounded,
-                  color: AppColor.white,
-                  size: 36.sp,
-                ),
+                Icon(Icons.check_rounded, color: AppColor.white, size: 36.sp),
               ],
             ),
             8.verticalSpace,
@@ -85,10 +78,7 @@ class AllSetDialog extends StatelessWidget {
               maxLines: 3,
             ),
             28.verticalSpace,
-            GlobalButton(
-              text: "Let's Go",
-              onTap: onLetsGo,
-            ),
+            GlobalButton(text: "Let's Go", onTap: onLetsGo),
           ],
         ),
       ),

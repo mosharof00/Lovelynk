@@ -13,6 +13,7 @@ abstract class Routes {
   static const AUTH = _Paths.AUTH;
   static const LOGIN = _Paths.AUTH + _Paths.LOGIN;
   static const REGISTER = _Paths.AUTH + _Paths.REGISTER;
+  static const VERIFY_OTP = _Paths.AUTH + _Paths.VERIFY_OTP;
   static const COLOR_CUSTOMISE = _Paths.COLOR_CUSTOMISE;
   static const WIDGETS = _Paths.WIDGETS;
   static const SUBSCRIPTIONS = _Paths.SUBSCRIPTIONS;
@@ -23,6 +24,12 @@ abstract class Routes {
   static const EMOJI_SUMMARY = _Paths.EMOJI_SUMMARY;
   static const ACTIVITIES = _Paths.ACTIVITIES;
   static const NOTIFICATIONS = _Paths.NOTIFICATIONS;
+  static const FORGOT_PASSWORD = _Paths.AUTH + _Paths.FORGOT_PASSWORD;
+  static const RESET_PASSWORD = _Paths.AUTH + _Paths.RESET_PASSWORD;
+  static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
+  static const PARTNER_PROFILE = _Paths.PARTNER_PROFILE;
+  static const SETTINGS = _Paths.SETTINGS;
+  static const CONTACT_US = _Paths.CONTACT_US;
 }
 
 abstract class _Paths {
@@ -37,6 +44,7 @@ abstract class _Paths {
   static const AUTH = '/auth';
   static const LOGIN = '/login';
   static const REGISTER = '/register';
+  static const VERIFY_OTP = '/verify-otp';
   static const COLOR_CUSTOMISE = '/color-customise';
   static const WIDGETS = '/widgets';
   static const SUBSCRIPTIONS = '/subscriptions';
@@ -47,4 +55,10 @@ abstract class _Paths {
   static const EMOJI_SUMMARY = '/emoji-summary';
   static const ACTIVITIES = '/activities';
   static const NOTIFICATIONS = '/notifications';
+  static const FORGOT_PASSWORD = '/forgot-password';
+  static const RESET_PASSWORD = '/reset-password';
+  static const EDIT_PROFILE = '/edit-profile';
+  static const PARTNER_PROFILE = '/partner-profile';
+  static const SETTINGS = '/settings';
+  static const CONTACT_US = '/contact-us';
 }

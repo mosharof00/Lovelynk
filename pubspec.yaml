@@ -1,5 +1,5 @@
 name: bulkretail
-description: "A new Flutter boilerplate with getX & cli project"
+description: "LoveLynk — couples app with home and lock screen widgets."
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -43,22 +43,26 @@ dependencies:
   geolocator: ^14.0.3
   flutter_compass: ^0.8.1
   emoji_picker_flutter: ^4.5.3
+  supabase_flutter: ^2.18.0
+  package_info_plus: ^10.2.2
+  flutter_timezone: ^5.1.1
+  pinput: 6.0.2
+  share_plus: ^13.3.1
+  in_app_review: ^2.0.12
+  device_info_plus: ^13.3.0
+  timezone: ^0.11.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_launcher_icons: "^0.14.4"
+  flutter_lints: ^6.0.0
 
 flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
   image_path: "assets/logos/app_icon.png"
-
-
-
-  flutter_lints: ^6.0.0
-
 
 
 # The following section is specific to Flutter packages.

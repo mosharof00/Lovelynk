@@ -1,29 +1,66 @@
-import 'package:get/get.dart';
+import 'dart:async';
 
+import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
+import '../../../core/utils/couple_editor.dart';
+import '../../../core/utils/time_zone_utils.dart';
+import '../../../core/services/session_service.dart';
 import '../../../core/services/subscription_service.dart';
+import '../../../core/services/user_prefs_service.dart';
+import '../../../core/services/widget_data_service.dart';
+import '../../../core/utils/logger.dart';
+import '../../../data/models/user_models/session_bootstrap.dart';
+import '../../../data/models/widget_models/reaction_activity.dart';
+import '../../../global/widgets/global_snackbar.dart';
 import '../../../routes/app_pages.dart';
 import '../../main_page/controllers/main_page_controller.dart';
 
+/// One line in Home → Recent Activity.
+class HomeActivityItem {
+  const HomeActivityItem({required this.text, required this.at});
+
+  final String text;
+  final DateTime at;
+}
+
 class HomeController extends GetxController {
-  /// Mock partner connection for Phase 1 UI. Toggle to preview both layouts.
-  final isConnected = true.obs;
+  /// Paired state from [SessionService]; every card reacts to it.
+  final isConnected = false.obs;
   bool isFadeInAnimate = true;
 
-  final userName = 'Jasper'.obs;
-  final partnerName = 'Milla'.obs;
-  final distanceLabel = '168'.obs;
-  final distanceUnit = 'miles apart'.obs;
-  final daysTogether = '83'.obs;
-  final nextVisitDays = '17'.obs;
-  final partnerTime = '8:42 PM'.obs;
-  final partnerCity = 'Sydney'.obs;
-  final kissesSent = '247'.obs;
+  final userName = ''.obs;
+  final partnerName = ''.obs;
+  final userAvatarPath = RxnString();
+  final partnerAvatarPath = RxnString();
+
+  // Defaults until location / interactions are connected.
+  final distanceLabel = '0'.obs;
+
+  String get distanceUnit => UserPrefsService.to.distanceUnit.value.shortLabel;
+
+  final greeting = 'Hello,'.obs;
+
+  /// Null = no anniversary set.
+  final daysTogether = RxnInt();
+
+  /// Null = no upcoming visit; 0 = today.
+  final nextVisitInDays = RxnInt();
+  final partnerTime = RxnString();
+  final partnerCity = RxnString();
+  final kissesSent = '0'.obs;
+
+  RxBool get isOffline => SessionService.to.lastLoadFailed;
   final affirmation =
       'Distance means so little when someone means so much.'.obs;
 
   late final SubscriptionService _subscription;
+  late final WidgetDataService _widgetData;
+  Timer? _clockTimer;
+  StreamSubscription<CoupleEvent>? _coupleSub;
+  final _workers = <Worker>[];
 
-  /// Central subscription access — reads from [SubscriptionService], not duplicated here.
   SubscriptionService get subscription => _subscription;
 
   bool get isPremium => _subscription.isPremium;
@@ -32,30 +69,181 @@ class HomeController extends GetxController {
 
   void goConnectPartner() => Get.toNamed(Routes.CONNECT_WITH_PARTNER);
 
+  void goPartnerProfile() => Get.toNamed(Routes.PARTNER_PROFILE);
+
   void goWidgetsTab() => Get.find<MainPageController>().changePage(1);
 
   void goSubscriptions() => Get.toNamed(Routes.SUBSCRIPTIONS);
-
-  /// Dev / UI preview: flip between solo and connected home.
-  void toggleConnectedPreview() => isConnected.toggle();
 
   Future<void> closeFadeInAnimate() async {
     await Future.delayed(Duration(seconds: 3));
     isFadeInAnimate = false;
   }
 
-  /// Called on home load — later fetches user + subscription from Supabase.
   Future<void> loadUser() async {
-    // TODO(Supabase): fetch user profile and call
-    // _subscription.applyFromUser(...)
+    final session = SessionService.to;
+    // Launch bootstrap may have failed offline; retry once here.
+    if (session.bootstrap.value == null && session.hasSession) {
+      try {
+        await session.load();
+      } catch (e) {
+        Log.w('Home: session bootstrap failed: $e');
+      }
+    }
+    // TODO(RevenueCat): drive SubscriptionService from session.access.
     await _subscription.refreshFromUser();
   }
+
+  /// Latest 3 interactions across heartbeat / kiss / emoji, newest first.
+  List<HomeActivityItem> get recentActivity {
+    final partner = partnerName.value.isEmpty ? 'Your partner' : partnerName.value;
+
+    String describe(ReactionActivity a, String singular, String plural) {
+      final what = a.count == 1 ? 'a $singular' : '${a.count} $plural';
+      return a.isFromMe ? 'You sent $what' : '$partner sent you $what';
+    }
+
+    final items = <HomeActivityItem>[
+      for (final a in _widgetData.kissActivity)
+        HomeActivityItem(text: describe(a, 'kiss', 'kisses'), at: a.at),
+      for (final a in _widgetData.heartbeatActivity)
+        HomeActivityItem(text: describe(a, 'heartbeat', 'heartbeats'), at: a.at),
+      for (final a in _widgetData.emojiActivity)
+        HomeActivityItem(
+          text: a.isFromMe
+              ? 'You sent ${a.emoji ?? 'an emoji'}'
+              : '$partner sent you ${a.emoji ?? 'an emoji'}',
+          at: a.at,
+        ),
+    ]..sort((a, b) => b.at.compareTo(a.at));
+
+    return items.take(3).toList();
+  }
+
+  String timeAgo(DateTime at) {
+    final diff = DateTime.now().difference(at);
+    if (diff.inMinutes < 1) return 'now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
+  void _applySession(SessionBootstrap? data) {
+    final couple = data?.couple;
+    userName.value = data?.user.firstName ?? '';
+    userAvatarPath.value = data?.user.avatarPath;
+    isConnected.value = couple != null;
+    partnerName.value = couple?.partner.displayName ?? '';
+    partnerAvatarPath.value = couple?.partner.avatarPath;
+
+    partnerCity.value =
+        TimeZoneUtils.cityFromTimezone(couple?.partner.timezone);
+    _updateClock();
+  }
+
+  /// Day counts, partner clock and greeting; re-run every 30s so they roll
+  /// over at midnight without a reload.
+  void _updateClock() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final couple = SessionService.to.couple;
+
+    final since = couple?.togetherSince;
+    daysTogether.value = since == null
+        ? null
+        : today.difference(DateTime(since.year, since.month, since.day)).inDays;
+
+    final visit = couple?.nextVisitAt?.toLocal();
+    final visitDay =
+        visit == null ? null : DateTime(visit.year, visit.month, visit.day);
+    nextVisitInDays.value = visitDay == null || visitDay.isBefore(today)
+        ? null
+        : visitDay.difference(today).inDays;
+
+    final partner = couple?.partner;
+    final clock = partner == null
+        ? null
+        : TimeZoneUtils.wallClock(
+            timezone: partner.timezone,
+            utcOffsetMinutes: partner.utcOffsetMinutes,
+          );
+    partnerTime.value =
+        clock == null ? null : DateFormat('h:mm a').format(clock);
+
+    greeting.value = switch (now.hour) {
+      >= 5 && < 12 => 'Good morning,',
+      >= 12 && < 17 => 'Good afternoon,',
+      >= 17 && < 22 => 'Good evening,',
+      _ => 'Hello,',
+    };
+  }
+
+  Future<void> onRefresh() async {
+    final session = SessionService.to;
+    try {
+      await session.load();
+    } catch (e) {
+      Log.w('Home: refresh failed: $e');
+    }
+    _updateClock();
+  }
+
+  void editAnniversary(BuildContext context) =>
+      CoupleEditor.editAnniversary(context);
+
+  void editNextVisit(BuildContext context) =>
+      CoupleEditor.nextVisitActions(context);
 
   @override
   void onInit() {
     super.onInit();
     _subscription = Get.find<SubscriptionService>();
+    _widgetData = Get.find<WidgetDataService>();
+
+    final session = SessionService.to;
+    _applySession(session.bootstrap.value);
+    _workers
+      ..add(ever<SessionBootstrap?>(session.bootstrap, _applySession))
+      ..add(ever<int>(_widgetData.kissesFromMe, (v) => kissesSent.value = '$v'));
+    kissesSent.value = '${_widgetData.kissesFromMe.value}';
+
+    _coupleSub = session.coupleEvents.listen(_onCoupleEvent);
+
+    _clockTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _updateClock(),
+    );
+
     loadUser();
     closeFadeInAnimate();
+  }
+
+  void _onCoupleEvent(CoupleEvent event) {
+    switch (event) {
+      case CoupleEvent.left:
+        globalSnackBar(
+          title: 'Disconnected',
+          message: 'You are no longer connected with your partner.',
+        );
+        break;
+      case CoupleEvent.paired:
+        // The Connect screen shows its own "All set" dialog.
+        if (Get.currentRoute == Routes.CONNECT_WITH_PARTNER) return;
+        globalSnackBar(
+          title: 'Connected 💞',
+          message: 'You are now connected with ${partnerName.value}.',
+        );
+        break;
+    }
+  }
+
+  @override
+  void onClose() {
+    _coupleSub?.cancel();
+    _clockTimer?.cancel();
+    for (final w in _workers) {
+      w.dispose();
+    }
+    super.onClose();
   }
 }

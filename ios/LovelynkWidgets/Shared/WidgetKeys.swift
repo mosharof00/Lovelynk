@@ -43,6 +43,8 @@ enum WidgetKeys {
     enum PartnerTime {
         static let widgetId = "partner_time"
         static let utcOffsetHours = "partner_time_utc_offset_hours"
+        static let utcOffsetMinutes = "partner_time_utc_offset_minutes"
+        static let timezone = "partner_time_timezone"
         static let city = "partner_time_city"
 
         static func style(_ field: String) -> String { "\(widgetId)_\(field)" }

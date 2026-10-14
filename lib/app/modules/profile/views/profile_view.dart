@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/app_color.dart';
+import '../../../core/utils/partner_guard.dart';
 import '../controllers/profile_controller.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_menu_section.dart';
@@ -34,34 +36,59 @@ class ProfileView extends GetView<ProfileController> {
                 ProfileMenuItemData(
                   icon: Icons.edit,
                   label: 'Edit Profile',
+                  onTap: controller.onProfileTap,
                 ),
                 ProfileMenuItemData(
                   icon: Icons.notifications_outlined,
                   label: 'Notifications',
                   onTap: () => Get.toNamed(Routes.NOTIFICATIONS),
                 ),
+                ProfileMenuItemData(
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                  onTap: controller.onSettingsTap,
+                ),
               ],
             ),
             22.verticalSpace,
-            ProfileMenuSection(
-              title: 'Your Relationship',
-              titleColor: AppColor.textSecondary,
-              items: [
-                const ProfileMenuItemData(
-                  icon: Icons.favorite_border_rounded,
-                  label: 'Partner Profile',
-                ),
-                ProfileMenuItemData(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Our Anniversary',
-                  value: controller.anniversary.value,
-                ),
-                ProfileMenuItemData(
-                  icon: Icons.person_add_alt_1_outlined,
-                  label: 'Invite Partner',
-                  onTap: () => Get.toNamed(Routes.CONNECT_WITH_PARTNER),
-                ),
-              ],
+            Obx(
+              () => ProfileMenuSection(
+                title: 'Your Relationship',
+                titleColor: AppColor.textSecondary,
+                items: controller.isPaired.value
+                    ? [
+                        ProfileMenuItemData(
+                          icon: Icons.favorite_border_rounded,
+                          label: 'Partner Profile',
+                          value: controller.partnerName.value,
+                          onTap: controller.onPartnerProfileTap,
+                        ),
+                        ProfileMenuItemData(
+                          icon: Icons.calendar_today_outlined,
+                          label: 'Our Anniversary',
+                          value: controller.anniversary.value,
+                          onTap: () => controller.onAnniversaryTap(context),
+                        ),
+                        ProfileMenuItemData(
+                          icon: Icons.flight_takeoff_rounded,
+                          label: 'Next Visit',
+                          value: controller.nextVisit.value,
+                          onTap: () => controller.onNextVisitTap(context),
+                        ),
+                        ProfileMenuItemData(
+                          icon: Icons.link_off_rounded,
+                          label: 'Disconnect Partner',
+                          onTap: () => controller.onDisconnectTap(context),
+                        ),
+                      ]
+                    : [
+                        ProfileMenuItemData(
+                          icon: Icons.person_add_alt_1_outlined,
+                          label: 'Invite Partner',
+                          onTap: controller.onInvitePartnerTap,
+                        ),
+                      ],
+              ),
             ),
             22.verticalSpace,
             ProfileMenuSection(
@@ -76,22 +103,22 @@ class ProfileView extends GetView<ProfileController> {
                 ProfileMenuItemData(
                   icon: Icons.history_rounded,
                   label: 'Activities',
-                  onTap: () => Get.toNamed(Routes.ACTIVITIES),
+                  onTap: () => PartnerGuard.open(Routes.ACTIVITIES),
                 ),
                 ProfileMenuItemData(
                   icon: Icons.favorite_rounded,
                   label: 'Heartbeat',
-                  onTap: () => Get.toNamed(Routes.HEARTBEAT_SUMMARY),
+                  onTap: () => PartnerGuard.open(Routes.HEARTBEAT_SUMMARY),
                 ),
                 ProfileMenuItemData(
                   icon: Icons.volunteer_activism_rounded,
                   label: 'Kiss',
-                  onTap: () => Get.toNamed(Routes.KISS_SUMMARY),
+                  onTap: () => PartnerGuard.open(Routes.KISS_SUMMARY),
                 ),
                 ProfileMenuItemData(
                   icon: Icons.emoji_emotions_outlined,
                   label: 'Emoji',
-                  onTap: () => Get.toNamed(Routes.EMOJI_SUMMARY),
+                  onTap: () => PartnerGuard.open(Routes.EMOJI_SUMMARY),
                 ),
               ],
             ),
@@ -99,18 +126,21 @@ class ProfileView extends GetView<ProfileController> {
             ProfileMenuSection(
               title: 'Support',
               titleColor: AppColor.textSecondary,
-              items: const [
+              items: [
                 ProfileMenuItemData(
                   icon: Icons.mail_outline_rounded,
                   label: 'Contact Us',
+                  onTap: controller.onContactUsTap,
                 ),
                 ProfileMenuItemData(
                   icon: Icons.verified_user_outlined,
                   label: 'Privacy Policy',
+                  onTap: AppSettingsService.to.openPrivacy,
                 ),
                 ProfileMenuItemData(
                   icon: Icons.description_outlined,
                   label: 'Terms of Use',
+                  onTap: AppSettingsService.to.openTerms,
                 ),
               ],
             ),

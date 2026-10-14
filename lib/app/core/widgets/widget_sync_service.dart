@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../data/models/widget_models/app_widget_type.dart';
 import '../../data/models/widget_models/widget_style.dart';
 import '../services/compass_service.dart';
+import '../services/session_service.dart';
 import '../services/subscription_service.dart';
 import '../services/widget_data_service.dart';
 import '../utils/logger.dart';
@@ -43,7 +44,7 @@ class WidgetSyncService extends GetxService {
 
   /// Full sync — call after login, partner connect, or manual refresh.
   Future<void> syncAll() async {
-    final locked = !_subscription.isWidgetsUnlocked;
+    final locked = _locked;
     Log.i(
       '[WidgetSync] syncAll — locked=$locked, '
       'premium=${_subscription.isPremium}, '
@@ -92,10 +93,25 @@ class WidgetSyncService extends GetxService {
     await syncAll();
   }
 
+  /// Logout / account switch: removes every per-user value so the previous
+  /// user's data (partner name, location…) never stays on the lock screen.
+  Future<void> clearUserData() async {
+    for (final key in WidgetAppGroup.dataKeys) {
+      await HomeWidget.saveWidgetData<String>(key, null);
+    }
+    await _writeGlobalLock();
+    await _refreshAllNativeWidgets();
+    Log.i('[WidgetSync] User data cleared from widgets.');
+  }
+
   // ── Global lock ─────────────────────────────────────────────────────────
 
+  bool get _signedIn => SessionService.to.hasSession;
+
+  bool get _locked => !_signedIn || !_subscription.isWidgetsUnlocked;
+
   Future<void> _writeGlobalLock() async {
-    final locked = !_subscription.isWidgetsUnlocked;
+    final locked = _locked;
     Log.i('[WidgetSync] Writing global lock — locked=$locked');
     await HomeWidget.saveWidgetData<String>(
       WidgetAppGroup.globalLocked,
@@ -104,7 +120,9 @@ class WidgetSyncService extends GetxService {
     if (locked) {
       await HomeWidget.saveWidgetData<String>(
         WidgetAppGroup.globalLockMessage,
-        _subscription.widgetLockMessage ?? 'Locked',
+        _signedIn
+            ? (_subscription.widgetLockMessage ?? 'Locked')
+            : 'Sign in to LoveLynk',
       );
     }
   }
@@ -112,8 +130,8 @@ class WidgetSyncService extends GetxService {
   // ── Per-widget data ─────────────────────────────────────────────────────
 
   Future<void> _writeDataFor(AppWidgetType type) async {
-    if (!_subscription.isWidgetsUnlocked) {
-      Log.i('[WidgetSync] Skipping data for ${type.id} — subscription locked');
+    if (_locked) {
+      Log.i('[WidgetSync] Skipping data for ${type.id} — locked');
       return;
     }
     final d = _data.data.value;
@@ -121,7 +139,7 @@ class WidgetSyncService extends GetxService {
       case AppWidgetType.daysTogether:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.daysTogetherCount,
-          '${d.daysTogether}',
+          '${d.daysTogether ?? 0}',
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.daysTogetherTitle,
@@ -153,19 +171,30 @@ class WidgetSyncService extends GetxService {
         );
         break;
       case AppWidgetType.anniversary:
+        final anniversary = d.anniversary;
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.anniversaryDateLabel,
-          DateFormat('d MMMM yyyy').format(d.anniversary),
+          anniversary == null
+              ? 'Set your date in LoveLynk'
+              : DateFormat('d MMMM yyyy').format(anniversary),
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.anniversaryDaysToGo,
-          '${_daysToNextAnniversary(d.anniversary)}',
+          anniversary == null ? '0' : '${_daysToNextAnniversary(anniversary)}',
         );
         break;
       case AppWidgetType.partnerTime:
         await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerTimeTimezone,
+          d.partnerTimezone ?? '',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerTimeUtcOffsetMinutes,
+          '${d.partnerUtcOffsetMinutes}',
+        );
+        await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerTimeUtcOffsetHours,
-          '${d.partnerUtcOffsetHours}',
+          '${(d.partnerUtcOffsetMinutes / 60).round()}',
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerTimeCity,
@@ -175,13 +204,13 @@ class WidgetSyncService extends GetxService {
       case AppWidgetType.togetherCounter:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.togetherCounterSince,
-          d.togetherSince.toUtc().toIso8601String(),
+          d.togetherSince?.toUtc().toIso8601String() ?? '',
         );
         break;
       case AppWidgetType.nextVisitCountdown:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.nextVisitTargetAt,
-          d.nextVisit.toUtc().toIso8601String(),
+          d.nextVisit?.toUtc().toIso8601String() ?? '',
         );
         break;
       case AppWidgetType.partnerWeather:

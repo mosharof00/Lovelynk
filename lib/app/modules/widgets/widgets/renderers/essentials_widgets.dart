@@ -220,7 +220,7 @@ class DaysTogetherWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final days = _service.data.value.daysTogether;
+      final days = _service.data.value.daysTogether ?? '--';
       final content = Column(
         mainAxisAlignment: compact
             ? MainAxisAlignment.spaceEvenly
@@ -267,7 +267,9 @@ class TogetherCounterWidget extends StatelessWidget {
     return Obx(() {
       final now = _service.now.value;
       final since = _service.data.value.togetherSince;
-      return CountdownRow(duration: now.difference(since));
+      return CountdownRow(
+        duration: since == null ? Duration.zero : now.difference(since),
+      );
     });
   }
 }
@@ -408,7 +410,10 @@ class NextVisitCountdownWidget extends StatelessWidget {
     return Obx(() {
       final now = _service.now.value;
       final nextVisit = _service.data.value.nextVisit;
-      return CountdownRow(duration: nextVisit.difference(now));
+      final left = nextVisit?.difference(now);
+      return CountdownRow(
+        duration: left == null || left.isNegative ? Duration.zero : left,
+      );
     });
   }
 }

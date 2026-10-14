@@ -1,10 +1,22 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ApiException implements Exception {
   final String message;
   final int? statusCode;
 
-  ApiException(this.message, {this.statusCode});
+  /// Machine-readable code (Supabase Auth error code or Postgres SQLSTATE).
+  final String? code;
+
+  ApiException(this.message, {this.statusCode, this.code});
+
+  bool get isNetworkError => code == ApiErrorCode.network;
+
+  @override
+  String toString() => 'ApiException($code, $statusCode): $message';
 
   factory ApiException.fromDio(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout) {
@@ -35,4 +47,116 @@ class ApiException implements Exception {
 
     return ApiException("Something went wrong");
   }
+
+  /// Maps Supabase Auth / PostgREST / network errors to user-facing messages.
+  factory ApiException.fromSupabase(Object error) {
+    if (error is ApiException) return error;
+
+    // gotrue also throws AuthRetryableFetchException for HTTP 5xx, which is a
+    // server failure (e.g. SMTP rejected), not a connectivity problem.
+    if (error is AuthRetryableFetchException && error.statusCode != null) {
+      return ApiException(
+        'Something went wrong on our side. Please try again in a moment.',
+        statusCode: int.tryParse(error.statusCode!),
+        code: ApiErrorCode.server,
+      );
+    }
+
+    if (error is AuthRetryableFetchException ||
+        error is SocketException ||
+        error is TimeoutException) {
+      return ApiException(
+        'No internet connection. Please try again.',
+        code: ApiErrorCode.network,
+      );
+    }
+
+    if (error is AuthException) {
+      return ApiException(
+        _authMessage(error),
+        statusCode: int.tryParse(error.statusCode ?? ''),
+        code: error.code,
+      );
+    }
+
+    if (error is PostgrestException) {
+      return ApiException(_postgrestMessage(error), code: error.code);
+    }
+
+    if (error is StorageException) {
+      return ApiException(
+        'Upload failed. Please try again.',
+        statusCode: int.tryParse(error.statusCode ?? ''),
+      );
+    }
+
+    if (error is FunctionException) {
+      final details = error.details;
+      final message = details is Map ? details['error'] : null;
+      return ApiException(
+        message is String && message.isNotEmpty
+            ? message
+            : 'Something went wrong. Please try again.',
+        statusCode: error.status,
+      );
+    }
+
+    return ApiException('Something went wrong. Please try again.');
+  }
+
+  /// https://supabase.com/docs/guides/auth/debugging/error-codes
+  static String _authMessage(AuthException e) {
+    switch (e.code) {
+      case 'invalid_credentials':
+        return 'Incorrect email or password.';
+      case 'email_not_confirmed':
+        return 'Please verify your email to continue.';
+      case 'user_already_exists':
+      case 'email_exists':
+        return 'An account with this email already exists. Please sign in.';
+      case 'otp_expired':
+        return 'This code is invalid or has expired. Request a new one.';
+      case 'weak_password':
+        return 'Password is too weak. Use at least 8 characters with letters and numbers.';
+      case 'over_email_send_rate_limit':
+        return 'A code was sent recently. Please wait a minute before requesting another.';
+      case 'same_password':
+        return 'New password must be different from your current password.';
+      case 'over_request_rate_limit':
+        return 'Too many attempts. Please wait a moment and try again.';
+      case 'user_banned':
+        return 'This account has been suspended. Contact support.';
+      case 'session_expired':
+      case 'refresh_token_not_found':
+      case 'refresh_token_already_used':
+        return 'Your session has expired. Please sign in again.';
+      case 'signup_disabled':
+        return 'Sign-ups are currently disabled.';
+      default:
+        return e.message.isNotEmpty ? e.message : 'Authentication failed.';
+    }
+  }
+
+  static String _postgrestMessage(PostgrestException e) {
+    switch (e.code) {
+      case '42501':
+        return e.message.isNotEmpty ? e.message : 'You do not have access.';
+      case '28000':
+      case 'PGRST301':
+        return 'Your session has expired. Please sign in again.';
+      default:
+        return e.message.isNotEmpty ? e.message : 'Something went wrong.';
+    }
+  }
+}
+
+class ApiErrorCode {
+  ApiErrorCode._();
+
+  static const network = 'network_error';
+  static const server = 'server_error';
+  static const emailNotConfirmed = 'email_not_confirmed';
+  static const notAppAccount = 'not_app_account';
+  static const accountExists = 'user_already_exists';
+  static const emailRateLimit = 'over_email_send_rate_limit';
 }

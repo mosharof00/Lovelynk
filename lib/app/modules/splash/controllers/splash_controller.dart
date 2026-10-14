@@ -1,11 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
+import '../../../core/network/api_exception.dart';
+import '../../../core/network/handle_exceptions.dart';
 import '../../../core/services/compass_service.dart';
+import '../../../core/services/local_store_service.dart';
+import '../../../core/services/session_service.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../core/utils/helper_utils.dart';
+import '../../../core/utils/logger.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/global_button.dart';
 import '../../../routes/app_pages.dart';
@@ -54,17 +61,37 @@ class SplashController extends GetxController {
   }
 
   Future<void> navigateToScreen() async {
-    final isLoggedIn = await HelperUtils.checkLoginStatus().timeout(
-      const Duration(seconds: 5),
-      onTimeout: () => false,
-    );
-
-    if (isLoggedIn) {
-      await HelperUtils.initMainControllers();
-      Get.offAllNamed(Routes.MAIN_PAGE);
-    } else {
-      Get.offAllNamed(Routes.ONBOARDING);
+    final session = SessionService.to;
+    if (!session.hasSession) {
+      final onboarded = await HiveService.getOnBoardShowed();
+      Get.offAllNamed(onboarded ? Routes.LOGIN : Routes.ONBOARDING);
+      return;
     }
+
+    // App was closed mid password reset: don't enter with that session.
+    if (session.isRecoveryPending) {
+      await session.signOut();
+      Get.offAllNamed(Routes.LOGIN);
+      return;
+    }
+
+    try {
+      await session.load().timeout(const Duration(seconds: 10));
+    } on ApiException catch (e) {
+      // Not an app account or session revoked: load() already signed out.
+      if (!session.hasSession) {
+        handleException(e, context: 'Splash');
+        Get.offAllNamed(Routes.LOGIN);
+        return;
+      }
+      // Offline / server hiccup: still open the app with the cached session.
+      Log.w('Session bootstrap failed on launch: $e');
+    } on TimeoutException {
+      Log.w('Session bootstrap timed out on launch');
+    }
+
+    await HelperUtils.initMainControllers();
+    Get.offAllNamed(Routes.MAIN_PAGE);
   }
 }
 

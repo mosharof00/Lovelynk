@@ -1,4 +1,7 @@
+import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -16,50 +19,60 @@ class ConnectWithPartnerView extends GetView<ConnectWithPartnerController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24.w),
-        child: Column(
-          children: [
-            12.verticalSpace,
-            Row(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) controller.back();
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Column(
               children: [
-                IconButton(
-                  onPressed: controller.back,
-                  icon: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 20.sp,
-                    color: AppColor.textPrimary,
-                  ),
-                ),
-                Expanded(
-                  child: Obx(
-                    () => _StepDots(
-                      current: controller.currentStep.value,
-                      total: ConnectWithPartnerController.totalSteps,
+                12.verticalSpace,
+                Row(
+                  children: [
+                    Obx(
+                      () => controller.showBackButton
+                          ? IconButton(
+                              onPressed: controller.back,
+                              icon: Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                size: 20.sp,
+                                color: AppColor.textPrimary,
+                              ),
+                            )
+                          : SizedBox(width: 48.w),
                     ),
-                  ),
+                    Expanded(
+                      child: Obx(
+                        () => _StepDots(
+                          current: controller.currentStep.value,
+                          total: ConnectWithPartnerController.totalSteps,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 48.w),
+                  ],
                 ),
-                SizedBox(width: 48.w),
+                20.verticalSpace,
+                Expanded(
+                  child: Obx(() {
+                    switch (controller.currentStep.value) {
+                      case 0:
+                        return const _PartnerNameStep();
+                      case 1:
+                        return const _AnniversaryStep();
+                      default:
+                        return const _ConnectCodeStep();
+                    }
+                  }),
+                ),
               ],
             ),
-            20.verticalSpace,
-            Expanded(
-              child: Obx(() {
-                switch (controller.currentStep.value) {
-                  case 0:
-                    return const _PartnerNameStep();
-                  case 1:
-                    return const _AnniversaryStep();
-                  default:
-                    return const _ConnectCodeStep();
-                }
-              }),
-            ),
-          ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -109,7 +122,7 @@ class _PartnerNameStep extends GetView<ConnectWithPartnerController> {
           ),
           8.verticalSpace,
           AppText(
-            'Personalises everything.',
+            'Optional · Personalises everything.',
             style: context.bodyMedium.copyWith(color: AppColor.textSecondary),
             textAlign: TextAlign.center,
           ),
@@ -126,17 +139,37 @@ class _PartnerNameStep extends GetView<ConnectWithPartnerController> {
               ),
             ),
             validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return "Partner's name is required";
+              if ((value ?? '').trim().length > 40) {
+                return 'Name must be 40 characters or less';
               }
               return null;
             },
           ),
-          const Spacer(),
-          GlobalButton(
-            text: 'Continue',
-            onTap: controller.nextFromName,
+          16.verticalSpace,
+          Center(
+            child: GestureDetector(
+              onTap: controller.skipName,
+              child: AppText(
+                'Skip this step',
+                style: context.titleSmall.copyWith(
+                  color: AppColor.primary,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColor.primary,
+                ),
+              ),
+            ),
           ),
+          const Spacer(),
+          GlobalButton(text: 'Continue', onTap: controller.nextFromName),
+          if (controller.isFromSignup) ...[
+            12.height,
+            GlobalButton(
+              text: 'Go to Home',
+              isOutlined: true,
+              onTap: controller.goToHome,
+            ),
+          ],
           24.verticalSpace,
         ],
       ),
@@ -227,9 +260,7 @@ class _ConnectCodeStep extends GetView<ConnectWithPartnerController> {
             8.verticalSpace,
             AppText(
               'Share your code or enter theirs',
-              style: context.bodyMedium.copyWith(
-                color: AppColor.textSecondary,
-              ),
+              style: context.bodyMedium.copyWith(color: AppColor.textSecondary),
               textAlign: TextAlign.center,
             ),
             32.verticalSpace,
@@ -250,32 +281,112 @@ class _ConnectCodeStep extends GetView<ConnectWithPartnerController> {
               ],
             ),
             24.verticalSpace,
-            AppText(
-              controller.inviteCode,
-              style: context.headlineLarge.copyWith(
-                color: AppColor.primary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            8.verticalSpace,
-            AppText(
-              'Expires in 59 minutes',
-              style: context.bodySmall.copyWith(color: AppColor.hintText),
-              textAlign: TextAlign.center,
-            ),
+            Obx(() {
+              if (controller.isLoadingInvite.value &&
+                  controller.invite.value == null) {
+                return SizedBox(
+                  height: 70.h,
+                  child: const Center(child: CupertinoActivityIndicator()),
+                );
+              }
+              final invite = controller.invite.value;
+              if (invite == null || invite.isExpired) {
+                return Column(
+                  children: [
+                    AppText(
+                      invite == null
+                          ? "Couldn't load your code"
+                          : 'Your code has expired',
+                      style: context.bodyMedium.copyWith(
+                        color: AppColor.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    TextButton(
+                      onPressed: controller.loadInvite,
+                      child: AppText(
+                        'Get a new code',
+                        style: context.titleSmall.copyWith(
+                          color: AppColor.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Column(
+                children: [
+                  GestureDetector(
+                    onTap: controller.copyCode,
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AppText(
+                          controller.inviteCodeDisplay,
+                          style: context.headlineLarge.copyWith(
+                            color: AppColor.primary,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        8.horizontalSpace,
+                        Icon(
+                          Icons.copy_rounded,
+                          size: 18.sp,
+                          color: AppColor.hintText,
+                        ),
+                      ],
+                    ),
+                  ),
+                  8.verticalSpace,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AppText(
+                        controller.expiresLabel.value,
+                        style: context.bodySmall.copyWith(
+                          color: AppColor.hintText,
+                        ),
+                      ),
+                      AppText(
+                        '  ·  ',
+                        style: context.bodySmall.copyWith(
+                          color: AppColor.hintText,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: controller.isLoadingInvite.value
+                            ? null
+                            : controller.regenerateCode,
+                        child: AppText(
+                          'New code',
+                          style: context.bodySmall.copyWith(
+                            color: AppColor.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }),
             20.verticalSpace,
             GlobalButton(
               text: 'Send code',
               isOutlined: true,
-              onTap: controller.sendCode,
+              onTap: controller.shareCode,
             ),
             28.verticalSpace,
             AppInputTextFormField(
               controller: controller.partnerCodeController,
               hintText: "Enter your partner's code",
               keyboardType: TextInputType.number,
+              maxLength: 8,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               prefixIcon: Icon(
                 Icons.vpn_key_outlined,
                 color: AppColor.hintText,
@@ -292,9 +403,12 @@ class _ConnectCodeStep extends GetView<ConnectWithPartnerController> {
               },
             ),
             28.verticalSpace,
-            GlobalButton(
-              text: 'Connect',
-              onTap: controller.connect,
+            Obx(
+              () => GlobalButton(
+                text: 'Connect',
+                onTap: controller.connect,
+                isLoading: controller.isConnecting.value,
+              ),
             ),
             24.verticalSpace,
           ],
