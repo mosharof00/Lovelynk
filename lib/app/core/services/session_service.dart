@@ -30,6 +30,9 @@ class SessionService extends GetxService with WidgetsBindingObserver {
   final Rxn<SessionBootstrap> bootstrap = Rxn<SessionBootstrap>();
 
   /// Pairing changes pushed by the server (realtime) or detected on refresh.
+  /// True when the latest [load] failed (offline / server error).
+  final lastLoadFailed = false.obs;
+
   final _coupleEvents = StreamController<CoupleEvent>.broadcast();
   Stream<CoupleEvent> get coupleEvents => _coupleEvents.stream;
 
@@ -88,10 +91,12 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     try {
       final data = await _userRepo.getSessionBootstrap();
       apply(data);
+      lastLoadFailed.value = false;
       unawaited(touch());
       _subscribeRealtime();
       return data;
     } on ApiException catch (e) {
+      lastLoadFailed.value = true;
       if (e.code == '42501') {
         await signOut();
         throw ApiException(e.message, code: ApiErrorCode.notAppAccount);
@@ -99,6 +104,9 @@ class SessionService extends GetxService with WidgetsBindingObserver {
       if (e.code == '28000' || e.code == 'PGRST301') {
         await signOut();
       }
+      rethrow;
+    } catch (_) {
+      lastLoadFailed.value = true;
       rethrow;
     }
   }
@@ -155,8 +163,6 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     await _clearLocal();
   }
 
-  /// Everything tied to the signed-in account, so the next account on this
-  /// device starts clean (app state, local subscription, home widgets).
   /// After the account was deleted on the server: the session is already
   /// invalid, so only local state is cleared.
   Future<void> onAccountDeleted() async {
@@ -171,8 +177,11 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     await _clearLocal();
   }
 
+  /// Everything tied to the signed-in account, so the next account on this
+  /// device starts clean (app state, local subscription, home widgets).
   Future<void> _clearLocal() async {
     bootstrap.value = null;
+    lastLoadFailed.value = false;
     setRecoveryPending(false);
     AvatarUrlCache.clear();
     if (Get.isRegistered<SubscriptionService>()) {

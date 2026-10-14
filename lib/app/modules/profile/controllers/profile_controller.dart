@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../core/network/handle_exceptions.dart';
 import '../../../core/services/app_settings_service.dart';
 import '../../../core/services/session_service.dart';
+import '../../../core/utils/couple_editor.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/helper_utils.dart';
 import '../../../core/utils/logger.dart';
@@ -25,6 +26,7 @@ class ProfileController extends GetxController {
   final isPaired = false.obs;
   final partnerName = ''.obs;
   final anniversary = ''.obs;
+  final nextVisit = ''.obs;
   final isDisconnecting = false.obs;
   Worker? _sessionWorker;
 
@@ -114,8 +116,21 @@ class ProfileController extends GetxController {
     partnerName.value = couple?.partner.displayName ?? '';
     final since = couple?.togetherSince;
     anniversary.value =
-        since == null ? 'Not set' : DateFormat('d MMM yyyy').format(since);
+        since == null ? 'Set date' : DateFormat('d MMM yyyy').format(since);
+
+    final visit = couple?.nextVisitAt?.toLocal();
+    final now = DateTime.now();
+    nextVisit.value =
+        visit == null || visit.isBefore(DateTime(now.year, now.month, now.day))
+            ? 'Set date'
+            : DateFormat('d MMM yyyy').format(visit);
   }
+
+  void onAnniversaryTap(BuildContext context) =>
+      CoupleEditor.editAnniversary(context);
+
+  void onNextVisitTap(BuildContext context) =>
+      CoupleEditor.nextVisitActions(context);
 
   Future<void> closeFadeInAnimate() async {
     await Future.delayed(Duration(seconds: 1));

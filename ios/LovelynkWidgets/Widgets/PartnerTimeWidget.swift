@@ -41,9 +41,17 @@ struct PartnerTimeProvider: TimelineProvider {
             WidgetKeys.globalLockMessage,
             default: "Locked"
         )
-        let offset = AppGroupStore.int(WidgetKeys.PartnerTime.utcOffsetHours, default: 10)
         let city = AppGroupStore.string(WidgetKeys.PartnerTime.city, default: "Sydney, Australia")
-        let clock = WidgetTimeMath.partnerClock(at: date, offsetHours: offset)
+        let clock: (hour: Int, minute: Int)
+        if let zone = TimeZone(identifier: AppGroupStore.string(WidgetKeys.PartnerTime.timezone)) {
+            clock = WidgetTimeMath.partnerClock(at: date, timeZone: zone)
+        } else {
+            let minutes = AppGroupStore.int(
+                WidgetKeys.PartnerTime.utcOffsetMinutes,
+                default: AppGroupStore.int(WidgetKeys.PartnerTime.utcOffsetHours, default: 10) * 60
+            )
+            clock = WidgetTimeMath.partnerClock(at: date, offsetMinutes: minutes)
+        }
         let formatted = WidgetTimeMath.format12Hour(hour: clock.hour, minute: clock.minute)
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.PartnerTime.widgetId)
 

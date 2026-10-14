@@ -13,6 +13,8 @@ class SupabaseRpc {
   static const cancelInvite = 'cancel_invite';
   static const acceptInvite = 'accept_invite';
   static const leaveCouple = 'leave_couple';
+  static const updateCouple = 'update_couple';
+  static const updatePartnerNickname = 'update_partner_nickname';
 
   // Profile & support
   static const updateMyProfile = 'update_my_profile';

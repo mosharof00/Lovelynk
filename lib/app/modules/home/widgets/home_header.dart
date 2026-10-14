@@ -25,7 +25,7 @@ class HomeHeader extends GetView<HomeController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppText(
-                    'Good morning,',
+                    controller.greeting.value,
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: AppColor.textSecondary,

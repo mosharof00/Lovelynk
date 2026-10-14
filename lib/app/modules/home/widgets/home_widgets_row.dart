@@ -26,53 +26,59 @@ class HomeWidgetsRow extends GetView<HomeController> {
     return Obx(() {
       final unlocked = subscription.state.value.isWidgetsUnlocked;
 
-      return SizedBox(
-        height: 110.h,
-        child: Row(
-          children: [
-            Expanded(
-              child: LoveWidgetCard(
-                title: daysDef.title,
-                isUnlocked: unlocked,
-                compact: true,
-                showFooter: false,
-                showLockIcon: false,
-                onAction: () => _openWidgetsOrPaywall(unlocked),
-                child: const DaysTogetherWidget(compact: true),
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _openWidgetsOrPaywall(unlocked),
+        child: SizedBox(
+          height: 110.h,
+          child: Row(
+            children: [
+              Expanded(
+                child: LoveWidgetCard(
+                  title: daysDef.title,
+                  isUnlocked: unlocked,
+                  compact: true,
+                  showFooter: false,
+                  showLockIcon: false,
+                  onAction: () => _openWidgetsOrPaywall(unlocked),
+                  child: const DaysTogetherWidget(compact: true),
+                ),
               ),
-            ),
-            8.horizontalSpace,
-            Expanded(
-              child: LoveWidgetCard(
-                title: kissDef.title,
-                isUnlocked: unlocked,
-                compact: true,
-                showFooter: false,
-                showLockIcon: false,
-                onAction: () => _openWidgetsOrPaywall(unlocked),
-                child: const KissWidget(compact: true),
+              8.horizontalSpace,
+              Expanded(
+                child: LoveWidgetCard(
+                  title: kissDef.title,
+                  isUnlocked: unlocked,
+                  compact: true,
+                  showFooter: false,
+                  showLockIcon: false,
+                  onAction: () => _openWidgetsOrPaywall(unlocked),
+                  child: const KissWidget(compact: true),
+                ),
               ),
-            ),
-            8.horizontalSpace,
-            Expanded(
-              child: LoveWidgetCard(
-                title: anniversaryDef.title,
-                isUnlocked: unlocked,
-                compact: true,
-                showFooter: false,
-                showLockIcon: false,
-                onAction: () => _openWidgetsOrPaywall(unlocked),
-                child: const AnniversaryWidget(compact: true),
+              8.horizontalSpace,
+              Expanded(
+                child: LoveWidgetCard(
+                  title: anniversaryDef.title,
+                  isUnlocked: unlocked,
+                  compact: true,
+                  showFooter: false,
+                  showLockIcon: false,
+                  onAction: () => _openWidgetsOrPaywall(unlocked),
+                  child: const AnniversaryWidget(compact: true),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     });
   }
 
   void _openWidgetsOrPaywall(bool unlocked) {
-    if (!unlocked) {
+    if (unlocked) {
+      controller.goWidgetsTab();
+    } else {
       Get.toNamed(Routes.SUBSCRIPTIONS);
     }
   }

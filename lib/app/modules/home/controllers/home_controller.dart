@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/couple_editor.dart';
+import '../../../core/utils/time_zone_utils.dart';
 import '../../../core/services/session_service.dart';
 import '../../../core/services/subscription_service.dart';
 import '../../../core/services/user_prefs_service.dart';
@@ -36,11 +39,19 @@ class HomeController extends GetxController {
   final distanceLabel = '0'.obs;
 
   String get distanceUnit => UserPrefsService.to.distanceUnit.value.shortLabel;
-  final daysTogether = '0'.obs;
-  final nextVisitDays = '--'.obs;
-  final partnerTime = '--'.obs;
-  final partnerCity = ''.obs;
+
+  final greeting = 'Hello,'.obs;
+
+  /// Null = no anniversary set.
+  final daysTogether = RxnInt();
+
+  /// Null = no upcoming visit; 0 = today.
+  final nextVisitInDays = RxnInt();
+  final partnerTime = RxnString();
+  final partnerCity = RxnString();
   final kissesSent = '0'.obs;
+
+  RxBool get isOffline => SessionService.to.lastLoadFailed;
   final affirmation =
       'Distance means so little when someone means so much.'.obs;
 
@@ -125,28 +136,63 @@ class HomeController extends GetxController {
     partnerName.value = couple?.partner.displayName ?? '';
     partnerAvatarPath.value = couple?.partner.avatarPath;
 
-    final since = couple?.togetherSince ?? couple?.createdAt;
-    daysTogether.value =
-        since == null ? '0' : '${DateTime.now().difference(since).inDays}';
-
-    final visit = couple?.nextVisitAt;
-    nextVisitDays.value = visit == null || visit.isBefore(DateTime.now())
-        ? '--'
-        : '${visit.difference(DateTime.now()).inDays}';
-
-    partnerCity.value = _widgetData.data.value.partnerCity;
-    _updatePartnerClock();
+    partnerCity.value =
+        TimeZoneUtils.cityFromTimezone(couple?.partner.timezone);
+    _updateClock();
   }
 
-  void _updatePartnerClock() {
-    final partner = SessionService.to.partner;
-    final offset = partner?.utcOffsetMinutes;
-    partnerTime.value = offset == null
-        ? '--'
-        : DateFormat('h:mm a').format(
-            DateTime.now().toUtc().add(Duration(minutes: offset)),
+  /// Day counts, partner clock and greeting; re-run every 30s so they roll
+  /// over at midnight without a reload.
+  void _updateClock() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final couple = SessionService.to.couple;
+
+    final since = couple?.togetherSince;
+    daysTogether.value = since == null
+        ? null
+        : today.difference(DateTime(since.year, since.month, since.day)).inDays;
+
+    final visit = couple?.nextVisitAt?.toLocal();
+    final visitDay =
+        visit == null ? null : DateTime(visit.year, visit.month, visit.day);
+    nextVisitInDays.value = visitDay == null || visitDay.isBefore(today)
+        ? null
+        : visitDay.difference(today).inDays;
+
+    final partner = couple?.partner;
+    final clock = partner == null
+        ? null
+        : TimeZoneUtils.wallClock(
+            timezone: partner.timezone,
+            utcOffsetMinutes: partner.utcOffsetMinutes,
           );
+    partnerTime.value =
+        clock == null ? null : DateFormat('h:mm a').format(clock);
+
+    greeting.value = switch (now.hour) {
+      >= 5 && < 12 => 'Good morning,',
+      >= 12 && < 17 => 'Good afternoon,',
+      >= 17 && < 22 => 'Good evening,',
+      _ => 'Hello,',
+    };
   }
+
+  Future<void> onRefresh() async {
+    final session = SessionService.to;
+    try {
+      await session.load();
+    } catch (e) {
+      Log.w('Home: refresh failed: $e');
+    }
+    _updateClock();
+  }
+
+  void editAnniversary(BuildContext context) =>
+      CoupleEditor.editAnniversary(context);
+
+  void editNextVisit(BuildContext context) =>
+      CoupleEditor.nextVisitActions(context);
 
   @override
   void onInit() {
@@ -165,7 +211,7 @@ class HomeController extends GetxController {
 
     _clockTimer = Timer.periodic(
       const Duration(seconds: 30),
-      (_) => _updatePartnerClock(),
+      (_) => _updateClock(),
     );
 
     loadUser();

@@ -35,6 +35,8 @@ class WidgetAppGroup {
 
   // ── Partner Time data keys ────────────────────────────────────────────────
   static const partnerTimeUtcOffsetHours = 'partner_time_utc_offset_hours';
+  static const partnerTimeUtcOffsetMinutes = 'partner_time_utc_offset_minutes';
+  static const partnerTimeTimezone = 'partner_time_timezone';
   static const partnerTimeCity = 'partner_time_city';
 
   // ── Together Counter data keys ──────────────────────────────────────────
@@ -71,6 +73,8 @@ class WidgetAppGroup {
     anniversaryDateLabel,
     anniversaryDaysToGo,
     partnerTimeUtcOffsetHours,
+    partnerTimeUtcOffsetMinutes,
+    partnerTimeTimezone,
     partnerTimeCity,
     togetherCounterSince,
     nextVisitTargetAt,

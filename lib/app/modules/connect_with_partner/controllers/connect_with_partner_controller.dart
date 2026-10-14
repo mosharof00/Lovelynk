@@ -206,6 +206,29 @@ class ConnectWithPartnerController extends GetxController {
     expiresLabel.value = current?.expiresLabel ?? '';
     if (current != null && current.isExpired) {
       _expiryTimer?.cancel();
+      if (currentStep.value == 2 && !_completed) loadInvite();
+    }
+  }
+
+  /// Replaces a still-valid code (e.g. it was shared with the wrong person).
+  Future<void> regenerateCode() async {
+    if (isLoadingInvite.value) return;
+    isLoadingInvite.value = true;
+    try {
+      await _coupleRepository.cancelInvite();
+      invite.value = await _coupleRepository.createInvite(
+        partnerNickname: partnerNameController.text,
+        togetherSince: anniversaryDate.value,
+      );
+      _startTimers();
+      globalSnackBar(
+        title: 'New code ready',
+        message: 'Your previous code no longer works.',
+      );
+    } catch (e) {
+      handleException(e, context: 'Regenerate invite');
+    } finally {
+      isLoadingInvite.value = false;
     }
   }
 

@@ -74,7 +74,10 @@ class _CompassDial extends StatelessWidget {
             height: ringSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: WidgetAccentScope.of(context), width: 1.5),
+              border: Border.all(
+                color: WidgetAccentScope.of(context),
+                width: 1.5,
+              ),
             ),
           ),
           Positioned(
@@ -207,6 +210,7 @@ class AnniversaryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final anniversary = _service.data.value.anniversary;
+      if (anniversary == null) return _NoDate(compact: compact);
       final day = DateFormat('d').format(anniversary);
       final month = DateFormat('MMM').format(anniversary);
       final year = DateFormat('yyyy').format(anniversary);
@@ -251,7 +255,7 @@ class AnniversaryWidget extends StatelessWidget {
   }
 
   /// Days until the next occurrence of this month/day.
-  int _daysToNext(DateTime date) {
+  static int _daysToNext(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     var next = DateTime(today.year, date.month, date.day);
@@ -259,5 +263,37 @@ class AnniversaryWidget extends StatelessWidget {
       next = DateTime(today.year + 1, date.month, date.day);
     }
     return next.difference(today).inDays;
+  }
+}
+
+class _NoDate extends StatelessWidget {
+  const _NoDate({required this.compact});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: compact ? MainAxisSize.max : MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.event_outlined,
+          size: compact ? 18.sp : 26.sp,
+          color: WidgetAccentScope.of(context),
+        ),
+        SizedBox(height: compact ? 4.h : 8.h),
+        AppText(
+          'Set date',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: compact ? 10.sp : 13.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColor.textSecondary,
+          ),
+        ),
+      ],
+    );
+    return compact ? SizedBox.expand(child: content) : content;
   }
 }

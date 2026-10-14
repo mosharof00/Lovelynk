@@ -1,3 +1,4 @@
+import '../../../core/utils/time_zone_utils.dart';
 import '../../../core/utils/weather_icon_mapper.dart';
 import '../user_models/session_bootstrap.dart';
 
@@ -50,7 +51,8 @@ class WidgetData {
     required this.partnerName,
     required this.distanceMiles,
     required this.togetherSince,
-    required this.partnerUtcOffsetHours,
+    required this.partnerTimezone,
+    required this.partnerUtcOffsetMinutes,
     required this.partnerCity,
     required this.partnerWeather,
     required this.nextVisit,
@@ -62,12 +64,19 @@ class WidgetData {
   final String userName;
   final String partnerName;
   final int distanceMiles;
-  final DateTime togetherSince;
-  final int partnerUtcOffsetHours;
+
+  /// Null until the couple sets their anniversary.
+  final DateTime? togetherSince;
+
+  /// IANA zone, e.g. "Australia/Sydney". Preferred over the offset.
+  final String? partnerTimezone;
+  final int partnerUtcOffsetMinutes;
   final String partnerCity;
   final PartnerWeather partnerWeather;
-  final DateTime nextVisit;
-  final DateTime anniversary;
+
+  /// Null when no visit is planned.
+  final DateTime? nextVisit;
+  final DateTime? anniversary;
   final double compassBearing;
   final int compassMiles;
 
@@ -77,46 +86,63 @@ class WidgetData {
   String get partnerInitial =>
       partnerName.isNotEmpty ? partnerName[0].toUpperCase() : '?';
 
-  int get daysTogether => DateTime.now().difference(togetherSince).inDays;
+  int? get daysTogether {
+    final since = togetherSince;
+    if (since == null) return null;
+    final now = DateTime.now();
+    return DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).difference(DateTime(since.year, since.month, since.day)).inDays;
+  }
 
+  /// Wall-clock time where the partner is (fields only; ignore isUtc).
   DateTime partnerTime(DateTime now) =>
-      now.toUtc().add(Duration(hours: partnerUtcOffsetHours));
+      TimeZoneUtils.wallClock(
+        timezone: partnerTimezone,
+        utcOffsetMinutes: partnerUtcOffsetMinutes,
+        at: now,
+      ) ??
+      now;
 
-  /// Real values from the session. Unpaired users get neutral defaults
-  /// (0 days, 0 miles, no partner). Distance, compass and weather stay at
-  /// defaults until the location / weather features are connected.
+  /// Real values from the session. Unpaired users and unset dates get
+  /// empty values so the UI can show "Set date". Distance, compass and
+  /// weather stay at defaults until those features are connected.
   factory WidgetData.fromSession(SessionBootstrap? session) {
     final now = DateTime.now();
     final couple = session?.couple;
     final partner = couple?.partner;
-    final togetherSince = couple?.togetherSince ?? couple?.createdAt ?? now;
-    final offsetMinutes =
-        partner?.utcOffsetMinutes ?? now.timeZoneOffset.inMinutes;
+    final visit = couple?.nextVisitAt;
 
     return WidgetData(
       userName: session?.user.firstName ?? '',
       partnerName: partner?.displayName ?? '',
       distanceMiles: 0,
-      togetherSince: togetherSince,
-      partnerUtcOffsetHours: (offsetMinutes / 60).round(),
-      partnerCity: _cityFromTimezone(partner?.timezone),
+      togetherSince: couple?.togetherSince,
+      partnerTimezone: partner?.timezone,
+      partnerUtcOffsetMinutes:
+          TimeZoneUtils.offsetMinutes(
+            partner?.timezone,
+            fallback: partner?.utcOffsetMinutes,
+          ) ??
+          now.timeZoneOffset.inMinutes,
+      partnerCity: TimeZoneUtils.cityFromTimezone(partner?.timezone) ?? '',
       partnerWeather: PartnerWeather.fromOpenWeather(
         temperature: 0,
         condition: '--',
         conditionId: 803,
         iconCode: '04d',
       ),
-      nextVisit: couple?.nextVisitAt ?? now,
-      anniversary: couple?.togetherSince ?? now,
+      nextVisit:
+          visit == null ||
+              visit.toLocal().isBefore(DateTime(now.year, now.month, now.day))
+          ? null
+          : visit,
+      anniversary: couple?.togetherSince,
       compassBearing: 0,
       compassMiles: 0,
     );
-  }
-
-  /// "Australia/Sydney" → "Sydney".
-  static String _cityFromTimezone(String? tz) {
-    if (tz == null || !tz.contains('/')) return '';
-    return tz.split('/').last.replaceAll('_', ' ');
   }
 
   factory WidgetData.mock() {
@@ -128,7 +154,8 @@ class WidgetData {
       togetherSince: now.subtract(
         const Duration(days: 76, hours: 3, minutes: 27, seconds: 9),
       ),
-      partnerUtcOffsetHours: 10,
+      partnerTimezone: 'Australia/Sydney',
+      partnerUtcOffsetMinutes: 600,
       partnerCity: 'Sydney, Australia',
       partnerWeather: PartnerWeather.fromOpenWeather(
         temperature: 22,
@@ -150,7 +177,8 @@ class WidgetData {
     String? partnerName,
     int? distanceMiles,
     DateTime? togetherSince,
-    int? partnerUtcOffsetHours,
+    String? partnerTimezone,
+    int? partnerUtcOffsetMinutes,
     String? partnerCity,
     PartnerWeather? partnerWeather,
     DateTime? nextVisit,
@@ -163,7 +191,9 @@ class WidgetData {
       partnerName: partnerName ?? this.partnerName,
       distanceMiles: distanceMiles ?? this.distanceMiles,
       togetherSince: togetherSince ?? this.togetherSince,
-      partnerUtcOffsetHours: partnerUtcOffsetHours ?? this.partnerUtcOffsetHours,
+      partnerTimezone: partnerTimezone ?? this.partnerTimezone,
+      partnerUtcOffsetMinutes:
+          partnerUtcOffsetMinutes ?? this.partnerUtcOffsetMinutes,
       partnerCity: partnerCity ?? this.partnerCity,
       partnerWeather: partnerWeather ?? this.partnerWeather,
       nextVisit: nextVisit ?? this.nextVisit,

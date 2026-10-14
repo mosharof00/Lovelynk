@@ -67,6 +67,13 @@ class ProfileView extends GetView<ProfileController> {
                           icon: Icons.calendar_today_outlined,
                           label: 'Our Anniversary',
                           value: controller.anniversary.value,
+                          onTap: () => controller.onAnniversaryTap(context),
+                        ),
+                        ProfileMenuItemData(
+                          icon: Icons.flight_takeoff_rounded,
+                          label: 'Next Visit',
+                          value: controller.nextVisit.value,
+                          onTap: () => controller.onNextVisitTap(context),
                         ),
                         ProfileMenuItemData(
                           icon: Icons.link_off_rounded,

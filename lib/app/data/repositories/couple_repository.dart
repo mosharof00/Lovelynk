@@ -26,6 +26,18 @@ abstract class ICoupleRepository {
 
   /// Disconnects from the partner. Returns the updated session.
   Future<SessionBootstrap> leaveCouple();
+
+  /// Null leaves a date unchanged; use the clear flags to remove one.
+  /// [nextVisit] is a calendar day (local midnight is sent).
+  Future<SessionBootstrap> updateCouple({
+    DateTime? togetherSince,
+    DateTime? nextVisit,
+    bool clearTogetherSince = false,
+    bool clearNextVisit = false,
+  });
+
+  /// The name I see for my partner; empty clears it.
+  Future<SessionBootstrap> updatePartnerNickname(String? nickname);
 }
 
 class CoupleRepository implements ICoupleRepository {
@@ -105,10 +117,40 @@ class CoupleRepository implements ICoupleRepository {
 
   @override
   Future<SessionBootstrap> leaveCouple() {
+    return _supabase.rpc(SupabaseRpc.leaveCouple, mapper: _bootstrap);
+  }
+
+  @override
+  Future<SessionBootstrap> updateCouple({
+    DateTime? togetherSince,
+    DateTime? nextVisit,
+    bool clearTogetherSince = false,
+    bool clearNextVisit = false,
+  }) {
+    final visitDay = nextVisit == null
+        ? null
+        : DateTime(nextVisit.year, nextVisit.month, nextVisit.day);
     return _supabase.rpc(
-      SupabaseRpc.leaveCouple,
-      mapper: (dynamic data) =>
-          SessionBootstrap.fromJson(Map<String, dynamic>.from(data as Map)),
+      SupabaseRpc.updateCouple,
+      params: {
+        'p_together_since': _date(togetherSince),
+        'p_next_visit_at': visitDay?.toUtc().toIso8601String(),
+        'p_clear_together_since': clearTogetherSince,
+        'p_clear_next_visit': clearNextVisit,
+      },
+      mapper: _bootstrap,
     );
   }
+
+  @override
+  Future<SessionBootstrap> updatePartnerNickname(String? nickname) {
+    return _supabase.rpc(
+      SupabaseRpc.updatePartnerNickname,
+      params: {'p_nickname': _text(nickname)},
+      mapper: _bootstrap,
+    );
+  }
+
+  static SessionBootstrap _bootstrap(dynamic data) =>
+      SessionBootstrap.fromJson(Map<String, dynamic>.from(data as Map));
 }

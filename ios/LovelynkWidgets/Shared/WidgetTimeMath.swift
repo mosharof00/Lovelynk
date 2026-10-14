@@ -15,6 +15,19 @@ enum WidgetTimeMath {
         return (totalMinutes / 60, totalMinutes % 60)
     }
 
+    /// Wall-clock time in an IANA zone (handles DST and :30/:45 offsets).
+    static func partnerClock(at date: Date, timeZone: TimeZone) -> (hour: Int, minute: Int) {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let parts = calendar.dateComponents([.hour, .minute], from: date)
+        return (parts.hour ?? 0, parts.minute ?? 0)
+    }
+
+    /// Fixed offset in minutes (fallback when the zone name is unknown).
+    static func partnerClock(at date: Date, offsetMinutes: Int) -> (hour: Int, minute: Int) {
+        partnerClock(at: date, timeZone: TimeZone(secondsFromGMT: offsetMinutes * 60) ?? TimeZone(secondsFromGMT: 0)!)
+    }
+
     static func format12Hour(hour: Int, minute: Int) -> (time: String, period: String) {
         let period = hour >= 12 ? "PM" : "AM"
         let hour12 = hour % 12 == 0 ? 12 : hour % 12

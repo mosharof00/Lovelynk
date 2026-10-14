@@ -56,9 +56,16 @@ class PartnerProfileView extends GetView<PartnerProfileController> {
               _InfoCard(
                 rows: [
                   _InfoRow(
+                    icon: Icons.edit_outlined,
+                    label: 'Your nickname for them',
+                    value: controller.nickname.value ?? 'Add',
+                    onTap: controller.editNickname,
+                  ),
+                  _InfoRow(
                     icon: Icons.favorite_border_rounded,
                     label: 'Together since',
-                    value: controller.togetherSince.value ?? 'Not set',
+                    value: controller.togetherSince.value ?? 'Set date',
+                    onTap: () => controller.editAnniversary(context),
                   ),
                   if (controller.daysTogether.value != null)
                     _InfoRow(
@@ -92,11 +99,13 @@ class _InfoRow {
     required this.icon,
     required this.label,
     required this.value,
+    this.onTap,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final VoidCallback? onTap;
 }
 
 class _InfoCard extends StatelessWidget {
@@ -114,42 +123,59 @@ class _InfoCard extends StatelessWidget {
       child: Column(
         children: [
           for (int i = 0; i < rows.length; i++) ...[
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36.w,
-                    height: 36.w,
-                    decoration: BoxDecoration(
-                      color: AppColor.primaryLight.withAlpha(150),
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                    child: Icon(
-                      rows[i].icon,
-                      size: 18.sp,
-                      color: AppColor.primary,
-                    ),
-                  ),
-                  14.horizontalSpace,
-                  Expanded(
-                    child: AppText(
-                      rows[i].label,
-                      style: context.bodyLarge.copyWith(
-                        color: AppColor.textPrimary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14.sp,
+            InkWell(
+              onTap: rows[i].onTap,
+              borderRadius: BorderRadius.circular(16.r),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36.w,
+                      height: 36.w,
+                      decoration: BoxDecoration(
+                        color: AppColor.primaryLight.withAlpha(150),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      child: Icon(
+                        rows[i].icon,
+                        size: 18.sp,
+                        color: AppColor.primary,
                       ),
                     ),
-                  ),
-                  AppText(
-                    rows[i].value,
-                    style: context.bodyMedium.copyWith(
-                      color: AppColor.textSecondary,
-                      fontSize: 13.sp,
+                    14.horizontalSpace,
+                    Expanded(
+                      child: AppText(
+                        rows[i].label,
+                        style: context.bodyLarge.copyWith(
+                          color: AppColor.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14.sp,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    AppText(
+                      rows[i].value,
+                      style: context.bodyMedium.copyWith(
+                        color:
+                            rows[i].onTap != null &&
+                                (rows[i].value == 'Add' ||
+                                    rows[i].value == 'Set date')
+                            ? AppColor.primary
+                            : AppColor.textSecondary,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                    if (rows[i].onTap != null) ...[
+                      4.horizontalSpace,
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20.sp,
+                        color: AppColor.hintText,
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             if (i != rows.length - 1)

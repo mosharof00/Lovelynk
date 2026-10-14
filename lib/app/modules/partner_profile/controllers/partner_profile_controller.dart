@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/services/session_service.dart';
+import '../../../core/utils/couple_editor.dart';
+import '../../../core/utils/time_zone_utils.dart';
 import '../../../data/models/user_models/session_bootstrap.dart';
 import '../../../routes/app_pages.dart';
 
@@ -46,29 +49,32 @@ class PartnerProfileController extends GetxController {
     avatarPath.value = partner.avatarPath;
 
     final since = couple.togetherSince;
-    togetherSince.value =
-        since == null ? null : DateFormat('d MMMM yyyy').format(since);
-    daysTogether.value =
-        since == null ? null : DateTime.now().difference(since).inDays;
+    togetherSince.value = since == null
+        ? null
+        : DateFormat('d MMMM yyyy').format(since);
+    daysTogether.value = since == null
+        ? null
+        : DateTime.now().difference(since).inDays;
 
-    city.value = _cityFromTimezone(partner.timezone);
+    city.value = TimeZoneUtils.cityFromTimezone(partner.timezone);
     _updateClock();
   }
 
   void _updateClock() {
-    final offset = SessionService.to.partner?.utcOffsetMinutes;
-    localTime.value = offset == null
+    final partner = SessionService.to.partner;
+    final clock = partner == null
         ? null
-        : DateFormat('h:mm a').format(
-            DateTime.now().toUtc().add(Duration(minutes: offset)),
+        : TimeZoneUtils.wallClock(
+            timezone: partner.timezone,
+            utcOffsetMinutes: partner.utcOffsetMinutes,
           );
+    localTime.value = clock == null ? null : DateFormat('h:mm a').format(clock);
   }
 
-  /// "America/New_York" → "New York".
-  static String? _cityFromTimezone(String? tz) {
-    if (tz == null || !tz.contains('/')) return null;
-    return tz.split('/').last.replaceAll('_', ' ');
-  }
+  void editNickname() => CoupleEditor.editNickname();
+
+  void editAnniversary(BuildContext context) =>
+      CoupleEditor.editAnniversary(context);
 
   @override
   void onClose() {

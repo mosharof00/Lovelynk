@@ -139,7 +139,7 @@ class WidgetSyncService extends GetxService {
       case AppWidgetType.daysTogether:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.daysTogetherCount,
-          '${d.daysTogether}',
+          '${d.daysTogether ?? 0}',
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.daysTogetherTitle,
@@ -171,19 +171,30 @@ class WidgetSyncService extends GetxService {
         );
         break;
       case AppWidgetType.anniversary:
+        final anniversary = d.anniversary;
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.anniversaryDateLabel,
-          DateFormat('d MMMM yyyy').format(d.anniversary),
+          anniversary == null
+              ? 'Set your date in LoveLynk'
+              : DateFormat('d MMMM yyyy').format(anniversary),
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.anniversaryDaysToGo,
-          '${_daysToNextAnniversary(d.anniversary)}',
+          anniversary == null ? '0' : '${_daysToNextAnniversary(anniversary)}',
         );
         break;
       case AppWidgetType.partnerTime:
         await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerTimeTimezone,
+          d.partnerTimezone ?? '',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerTimeUtcOffsetMinutes,
+          '${d.partnerUtcOffsetMinutes}',
+        );
+        await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerTimeUtcOffsetHours,
-          '${d.partnerUtcOffsetHours}',
+          '${(d.partnerUtcOffsetMinutes / 60).round()}',
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerTimeCity,
@@ -193,13 +204,13 @@ class WidgetSyncService extends GetxService {
       case AppWidgetType.togetherCounter:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.togetherCounterSince,
-          d.togetherSince.toUtc().toIso8601String(),
+          d.togetherSince?.toUtc().toIso8601String() ?? '',
         );
         break;
       case AppWidgetType.nextVisitCountdown:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.nextVisitTargetAt,
-          d.nextVisit.toUtc().toIso8601String(),
+          d.nextVisit?.toUtc().toIso8601String() ?? '',
         );
         break;
       case AppWidgetType.partnerWeather:

@@ -342,10 +342,34 @@ class _ConnectCodeStep extends GetView<ConnectWithPartnerController> {
                     ),
                   ),
                   8.verticalSpace,
-                  AppText(
-                    controller.expiresLabel.value,
-                    style: context.bodySmall.copyWith(color: AppColor.hintText),
-                    textAlign: TextAlign.center,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AppText(
+                        controller.expiresLabel.value,
+                        style: context.bodySmall.copyWith(
+                          color: AppColor.hintText,
+                        ),
+                      ),
+                      AppText(
+                        '  ·  ',
+                        style: context.bodySmall.copyWith(
+                          color: AppColor.hintText,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: controller.isLoadingInvite.value
+                            ? null
+                            : controller.regenerateCode,
+                        child: AppText(
+                          'New code',
+                          style: context.bodySmall.copyWith(
+                            color: AppColor.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               );

@@ -108,32 +108,26 @@ Already done in this round:
 
 *Why now:* most widgets depend on couple fields (`together_since`, `next_visit_at`, nickname). Those fields must be editable and must sync live before we add location and interactions.
 
-### 3.1 Backend
-- [ ] **[Dev]** Migration: add RPC `update_couple(p_together_since, p_next_visit_at)`.
-  - Validate dates in the **user's timezone**, not UTC. Today Australian users can be rejected for choosing "today".
-  - `next_visit_at` must be in the future, or null.
-  - Broadcast `couple.updated` to the partner.
-- [ ] **[Dev]** Migration: add RPC `update_partner_nickname(p_nickname)`. It broadcasts `couple.updated` to both partners.
-- [ ] **[Dev]** Revoke direct UPDATE grants on `couples` and `couple_members`, so every change goes through the RPCs and is broadcast.
-- [ ] **[Dev]** `accept_invite`: map the unique-index race error (`23505`) to a friendly `LK004`.
-- [ ] **[Dev]** Add a global, per-code attempt limit on `accept_invite` to block distributed guessing of invite codes.
+### 3.1 Backend (migration `couple_rpcs`)
+- [x] **[Dev]** RPC `update_couple(p_together_since, p_next_visit_at, p_clear_together_since, p_clear_next_visit)`.
+  - Dates are checked against the **user's own timezone** (`private.user_today`), so "today" works everywhere. If the zone is unknown it allows up to UTC+14.
+  - `next_visit_at` must be today or later (local), within 3 years; it can be cleared.
+  - Broadcasts `couple.updated` to the partner. Limited to 30 per hour.
+- [x] **[Dev]** RPC `update_partner_nickname(p_nickname)`. The nickname is private to the user, so it isn't broadcast.
+- [x] **[Dev]** Direct UPDATE grants and policies on `couples` and `couple_members` revoked; every change goes through the RPCs.
+- [x] **[Dev]** `accept_invite`: the pairing race (`23505`) now returns a friendly `LK004`.
+- [x] **[Dev]** Code-guessing limits on `accept_invite`: 20 wrong codes per user per day, plus a global breaker of 300 wrong codes per 10 minutes (`private.global_rate_limits`).
+- [x] **[Dev]** `touch_session` broadcasts `couple.updated` when the user's timezone changes, so the partner's clock updates.
 
 ### 3.2 App
-- [ ] **[Dev]** `SessionService`: handle `couple.updated` by calling `refresh()`.
-- [ ] **[Dev]** Edit anniversary (Profile → Our Anniversary) and set or edit next visit (Home card and Profile), with date pickers.
-- [ ] **[Dev]** Unpaired and "no date" states. Stop falling back to "now" for `togetherSince`, `nextVisit` and `anniversary`; show a "Set date" prompt instead.
-- [ ] **[Dev]** Connect screen:
-  - Automatically regenerate an expired code.
-  - Add a "Get a new code" button.
-  - Use `get_my_invite` when the step opens.
-  - Call `cancel_invite` when leaving unpaired.
-  - Optional: a universal link `https://lovelynk.io/join/{code}`.
-- [ ] **[Dev]** Home:
-  - Greeting based on the time of day.
-  - Pull-to-refresh.
-  - Error and offline banner.
-  - Tapping a widget preview when unlocked opens the Widgets tab.
-- [ ] **[Dev]** Partner Time: store and use the partner's **IANA timezone** (e.g. `Australia/Sydney`), not whole UTC hours. This fixes +5:30 and +5:45 offsets and daylight-saving changes.
+- [x] **[Dev]** `SessionService` refreshes on `couple.updated` (Phase 2).
+- [x] **[Dev]** Shared `CoupleEditor`: anniversary and next-visit date pickers (change or remove), nickname sheet. Used from Home, Profile (Our Anniversary, Next Visit) and Partner Profile.
+- [x] **[Dev]** "No date" states: `WidgetData` no longer falls back to "now"; the app shows "Set date" and the native widgets get empty values (Anniversary shows "Set your date in LoveLynk").
+- [x] **[Dev]** Connect screen: an expired code renews automatically, and there's a "New code" link. `create_invite` already reuses the open code when the step opens.
+  - Not done on purpose: cancelling the invite when leaving unpaired. People share the code and wait on Home, and pairing still notifies them there.
+  - Optional universal link `https://lovelynk.io/join/{code}` → later (needs the domain).
+- [x] **[Dev]** Home: time-of-day greeting, pull-to-refresh, an offline banner with Retry, a new "Our dates" card (days together, next visit, partner's local time), and tapping the widget previews opens the Widgets tab when unlocked.
+- [x] **[Dev]** Partner Time uses the IANA timezone (Dart `timezone` package in the app; `TimeZone(identifier:)` in the native widget with a minutes-offset fallback). This fixes +5:30 / +5:45 offsets and DST.
 
 **[Test]** When partner A edits the anniversary, partner B's app updates within about 1 second while open, or on next launch.
 
@@ -404,7 +398,7 @@ For all 12:
   - interactions older than 90 days (keep the totals);
   - notifications older than 90 days;
   - consumed or expired invites;
-  - `rate_limits` windows;
+  - `rate_limits` and `global_rate_limits` windows;
   - archived couples past `purge_after`;
   - stale push devices (90 days);
   - RevenueCat events (180 days);
