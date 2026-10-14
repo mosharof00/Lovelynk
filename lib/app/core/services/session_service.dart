@@ -15,6 +15,8 @@ import '../network/supabase/supabase_endpoints.dart';
 import 'local_store_service.dart';
 import '../utils/helper_utils.dart';
 import '../utils/logger.dart';
+import '../widgets/widget_sync_service.dart';
+import 'subscription_service.dart';
 
 enum CoupleEvent { paired, left }
 
@@ -152,9 +154,17 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     await _clearLocal();
   }
 
+  /// Everything tied to the signed-in account, so the next account on this
+  /// device starts clean (app state, local subscription, home widgets).
   Future<void> _clearLocal() async {
     bootstrap.value = null;
     setRecoveryPending(false);
+    if (Get.isRegistered<SubscriptionService>()) {
+      Get.find<SubscriptionService>().clear();
+    }
+    if (Get.isRegistered<WidgetSyncService>()) {
+      await Get.find<WidgetSyncService>().clearUserData();
+    }
     await HelperUtils.clearUser();
   }
 

@@ -2,6 +2,11 @@
 
 The goal is to make every screen and all 12 widgets run on real data, end to end. Follow the phases **in order**. Each phase depends on the ones before it. Inside a phase, do the steps top to bottom.
 
+**Scope for now:**
+- **iOS only.** Android is out of scope until further notice.
+- **One Supabase project** (`yvfolpaqchdmqdluprpo`) for everything. No separate dev or prod projects, no build flavours.
+- **Keep the foundation simple.** The custom REST/Dio fetching files stay in the project for possible later use.
+
 Every step is tagged with who does it:
 
 - **[Dev]** — code: Flutter, Swift, SQL or Edge Functions.
@@ -25,7 +30,6 @@ Every step is tagged with who does it:
 | Subscription / paywall | **Mock** — Hive flag; no RevenueCat, no StoreKit |
 | Profile: edit, avatar, settings, delete account, support | Placeholders or missing |
 | 12 iOS widgets (home + lock screen) | UI done; data partly real, partly mock; no interactivity; no refresh while the app is closed |
-| Android widgets | Not started |
 | Edge Functions, cron jobs | None exist; `pg_cron` and `pg_net` not installed |
 
 Already done in this round:
@@ -37,49 +41,36 @@ Already done in this round:
 
 ## Phase 1 — Foundation and cleanup
 
-*Why first:* every later phase builds on clean config, a correct logout, and no template leftovers.
+*Why first:* every later phase builds on a correct logout and a clean starting point. Kept deliberately light.
 
-### 1.1 Environment and configuration
-- [ ] **[Dev]** Move secrets and URLs out of `AppConfig` into `--dart-define-from-file`: `env/dev.json` and `env/prod.json`, both git-ignored, plus a committed `env/example.json`.
-- [ ] **[Dev]** Add `dev` and `prod` flavours on iOS (schemes) and Android (`productFlavors`), each pointing at its own Supabase project.
-- [ ] **[You]** Create a second Supabase project for **dev/staging**. Keep `yvfolpaqchdmqdluprpo` for production.
-- [ ] **[Dev]** Add the Supabase CLI setup: `supabase/config.toml`, `supabase/functions/`, and a `seed.sql` for local work.
+### 1.1 Configuration
+- [x] **[Dev]** Keep `AppConfig` as the single config file, pointing at the one Supabase project. No flavours, no env files.
+- [x] **[Dev]** Add a `supabase/functions/` folder for the Edge Functions in later phases.
 
-### 1.2 Remove template leftovers
-- [ ] **[Dev]** Delete the `products` module, `Routes.PRODUCTS`, `product_repository.dart`, `products_model.dart` and `product_layout.dart`.
-- [ ] **[Dev]** Delete the Dio stack (`api_client.dart`, `api_endpoints.dart`, `auth_interceptor.dart`) and the `ApiClient` registration.
-- [ ] **[Dev]** Delete the unused `AuthView`/`AuthController` placeholders and the unused global widgets listed in the audit.
-- [ ] **[Dev]** Clean up `HelperUtils`: remove the demo Pinterest avatar URLs, token and role statics, and the cart comments.
-- [ ] **[Dev]** Remove `WidgetData.mock()`, `WidgetsController.debugExpireTrial`, the commented `'meeza'` Firebase init, and `AppConfig.domainUrl`/`projectID`.
-- [ ] **[Dev]** Clean up `pubspec.yaml`:
-  - Fix the description.
-  - Move `flutter_lints` under `dev_dependencies` (it is currently mis-indented).
-  - Remove `dio`, `change_app_package_name`, `flutter_rating_bar`, `badges`, `google_nav_bar`, `flutter_staggered_grid_view` and `loading_animation_widget` if they are no longer used.
-- [ ] **[Dev]** Rename the module class `WidgetsBinding`, which clashes with Flutter's own `WidgetsBinding`.
+### 1.2 Light cleanup
+- [x] **[Dev]** Keep the custom REST/Dio fetching files (`api_client.dart`, `api_endpoints.dart`, `auth_interceptor.dart`, the `ApiClient` registration) and the other template files for possible later use.
+- [x] **[Dev]** Remove only what shows fake data or debug actions to users:
+  - the demo Pinterest avatar URLs in `HelperUtils` (replaced by real avatars in Phase 2);
+  - `WidgetsController.debugExpireTrial`.
+- [x] **[Dev]** Fix `pubspec.yaml`: move `flutter_lints` under `dev_dependencies` (it is currently mis-indented) and fix the description.
 
 ### 1.3 Session hygiene
-- [ ] **[Dev]** Write one `SessionService.resetAll()` that runs on logout, account deletion and unexpected sign-out. It must:
+- [x] **[Dev]** Reset everything on logout and unexpected sign-out, in `SessionService._clearLocal` (account deletion will reuse it in Phase 2). It must:
   - Delete every user-scoped controller: Home, MainPage, Profile, Widgets, Customise, Notifications, Activities and the summary screens.
   - Reset `WidgetDataService` and `SubscriptionService`. The Hive subscription keys currently leak to the next account.
   - Clear the App Group widget data, so the partner's name and location are no longer on the lock screen, then reload all widgets.
   - Keep the Supabase session key safe. `SecureStorageService.clearAll` currently wipes it too, so scope the clear to app keys only.
-- [ ] **[Dev]** Onboarding: set `setOnBoardShowed` so onboarding only appears on first install.
-- [ ] **[Dev]** Login when the user is not paired: go to Connect (`fromSignup: true`) instead of Home.
-- [ ] **[Dev]** Main page: switch to `IndexedStack` so tabs keep their state.
+- [x] **[Dev]** Onboarding: set `setOnBoardShowed` so onboarding only appears on first install.
+- [x] **[Dev]** Login when the user is not paired: go to Connect (`fromSignup: true`) instead of Home.
+- [x] **[Dev]** Main page: switch to `IndexedStack` so tabs keep their state.
 
-### 1.4 App gate from `app_settings`
-- [ ] **[Dev]** At Splash, read the public keys `min_ios_version`, `maintenance_mode`, `maintenance_message`, `terms_url`, `privacy_url` and `support_email`.
-- [ ] **[Dev]** Add a force-update screen and a maintenance screen.
+### 1.4 Links from `app_settings`
+- [x] **[Dev]** Read the public keys `terms_url`, `privacy_url` and `support_email` from `app_settings`, and use them for the Terms, Privacy and Contact links.
 - [ ] **[You]** Host the Terms and Privacy pages (for example `lovelynk.io/terms` and `/privacy`) and set their URLs in `app_settings`.
-
-### 1.5 Observability
-- [ ] **[You]** Create a Firebase project "LoveLynk". It is needed again in Phase 6. Add an iOS app `com.lovelynk.ios` and an Android app (final package from Phase 9).
-- [ ] **[Dev]** Add Firebase Crashlytics, or Sentry if you prefer, plus basic analytics events: signup, paired, interaction sent, paywall view, purchase.
 
 **[Test]**
 - A clean install shows onboarding once.
 - Logout then login as a different user shows no old data, either in the app or in the widgets.
-- The dev and prod builds talk to different Supabase projects.
 
 ---
 
@@ -190,7 +181,7 @@ Already done in this round:
   - Move the pre-prompt from Splash to **after pairing**, or to the first Home visit.
   - Handle "denied forever" with a link to Settings.
   - Ask for "Always" later, separately, with a clear explanation.
-- [ ] **[Dev]** iOS background: add `UIBackgroundModes: location` and start significant-change monitoring when "Always" is granted. Android: a foreground service only if we decide to support background tracking there.
+- [ ] **[Dev]** iOS background: add `UIBackgroundModes: location` and start significant-change monitoring when "Always" is granted.
 - [ ] **[Dev]** Reverse geocoding for `city`/`country_code` (the `geocoding` package, on device).
 - [ ] **[Dev]** `CompassService`: replace the hard-coded Sydney coordinates with the partner snapshot. Calculate bearing and distance from real coordinates, in the user's chosen unit.
 - [ ] **[Dev]** Home distance card and the Partner Distance widget data: real distance, plus a "last updated" label and a "location paused" state.
@@ -228,11 +219,12 @@ Already done in this round:
 *Why before interactions:* sending a heartbeat, kiss or emoji is useless unless the partner gets a push, and widgets can only refresh while the app is closed through push.
 
 ### 6.1 Configuration
+- [ ] **[You]** Create a Firebase project "LoveLynk" with one iOS app, `com.lovelynk.ios`.
 - [ ] **[You]** Apple Developer:
   - Create an **APNs Auth Key (.p8)** and upload it to Firebase Cloud Messaging.
   - Turn on Push Notifications for `com.lovelynk.ios`.
   - Regenerate the provisioning profiles.
-- [ ] **[You]** Download `GoogleService-Info.plist` (and `google-services.json` for Android) and share them securely.
+- [ ] **[You]** Download `GoogleService-Info.plist` and share it securely.
 - [ ] **[You]** Create a Firebase service account JSON and add it as the Supabase secret `FIREBASE_SERVICE_ACCOUNT`.
 - [ ] **[Dev]** Xcode setup:
   - `aps-environment` entitlement.
@@ -379,8 +371,6 @@ For all 12:
   - Add the iOS app and the IAP key.
   - Entitlement `plus`; offering `default` with the monthly and yearly packages.
   - Webhook URL set to the Supabase Edge Function, with an auth header (`REVENUECAT_WEBHOOK_AUTH` secret).
-- [ ] **[You]** Google Play Console products, when Android ships.
-
 ### 9.2 Backend
 - [ ] **[Dev]** Edge Function `revenuecat-webhook`. It:
   - checks the auth header and skips duplicate events (idempotent on `event_id`);
@@ -444,33 +434,20 @@ For all 12:
 
 ---
 
-## Phase 11 — Android parity
-
-*Do this only once iOS is feature-complete. Decide the scope first.*
-
-- [ ] **[You]** Decide the final Android package: keep `com.lovelynk.app` or switch to `com.lovelynk.android`. Then create the Play Console app and the **upload keystore**.
-- [ ] **[Dev]** Release signing config (it currently uses the debug key). Add the `INTERNET` and `POST_NOTIFICATIONS` permissions, a deep-link intent filter for `lovelynk://`, and the FCM `google-services.json`.
-- [ ] **[Dev]** Android home-screen widgets for all 12, using Jetpack Glance and reading the same `home_widget` keys. Pass `androidName` in `HomeWidget.updateWidget`.
-- [ ] **[Dev]** Location: a foreground service only if we support background tracking on Android.
-- [ ] **[Dev]** RevenueCat with Play Billing products.
-
----
-
-## Phase 12 — QA, compliance and release
+## Phase 11 — QA, compliance and release
 
 - [ ] **[Dev]** Tests:
   - Unit tests for location gating, distance and bearing, and the widget data builders.
-  - Repository tests against a local Supabase.
   - A two-device end-to-end checklist: pairing, interactions, location, push, purchase.
 - [ ] **[Dev]** Localisation-ready strings, and accessibility (Dynamic Type, VoiceOver labels on widgets).
 - [ ] **[Dev]** Performance: app start under 2 seconds, no rebuild storms in `Obx`, image caching.
-- [ ] **[You]** App Store privacy labels: email, name, precise location, user content (interactions), purchases, identifiers (FCM), crash data.
+- [ ] **[You]** App Store privacy labels: email, name, precise location, user content (interactions), purchases, identifiers (FCM).
 - [ ] **[You]** App Review notes:
   - A demo couple: two test accounts that are already paired.
   - The location justification.
   - Where to find account deletion.
 - [ ] **[You]** Store listing: screenshots of the widgets and lock screen, the description, keywords, and the support URL.
-- [ ] **[Dev]** Release pipeline: version bump, `flutter build ipa --flavor prod`, TestFlight, then the production release.
+- [ ] **[Dev]** Release pipeline: version bump, `flutter build ipa`, TestFlight, then the production release.
 
 ---
 
@@ -478,20 +455,18 @@ For all 12:
 
 | When | Item |
 |---|---|
-| Phase 1 | Dev Supabase project · Terms/Privacy pages hosted · Firebase project |
+| Phase 1 | Terms/Privacy pages hosted |
 | Phase 4 | Location usage text and privacy label |
 | Phase 5 | OpenWeather API key → Supabase secret |
-| Phase 6 | APNs .p8 key → Firebase · Push capability · `GoogleService-Info.plist` / `google-services.json` · Firebase service account → Supabase secret |
+| Phase 6 | Firebase project (iOS app) · APNs .p8 key → Firebase · Push capability · `GoogleService-Info.plist` · Firebase service account → Supabase secret |
 | Phase 8 | Keychain Sharing capability on both targets · regenerate profiles |
 | Phase 9 | Paid Apps agreement · subscription products + trials · IAP key · RevenueCat project, entitlement, offering, webhook secret |
 | Phase 10 | Leaked-password protection · Resend SMTP + GoDaddy DNS (SPF/DKIM/DMARC) · Realtime private-only · admin panel hosting |
-| Phase 11 | Android package decision · Play Console · upload keystore · Play products |
-| Phase 12 | Privacy labels · review demo accounts · store listing |
+| Phase 11 | Privacy labels · review demo accounts · store listing |
 
 ## Decisions needed before their phase
 
 1. **Background location (Phase 4):** start with "while using" plus iOS significant-change, or go straight to "Always" continuous tracking?
 2. **Interactive widgets (Phase 8):** is iOS 17+ one-tap send required? On iOS 16 it would open the app instead.
 3. **What is free and what is Plus (Phase 9):** which widgets and features are free?
-4. **Android scope (Phase 11):** do we ship Android at the same launch or later?
-5. **Sign in with Apple / Google:** not planned. If you add a third-party login later, Apple requires Sign in with Apple too.
+4. **Sign in with Apple / Google:** not planned. If you add a third-party login later, Apple requires Sign in with Apple too.

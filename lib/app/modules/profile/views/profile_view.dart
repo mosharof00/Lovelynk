@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../core/utils/partner_guard.dart';
 import '../controllers/profile_controller.dart';
@@ -111,18 +112,21 @@ class ProfileView extends GetView<ProfileController> {
             ProfileMenuSection(
               title: 'Support',
               titleColor: AppColor.textSecondary,
-              items: const [
+              items: [
                 ProfileMenuItemData(
                   icon: Icons.mail_outline_rounded,
                   label: 'Contact Us',
+                  onTap: AppSettingsService.to.contactSupport,
                 ),
                 ProfileMenuItemData(
                   icon: Icons.verified_user_outlined,
                   label: 'Privacy Policy',
+                  onTap: AppSettingsService.to.openPrivacy,
                 ),
                 ProfileMenuItemData(
                   icon: Icons.description_outlined,
                   label: 'Terms of Use',
+                  onTap: AppSettingsService.to.openTerms,
                 ),
               ],
             ),

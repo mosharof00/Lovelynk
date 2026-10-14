@@ -43,7 +43,12 @@ class SecureStorageService {
   Future<void> deleteUserRole() async => await _storage.delete(key: _userRoleKey);
 
   // -----------------------------
-  // Clear all user data
+  // Clear this service's keys only. The Supabase session lives in the same
+  // keychain and is managed by Supabase Auth.
   // -----------------------------
-  Future<void> clearAll() async => await _storage.deleteAll();
+  Future<void> clearAll() async {
+    await deleteUserID();
+    await deleteToken();
+    await deleteUserRole();
+  }
 }

@@ -41,6 +41,13 @@ class LoginController extends GetxController {
         password: passwordController.text,
       );
       await SessionService.to.load();
+      if (!SessionService.to.isPaired) {
+        Get.offAllNamed(
+          Routes.CONNECT_WITH_PARTNER,
+          arguments: {'fromSignup': true},
+        );
+        return;
+      }
       await HelperUtils.initMainControllers();
       Get.offAllNamed(Routes.MAIN_PAGE);
     } on ApiException catch (e) {

@@ -21,11 +21,6 @@ class ProfileController extends GetxController {
   final partnerName = ''.obs;
   final anniversary = ''.obs;
   final isDisconnecting = false.obs;
-  final language = 'English'.obs;
-  final locationPermission = 'Always'.obs;
-  final syncStatus = 'All Good'.obs;
-  final avatarUrl = HelperUtils.demoProfileImage.obs;
-
   Worker? _sessionWorker;
 
   void onProfileTap() {

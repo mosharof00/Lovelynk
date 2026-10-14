@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/handle_exceptions.dart';
 import '../../../core/services/compass_service.dart';
+import '../../../core/services/local_store_service.dart';
 import '../../../core/services/session_service.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../core/utils/helper_utils.dart';
@@ -62,7 +63,8 @@ class SplashController extends GetxController {
   Future<void> navigateToScreen() async {
     final session = SessionService.to;
     if (!session.hasSession) {
-      Get.offAllNamed(Routes.ONBOARDING);
+      final onboarded = await HiveService.getOnBoardShowed();
+      Get.offAllNamed(onboarded ? Routes.LOGIN : Routes.ONBOARDING);
       return;
     }
 

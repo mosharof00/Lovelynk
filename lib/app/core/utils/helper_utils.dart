@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:bulkretail/app/modules/home/controllers/home_controller.dart';
 import 'package:get/get.dart';
 
+import '../../modules/color_customise/controllers/color_customise_controller.dart';
 import '../../modules/main_page/controllers/main_page_controller.dart';
+import '../../modules/profile/controllers/profile_controller.dart';
+import '../../modules/widgets/controllers/widgets_controller.dart';
 import '../../routes/app_pages.dart';
 import '../services/local_store_service.dart';
 import '../widgets/widget_sync_service.dart';
@@ -17,15 +20,6 @@ class HelperUtils {
   /// Default currency symbol
   static String currencySymbol = "\$";
 
-
-  static String defaultProfileImage =
-      "https://i.pinimg.com/474x/18/b5/b5/18b5b599bb873285bd4def283c0d3c09.jpg";
-
-  static String demoProfileImage =
-      "https://i.pinimg.com/736x/43/8a/28/438a28f0b12098c4cc1516ffb0378ccf.jpg";
-
-  static String partnerDemoProfileImage =
-      "https://i.pinimg.com/736x/37/91/d2/3791d2137100a90bc9c43fae58a27032.jpg";
 
   static bool isOnboard = false;
   static bool isLoggedIn = false;
@@ -130,10 +124,9 @@ class HelperUtils {
     // Permanent from initMainControllers; must go so the next account
     // doesn't see the previous user's data.
     Get.delete<HomeController>(force: true);
-
-    // if (Get.isRegistered<CartController>()) {
-    //   Get.delete<CartController>(force: true);
-    // }
+    Get.delete<WidgetsController>(force: true);
+    Get.delete<ColorCustomiseController>(force: true);
+    Get.delete<ProfileController>(force: true);
   }
 
   static Future<void> navigateToOrder() async {

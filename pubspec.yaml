@@ -1,5 +1,5 @@
 name: bulkretail
-description: "A new Flutter boilerplate with getX & cli project"
+description: "LoveLynk — couples app with home and lock screen widgets."
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -54,16 +54,12 @@ dev_dependencies:
     sdk: flutter
 
   flutter_launcher_icons: "^0.14.4"
+  flutter_lints: ^6.0.0
 
 flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
   image_path: "assets/logos/app_icon.png"
-
-
-
-  flutter_lints: ^6.0.0
-
 
 
 # The following section is specific to Flutter packages.

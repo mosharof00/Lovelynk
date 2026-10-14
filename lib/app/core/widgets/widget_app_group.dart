@@ -58,4 +58,31 @@ class WidgetAppGroup {
   static const heartbeatCount = 'heartbeat_count';
   static const kissCount = 'kiss_count';
   static const emojiRecent = 'emoji_recent';
+
+  /// Every per-user data key (styles are device preferences and are kept).
+  static const dataKeys = [
+    daysTogetherCount,
+    daysTogetherTitle,
+    initialsUser,
+    initialsPartner,
+    partnerDistanceMiles,
+    partnerDistanceUser,
+    partnerDistancePartner,
+    anniversaryDateLabel,
+    anniversaryDaysToGo,
+    partnerTimeUtcOffsetHours,
+    partnerTimeCity,
+    togetherCounterSince,
+    nextVisitTargetAt,
+    partnerWeatherTemperature,
+    partnerWeatherCondition,
+    partnerWeatherCity,
+    partnerWeatherIconKey,
+    loveCompassMiles,
+    loveCompassPartnerLabel,
+    loveCompassNeedleDegrees,
+    heartbeatCount,
+    kissCount,
+    emojiRecent,
+  ];
 }

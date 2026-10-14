@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import 'app/core/config/app_config.dart';
 import 'app/core/network/supabase/supabase_service.dart';
+import 'app/core/services/app_settings_service.dart';
 import 'app/core/services/compass_service.dart';
 import 'app/core/services/local_store_service.dart';
 import 'app/core/services/session_service.dart';
@@ -32,6 +33,7 @@ void main() async {
   // Supabase after Hive: SecureSessionStorage reads an install marker from Hive.
   await Get.putAsync<SupabaseService>(SupabaseService.init, permanent: true);
   Get.put<SessionService>(SessionService().init(), permanent: true);
+  Get.put<AppSettingsService>(AppSettingsService().init(), permanent: true);
 
   Get.put<SubscriptionService>(SubscriptionService(), permanent: true);
   Get.put<WidgetDataService>(WidgetDataService().init(), permanent: true);

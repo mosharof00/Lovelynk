@@ -98,7 +98,4 @@ class WidgetsController extends GetxController {
   }
 
   void onUnlockTap() => Get.toNamed(Routes.SUBSCRIPTIONS);
-
-  /// Dev helper: expire trial to preview locked UI.
-  void debugExpireTrial() => _subscription.expireTrial();
 }

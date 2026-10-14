@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:bulkretail/app/core/utils/helper_utils.dart';
-import 'package:bulkretail/app/global/widgets/cached_image.dart';
+import 'package:bulkretail/app/global/widgets/initials_avatar.dart';
 import 'package:bulkretail/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -98,8 +97,8 @@ class PartnerDistanceCard extends GetView<HomeController> {
                     top: size.height * _ArcGeom.endY - 26.w,
                     child: _AvatarSlot(
                       label: 'You',
+                      name: controller.userName.value,
                       showAdd: false,
-                      imageUrl: HelperUtils.demoProfileImage,
                     ),
                   ),
                   Positioned(
@@ -109,11 +108,9 @@ class PartnerDistanceCard extends GetView<HomeController> {
                       label: connected
                           ? controller.partnerName.value
                           : 'Add Partner',
+                      name: connected ? controller.partnerName.value : '',
                       showAdd: !connected,
                       onTap: connected ? null : controller.goConnectPartner,
-                      imageUrl: connected
-                          ? HelperUtils.partnerDemoProfileImage
-                          : null,
                     ),
                   ),
                 ],
@@ -158,7 +155,7 @@ class _LockedChip extends StatelessWidget {
           Icon(Icons.lock_rounded, size: 14.sp, color: AppColor.textPrimary),
           4.horizontalSpace,
           AppText(
-            'km',
+            'mi',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w600,
@@ -221,15 +218,15 @@ class _DistanceChip extends StatelessWidget {
 class _AvatarSlot extends StatelessWidget {
   const _AvatarSlot({
     required this.label,
+    required this.name,
     required this.showAdd,
     this.onTap,
-    this.imageUrl,
   });
 
   final String label;
+  final String name;
   final bool showAdd;
   final VoidCallback? onTap;
-  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -253,22 +250,7 @@ class _AvatarSlot extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: imageUrl != null
-                    ? CachedImage(
-                        imgUrl: imageUrl!,
-                        height: 52.w,
-                        width: 52.w,
-                        borderRadius: 50.r,
-                      )
-                    : CircleAvatar(
-                        radius: 26.r,
-                        backgroundColor: AppColor.primaryLight,
-                        child: Icon(
-                          Icons.person_rounded,
-                          color: AppColor.primary.withValues(alpha: 0.7),
-                          size: 26.sp,
-                        ),
-                      ),
+                child: InitialsAvatar(name: name, size: 52.w),
               ),
               if (showAdd)
                 Positioned(

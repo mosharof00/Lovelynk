@@ -1,6 +1,6 @@
 import 'package:bulkretail/app/core/config/app_config.dart';
 import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
-import 'package:bulkretail/app/core/utils/url_launcher.dart';
+import 'package:bulkretail/app/core/services/app_settings_service.dart';
 import 'package:bulkretail/app/global/widgets/app_svg_icon.dart';
 import 'package:bulkretail/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
@@ -596,9 +596,7 @@ class _BottomCta extends StatelessWidget {
                   children: [
                     _LegalLink(
                       label: 'Terms of Use',
-                      onTap: () => UrlLauncher.url(
-                        'https://flutter.pixelstack.cloud/terms',
-                      ),
+                      onTap: AppSettingsService.to.openTerms,
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -612,9 +610,7 @@ class _BottomCta extends StatelessWidget {
                     ),
                     _LegalLink(
                       label: 'Privacy Policy',
-                      onTap: () => UrlLauncher.url(
-                        'https://flutter.pixelstack.cloud/privacy',
-                      ),
+                      onTap: AppSettingsService.to.openPrivacy,
                     ),
                   ],
                 ),

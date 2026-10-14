@@ -1,4 +1,3 @@
-import 'package:bulkretail/app/core/utils/helper_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -6,7 +5,7 @@ import 'package:get/get.dart';
 import '../../../core/extensions/text_style_extension.dart';
 import '../../../core/services/subscription_service.dart';
 import '../../../core/theme/app_color.dart';
-import '../../../global/widgets/cached_image.dart';
+import '../../../global/widgets/initials_avatar.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileHeader extends GetView<ProfileController> {
@@ -30,11 +29,9 @@ class ProfileHeader extends GetView<ProfileController> {
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
             child: Row(
               children: [
-                CachedImage(
-                  imgUrl: HelperUtils.demoProfileImage,
-                  height: 70.w,
-                  width: 70.w,
-                  borderRadius: 50.r,
+                InitialsAvatar(
+                  name: controller.userName.value,
+                  size: 70.w,
                 ),
                 14.horizontalSpace,
                 Expanded(
