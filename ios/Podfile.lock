@@ -1,6 +1,8 @@
 PODS:
   - app_links (7.0.0):
     - Flutter
+  - device_info_plus (0.0.1):
+    - Flutter
   - emoji_picker_flutter (0.0.1):
     - Flutter
   - Flutter (1.0.0)
@@ -17,6 +19,8 @@ PODS:
   - home_widget (0.0.1):
     - Flutter
   - image_picker_ios (0.0.1):
+    - Flutter
+  - in_app_review (2.0.0):
     - Flutter
   - package_info_plus (0.4.5):
     - Flutter
@@ -35,6 +39,7 @@ PODS:
 
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - emoji_picker_flutter (from `.symlinks/plugins/emoji_picker_flutter/ios`)
   - Flutter (from `Flutter`)
   - flutter_compass (from `.symlinks/plugins/flutter_compass/ios`)
@@ -43,6 +48,7 @@ DEPENDENCIES:
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - home_widget (from `.symlinks/plugins/home_widget/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - rive_native (from `.symlinks/plugins/rive_native/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
@@ -53,6 +59,8 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   app_links:
     :path: ".symlinks/plugins/app_links/ios"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   emoji_picker_flutter:
     :path: ".symlinks/plugins/emoji_picker_flutter/ios"
   Flutter:
@@ -69,6 +77,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/home_widget/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
+  in_app_review:
+    :path: ".symlinks/plugins/in_app_review/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   rive_native:
@@ -84,6 +94,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_links: a754cbec3c255bd4bbb4d236ecc06f28cd9a7ce8
+  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   emoji_picker_flutter: ece213fc274bdddefb77d502d33080dc54e616cc
   Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   flutter_compass: b236ab69b61545cce89fd58527f401a7587d5cc1
@@ -92,6 +103,7 @@ SPEC CHECKSUMS:
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   home_widget: 54b4f6b36ed8d64cfee594a476225c35c3e45091
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
+  in_app_review: 7dd1ea365263f834b8464673f9df72c80c17c937
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   rive_native: c8fbe631855835dc84f7d59befcdb43de3ac48d4
   share_plus: eccd7beb7cea61271aeed1800e8ccb2b952c0c7f

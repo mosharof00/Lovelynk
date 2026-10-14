@@ -14,9 +14,13 @@ class CachedImage extends StatelessWidget {
     this.fit,
     this.borderRadius,
     this.specificBorderRadius,
+    this.cacheKey,
   });
 
   final String imgUrl;
+
+  /// Stable disk-cache key for URLs that change (e.g. signed URLs).
+  final String? cacheKey;
   final double? height;
   final double? width;
   final BoxFit? fit;
@@ -48,6 +52,7 @@ class CachedImage extends StatelessWidget {
   Widget _cachedImage() {
     return CachedNetworkImage(
       imageUrl: imgUrl,
+      cacheKey: cacheKey,
       width: width,
       height: height,
       fit: fit ?? BoxFit.cover,

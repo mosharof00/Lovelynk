@@ -1,12 +1,16 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/network/handle_exceptions.dart';
+import '../../../core/services/app_settings_service.dart';
 import '../../../core/services/session_service.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/helper_utils.dart';
+import '../../../core/utils/logger.dart';
+import '../../../global/widgets/global_snackbar.dart';
 import '../../../data/models/user_models/session_bootstrap.dart';
 import '../../../data/repositories/couple_repository.dart';
 import '../../../routes/app_pages.dart';
@@ -17,22 +21,44 @@ class ProfileController extends GetxController {
   bool isFadeInAnimate = true;
 
   final userName = ''.obs;
+  final avatarPath = RxnString();
   final isPaired = false.obs;
   final partnerName = ''.obs;
   final anniversary = ''.obs;
   final isDisconnecting = false.obs;
   Worker? _sessionWorker;
 
-  void onProfileTap() {
-    // TODO: open edit profile
-  }
+  void onProfileTap() => Get.toNamed(Routes.EDIT_PROFILE);
+
+  void onPartnerProfileTap() => Get.toNamed(Routes.PARTNER_PROFILE);
+
+  void onSettingsTap() => Get.toNamed(Routes.SETTINGS);
+
+  void onContactUsTap() => Get.toNamed(Routes.CONTACT_US);
 
   void onReferTap() {
-    // TODO: open referral
+    // TODO(Phase 9): referral / share invite
   }
 
-  void onRateTap() {
-    // TODO: open App Store rating
+  Future<void> onRateTap() async {
+    final review = InAppReview.instance;
+    try {
+      if (await review.isAvailable()) {
+        await review.requestReview();
+        return;
+      }
+    } catch (e) {
+      Log.w('Rate: requestReview failed: $e');
+    }
+    final appStoreId = AppSettingsService.to.appStoreId;
+    if (appStoreId != null) {
+      await review.openStoreListing(appStoreId: appStoreId);
+    } else {
+      globalSnackBar(
+        title: 'Not available yet',
+        message: 'Rating will be available once LoveLynk is on the App Store.',
+      );
+    }
   }
 
   void onInvitePartnerTap() => Get.toNamed(Routes.CONNECT_WITH_PARTNER);
@@ -83,6 +109,7 @@ class ProfileController extends GetxController {
   void _applySession(SessionBootstrap? data) {
     final couple = data?.couple;
     userName.value = data?.user.fullName ?? '';
+    avatarPath.value = data?.user.avatarPath;
     isPaired.value = couple != null;
     partnerName.value = couple?.partner.displayName ?? '';
     final since = couple?.togetherSince;

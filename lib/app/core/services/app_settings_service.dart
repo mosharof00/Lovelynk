@@ -16,6 +16,7 @@ class AppSettingsService extends GetxService {
   String? get termsUrl => _string('terms_url');
   String? get privacyUrl => _string('privacy_url');
   String? get supportEmail => _string('support_email');
+  String? get appStoreId => _string('app_store_id');
 
   AppSettingsService init() {
     load();

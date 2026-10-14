@@ -83,6 +83,24 @@ class ApiException implements Exception {
       return ApiException(_postgrestMessage(error), code: error.code);
     }
 
+    if (error is StorageException) {
+      return ApiException(
+        'Upload failed. Please try again.',
+        statusCode: int.tryParse(error.statusCode ?? ''),
+      );
+    }
+
+    if (error is FunctionException) {
+      final details = error.details;
+      final message = details is Map ? details['error'] : null;
+      return ApiException(
+        message is String && message.isNotEmpty
+            ? message
+            : 'Something went wrong. Please try again.',
+        statusCode: error.status,
+      );
+    }
+
     return ApiException('Something went wrong. Please try again.');
   }
 

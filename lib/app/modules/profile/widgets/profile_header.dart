@@ -31,6 +31,7 @@ class ProfileHeader extends GetView<ProfileController> {
               children: [
                 InitialsAvatar(
                   name: controller.userName.value,
+                  avatarPath: controller.avatarPath.value,
                   size: 70.w,
                 ),
                 14.horizontalSpace,

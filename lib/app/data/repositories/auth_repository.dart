@@ -49,6 +49,12 @@ abstract class IAuthRepository {
   /// Requires the session from a verified recovery code.
   Future<void> updatePassword(String newPassword);
 
+  /// Signed-in password change; the current password is checked first.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
   Future<void> signOut();
 }
 
@@ -162,6 +168,26 @@ class AuthRepository implements IAuthRepository {
       (_) {},
       'Update password',
     );
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final email = _auth.currentUser?.email;
+    if (email == null) {
+      throw ApiException('Please sign in again to change your password.');
+    }
+    try {
+      await signIn(email: email, password: currentPassword);
+    } on ApiException catch (e) {
+      if (e.code == 'invalid_credentials') {
+        throw ApiException('Current password is incorrect.', code: e.code);
+      }
+      rethrow;
+    }
+    await updatePassword(newPassword);
   }
 
   @override

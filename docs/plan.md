@@ -79,29 +79,23 @@ Already done in this round:
 *Why now:* everything here is account-level. Later phases add settings to these screens (location sharing, notifications, subscription).
 
 ### 2.1 Backend
-- [ ] **[Dev]** Migration: add RPC `update_my_profile(p_full_name, p_avatar_path)`. It trims the name, enforces 1–60 characters, and checks that the avatar path sits in the caller's own `{uid}/` folder.
-- [ ] **[Dev]** Migration: add a trigger on `auth.users` delete, or do it inside `delete-account`, that **archives the couple first**. Today a deleted user leaves the partner in an active one-member couple.
-- [ ] **[Dev]** Edge Function `delete-account`, which:
-  1. archives the couple and broadcasts `couple.left`;
-  2. removes the user's `avatars` and `support-attachments` folders;
-  3. deletes the auth user;
-  4. increments the `deleted_users` metric.
-- [ ] **[Dev]** Migration: add RPC `submit_support_ticket(category, subject, message, attachment_paths, app_version, device_model, os_version)`, limited to 5 per day.
+- [x] **[Dev]** Migration `profile_account_rpcs`: RPC `update_my_profile(p_full_name, p_avatar_path)`. It trims the name, enforces 1–60 characters, checks that the avatar sits in the caller's `{uid}/` folder and exists, and broadcasts `couple.updated` to the partner. Direct `UPDATE` of `full_name`/`avatar_path` is revoked.
+- [x] **[Dev]** Trigger `users_before_delete` on `public.users` (it runs for any deletion path). It archives the couple, broadcasts `couple.left`, removes the user's invites and increments `deleted_users`.
+- [x] **[Dev]** Edge Function `delete-account`: verifies the JWT, removes the user's `avatars` and `support-attachments` folders, then deletes the auth user (the cascade fires the trigger above).
+- [x] **[Dev]** RPC `submit_support_ticket(...)`, limited to 5 per day; attachment paths are checked.
+- [x] **[Dev]** `app_settings.app_store_id` (public), used by the Rate Us fallback.
 
 ### 2.2 App
-- [ ] **[Dev]** Edit Profile screen: name, plus an avatar picked with `image_picker`, cropped and compressed, uploaded to `avatars/{uid}/avatar.jpg`. Display it through signed URLs with caching.
-- [ ] **[Dev]** Replace every `demoProfileImage` with the real avatar or a fallback showing initials. This covers Home, Profile and the partner card.
-- [ ] **[Dev]** Partner Profile screen (read-only): avatar, name, your nickname for them, together since, partner city and local time.
-- [ ] **[Dev]** Settings screen:
-  - Units (mi/km). Fix the "km" chip, which currently shows while the unit is miles.
-  - Location sharing toggle (wired up in Phase 3).
-  - Notification preferences (wired up in Phase 6).
-  - Change password.
-  - App version.
-- [ ] **[Dev]** Contact Us / Support form, with up to 3 attachments in `support-attachments`.
-- [ ] **[Dev]** Privacy Policy and Terms links open the `app_settings` URLs. Rate Us uses `in_app_review`.
-- [ ] **[Dev]** Delete Account flow: a confirmation that requires typing "DELETE", then a call to `delete-account`, then `resetAll()`, then Login. App Store rules require this.
-- [ ] **[Dev]** Remove the placeholder `language`, `locationPermission` and `syncStatus` fields from `ProfileController`.
+- [x] **[Dev]** Edit Profile screen: name, plus an avatar (take photo, choose or remove) resized to 512px as a JPEG and uploaded to `avatars/{uid}/avatar_<ts>.jpg`; the old file is deleted afterwards. Shown via signed URLs cached for 23 hours.
+- [x] **[Dev]** Real avatars, with an initials fallback, on Home (you and your partner), the Profile header and Partner Profile.
+- [x] **[Dev]** Partner Profile screen (read-only): avatar, name and nickname, together since, days together, local time and time zone city. It opens from Profile and from the partner avatar on Home.
+- [x] **[Dev]** Settings screen: distance unit (mi/km, saved on the device, drives the Home chip), email, change password (re-checks the current password), app version, Delete Account.
+  - Location sharing toggle → added in Phase 4.
+  - Notification preferences → added in Phase 6.
+- [x] **[Dev]** Contact Us form: topic, subject, message, up to 3 screenshots; sends the app version, device model and iOS version.
+- [x] **[Dev]** Privacy Policy and Terms open the `app_settings` URLs. Rate Us uses `in_app_review`, falling back to the App Store page once `app_store_id` is set.
+- [x] **[Dev]** Delete Account flow: type "DELETE", call `delete-account`, clear local data, then go to Login.
+- [x] **[Dev]** Removed the placeholder fields from `ProfileController` (Phase 1).
 
 **[Test]**
 - An avatar uploaded by one partner shows on the other partner's phone.
@@ -455,7 +449,8 @@ For all 12:
 
 | When | Item |
 |---|---|
-| Phase 1 | Terms/Privacy pages hosted |
+| Phase 1 | Terms/Privacy pages hosted → set `terms_url`, `privacy_url`, `support_email` in `app_settings` |
+| Phase 2 | `app_store_id` in `app_settings` once the App Store record exists |
 | Phase 4 | Location usage text and privacy label |
 | Phase 5 | OpenWeather API key → Supabase secret |
 | Phase 6 | Firebase project (iOS app) · APNs .p8 key → Firebase · Push capability · `GoogleService-Info.plist` · Firebase service account → Supabase secret |

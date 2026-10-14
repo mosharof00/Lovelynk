@@ -36,11 +36,17 @@ class ProfileView extends GetView<ProfileController> {
                 ProfileMenuItemData(
                   icon: Icons.edit,
                   label: 'Edit Profile',
+                  onTap: controller.onProfileTap,
                 ),
                 ProfileMenuItemData(
                   icon: Icons.notifications_outlined,
                   label: 'Notifications',
                   onTap: () => Get.toNamed(Routes.NOTIFICATIONS),
+                ),
+                ProfileMenuItemData(
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                  onTap: controller.onSettingsTap,
                 ),
               ],
             ),
@@ -55,6 +61,7 @@ class ProfileView extends GetView<ProfileController> {
                           icon: Icons.favorite_border_rounded,
                           label: 'Partner Profile',
                           value: controller.partnerName.value,
+                          onTap: controller.onPartnerProfileTap,
                         ),
                         ProfileMenuItemData(
                           icon: Icons.calendar_today_outlined,
@@ -116,7 +123,7 @@ class ProfileView extends GetView<ProfileController> {
                 ProfileMenuItemData(
                   icon: Icons.mail_outline_rounded,
                   label: 'Contact Us',
-                  onTap: AppSettingsService.to.contactSupport,
+                  onTap: controller.onContactUsTap,
                 ),
                 ProfileMenuItemData(
                   icon: Icons.verified_user_outlined,

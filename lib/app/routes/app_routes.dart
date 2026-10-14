@@ -26,6 +26,10 @@ abstract class Routes {
   static const NOTIFICATIONS = _Paths.NOTIFICATIONS;
   static const FORGOT_PASSWORD = _Paths.AUTH + _Paths.FORGOT_PASSWORD;
   static const RESET_PASSWORD = _Paths.AUTH + _Paths.RESET_PASSWORD;
+  static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
+  static const PARTNER_PROFILE = _Paths.PARTNER_PROFILE;
+  static const SETTINGS = _Paths.SETTINGS;
+  static const CONTACT_US = _Paths.CONTACT_US;
 }
 
 abstract class _Paths {
@@ -53,4 +57,8 @@ abstract class _Paths {
   static const NOTIFICATIONS = '/notifications';
   static const FORGOT_PASSWORD = '/forgot-password';
   static const RESET_PASSWORD = '/reset-password';
+  static const EDIT_PROFILE = '/edit-profile';
+  static const PARTNER_PROFILE = '/partner-profile';
+  static const SETTINGS = '/settings';
+  static const CONTACT_US = '/contact-us';
 }

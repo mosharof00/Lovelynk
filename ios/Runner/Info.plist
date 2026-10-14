@@ -41,6 +41,10 @@
 	<string>Lovelynk uses your location to show distance and point the Love Compass toward your partner.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Lovelynk uses your location to keep Partner Distance and Love Compass up to date.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Lovelynk uses the camera so you can take a profile photo.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Lovelynk uses your photo library so you can choose a profile photo or attach screenshots to a support request.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

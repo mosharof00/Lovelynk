@@ -13,6 +13,17 @@ class SupabaseRpc {
   static const cancelInvite = 'cancel_invite';
   static const acceptInvite = 'accept_invite';
   static const leaveCouple = 'leave_couple';
+
+  // Profile & support
+  static const updateMyProfile = 'update_my_profile';
+  static const submitSupportTicket = 'submit_support_ticket';
+}
+
+/// Edge Function names (`supabase.functions.invoke(...)`).
+class SupabaseFunction {
+  SupabaseFunction._();
+
+  static const deleteAccount = 'delete-account';
 }
 
 /// Realtime Broadcast on the private `user:{id}` channel.
@@ -23,6 +34,9 @@ class SupabaseRealtime {
 
   static const couplePaired = 'couple.paired';
   static const coupleLeft = 'couple.left';
+
+  /// Partner changed their profile or shared couple data.
+  static const coupleUpdated = 'couple.updated';
 }
 
 /// Supabase table / view names (`supabase.from(...)`).

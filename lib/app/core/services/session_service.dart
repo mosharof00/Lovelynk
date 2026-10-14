@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/models/user_models/session_bootstrap.dart';
+import '../../global/widgets/initials_avatar.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../routes/app_pages.dart';
@@ -156,9 +157,24 @@ class SessionService extends GetxService with WidgetsBindingObserver {
 
   /// Everything tied to the signed-in account, so the next account on this
   /// device starts clean (app state, local subscription, home widgets).
+  /// After the account was deleted on the server: the session is already
+  /// invalid, so only local state is cleared.
+  Future<void> onAccountDeleted() async {
+    _signingOut = true;
+    await _unsubscribeRealtime();
+    try {
+      await _client.auth.signOut(scope: SignOutScope.local);
+    } catch (_) {
+    } finally {
+      _signingOut = false;
+    }
+    await _clearLocal();
+  }
+
   Future<void> _clearLocal() async {
     bootstrap.value = null;
     setRecoveryPending(false);
+    AvatarUrlCache.clear();
     if (Get.isRegistered<SubscriptionService>()) {
       Get.find<SubscriptionService>().clear();
     }
@@ -185,6 +201,10 @@ class SessionService extends GetxService with WidgetsBindingObserver {
         )
         .onBroadcast(
           event: SupabaseRealtime.coupleLeft,
+          callback: (_) => refresh(),
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.coupleUpdated,
           callback: (_) => refresh(),
         )
         .subscribe((status, error) {

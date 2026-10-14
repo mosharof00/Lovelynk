@@ -11,6 +11,7 @@ import 'app/core/services/compass_service.dart';
 import 'app/core/services/local_store_service.dart';
 import 'app/core/services/session_service.dart';
 import 'app/core/services/subscription_service.dart';
+import 'app/core/services/user_prefs_service.dart';
 import 'app/core/services/widget_deep_link_service.dart';
 import 'app/core/services/widget_data_service.dart';
 import 'app/core/widgets/widget_style_store.dart';
@@ -34,6 +35,7 @@ void main() async {
   await Get.putAsync<SupabaseService>(SupabaseService.init, permanent: true);
   Get.put<SessionService>(SessionService().init(), permanent: true);
   Get.put<AppSettingsService>(AppSettingsService().init(), permanent: true);
+  Get.put<UserPrefsService>(UserPrefsService().init(), permanent: true);
 
   Get.put<SubscriptionService>(SubscriptionService(), permanent: true);
   Get.put<WidgetDataService>(WidgetDataService().init(), permanent: true);

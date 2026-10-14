@@ -18,6 +18,10 @@ import '../modules/color_customise/bindings/color_customise_binding.dart';
 import '../modules/color_customise/views/color_customise_view.dart';
 import '../modules/connect_with_partner/bindings/connect_with_partner_binding.dart';
 import '../modules/connect_with_partner/views/connect_with_partner_view.dart';
+import '../modules/contact_us/bindings/contact_us_binding.dart';
+import '../modules/contact_us/views/contact_us_view.dart';
+import '../modules/edit_profile/bindings/edit_profile_binding.dart';
+import '../modules/edit_profile/views/edit_profile_view.dart';
 import '../modules/emoji_summary/bindings/emoji_summary_binding.dart';
 import '../modules/emoji_summary/views/emoji_summary_view.dart';
 import '../modules/heartbeat_summary/bindings/heartbeat_summary_binding.dart';
@@ -36,10 +40,14 @@ import '../modules/notifications/bindings/notifications_binding.dart';
 import '../modules/notifications/views/notifications_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
+import '../modules/partner_profile/bindings/partner_profile_binding.dart';
+import '../modules/partner_profile/views/partner_profile_view.dart';
 import '../modules/products/bindings/products_binding.dart';
 import '../modules/products/views/products_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
+import '../modules/settings/bindings/settings_binding.dart';
+import '../modules/settings/views/settings_view.dart';
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
 import '../modules/subscriptions/bindings/subscriptions_binding.dart';
@@ -171,6 +179,26 @@ class AppPages {
       name: _Paths.NOTIFICATIONS,
       page: () => const NotificationsView(),
       binding: NotificationsBinding(),
+    ),
+    GetPage(
+      name: _Paths.EDIT_PROFILE,
+      page: () => const EditProfileView(),
+      binding: EditProfileBinding(),
+    ),
+    GetPage(
+      name: _Paths.PARTNER_PROFILE,
+      page: () => const PartnerProfileView(),
+      binding: PartnerProfileBinding(),
+    ),
+    GetPage(
+      name: _Paths.SETTINGS,
+      page: () => const SettingsView(),
+      binding: SettingsBinding(),
+    ),
+    GetPage(
+      name: _Paths.CONTACT_US,
+      page: () => const ContactUsView(),
+      binding: ContactUsBinding(),
     ),
   ];
 }

@@ -37,9 +37,9 @@ class PartnerDistanceCard extends GetView<HomeController> {
       final chip = connected
           ? _DistanceChip(
               value: controller.distanceLabel.value,
-              unit: _shortUnit(controller.distanceUnit.value),
+              unit: controller.distanceUnit,
             )
-          : const _LockedChip();
+          : _LockedChip(unit: controller.distanceUnit);
 
       return Container(
         width: double.infinity,
@@ -98,6 +98,7 @@ class PartnerDistanceCard extends GetView<HomeController> {
                     child: _AvatarSlot(
                       label: 'You',
                       name: controller.userName.value,
+                      avatarPath: controller.userAvatarPath.value,
                       showAdd: false,
                     ),
                   ),
@@ -109,8 +110,13 @@ class PartnerDistanceCard extends GetView<HomeController> {
                           ? controller.partnerName.value
                           : 'Add Partner',
                       name: connected ? controller.partnerName.value : '',
+                      avatarPath: connected
+                          ? controller.partnerAvatarPath.value
+                          : null,
                       showAdd: !connected,
-                      onTap: connected ? null : controller.goConnectPartner,
+                      onTap: connected
+                          ? controller.goPartnerProfile
+                          : controller.goConnectPartner,
                     ),
                   ),
                 ],
@@ -122,17 +128,12 @@ class PartnerDistanceCard extends GetView<HomeController> {
     });
   }
 
-  /// "miles apart" → "mi" / "kilometers apart" → "km"
-  static String _shortUnit(String unit) {
-    final lower = unit.toLowerCase();
-    if (lower.contains('km') || lower.contains('kilometer')) return 'km';
-    if (lower.contains('mile')) return 'mi';
-    return unit;
-  }
 }
 
 class _LockedChip extends StatelessWidget {
-  const _LockedChip();
+  const _LockedChip({required this.unit});
+
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +156,7 @@ class _LockedChip extends StatelessWidget {
           Icon(Icons.lock_rounded, size: 14.sp, color: AppColor.textPrimary),
           4.horizontalSpace,
           AppText(
-            'mi',
+            unit,
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w600,
@@ -220,11 +221,13 @@ class _AvatarSlot extends StatelessWidget {
     required this.label,
     required this.name,
     required this.showAdd,
+    this.avatarPath,
     this.onTap,
   });
 
   final String label;
   final String name;
+  final String? avatarPath;
   final bool showAdd;
   final VoidCallback? onTap;
 
@@ -250,7 +253,11 @@ class _AvatarSlot extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: InitialsAvatar(name: name, size: 52.w),
+                child: InitialsAvatar(
+                  name: name,
+                  avatarPath: avatarPath,
+                  size: 52.w,
+                ),
               ),
               if (showAdd)
                 Positioned(

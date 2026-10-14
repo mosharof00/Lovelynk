@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/services/session_service.dart';
 import '../../../core/services/subscription_service.dart';
+import '../../../core/services/user_prefs_service.dart';
 import '../../../core/services/widget_data_service.dart';
 import '../../../core/utils/logger.dart';
 import '../../../data/models/user_models/session_bootstrap.dart';
@@ -28,10 +29,13 @@ class HomeController extends GetxController {
 
   final userName = ''.obs;
   final partnerName = ''.obs;
+  final userAvatarPath = RxnString();
+  final partnerAvatarPath = RxnString();
 
   // Defaults until location / interactions are connected.
   final distanceLabel = '0'.obs;
-  final distanceUnit = 'miles apart'.obs;
+
+  String get distanceUnit => UserPrefsService.to.distanceUnit.value.shortLabel;
   final daysTogether = '0'.obs;
   final nextVisitDays = '--'.obs;
   final partnerTime = '--'.obs;
@@ -53,6 +57,8 @@ class HomeController extends GetxController {
   bool get isWidgetsUnlocked => _subscription.isWidgetsUnlocked;
 
   void goConnectPartner() => Get.toNamed(Routes.CONNECT_WITH_PARTNER);
+
+  void goPartnerProfile() => Get.toNamed(Routes.PARTNER_PROFILE);
 
   void goWidgetsTab() => Get.find<MainPageController>().changePage(1);
 
@@ -114,8 +120,10 @@ class HomeController extends GetxController {
   void _applySession(SessionBootstrap? data) {
     final couple = data?.couple;
     userName.value = data?.user.firstName ?? '';
+    userAvatarPath.value = data?.user.avatarPath;
     isConnected.value = couple != null;
     partnerName.value = couple?.partner.displayName ?? '';
+    partnerAvatarPath.value = couple?.partner.avatarPath;
 
     final since = couple?.togetherSince ?? couple?.createdAt;
     daysTogether.value =
