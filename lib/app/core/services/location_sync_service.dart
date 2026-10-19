@@ -77,12 +77,21 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
       (b) {
         if (b != null) {
           isSharingEnabled.value = b.user.locationSharingEnabled;
+          if (hasPermission && isServiceEnabled.value && isSharingEnabled.value) {
+            syncCurrentLocation();
+            _startAdaptiveStream();
+          }
+        } else {
+          _stopStream();
         }
       },
     );
 
     checkPermissionStatus().then((_) {
-      if (hasPermission && isServiceEnabled.value && isSharingEnabled.value) {
+      if (SessionService.to.user != null &&
+          hasPermission &&
+          isServiceEnabled.value &&
+          isSharingEnabled.value) {
         syncCurrentLocation();
         _startAdaptiveStream();
       }
@@ -324,7 +333,7 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
   }
 
   Future<void> _uploadLocation(Position pos, {bool force = false}) async {
-    if (!isSharingEnabled.value) return;
+    if (SessionService.to.user == null || !isSharingEnabled.value) return;
 
     // Local throttle guard (45 seconds) unless forced
     final now = DateTime.now();

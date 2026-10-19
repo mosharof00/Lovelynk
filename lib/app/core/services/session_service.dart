@@ -17,6 +17,7 @@ import 'local_store_service.dart';
 import '../utils/helper_utils.dart';
 import '../utils/logger.dart';
 import '../widgets/widget_sync_service.dart';
+import 'push_notification_service.dart';
 import 'subscription_service.dart';
 
 enum CoupleEvent { paired, left }
@@ -197,6 +198,9 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     if (Get.isRegistered<SubscriptionService>()) {
       Get.find<SubscriptionService>().clear();
     }
+    if (Get.isRegistered<PushNotificationService>()) {
+      await Get.find<PushNotificationService>().unregisterDevice();
+    }
     if (Get.isRegistered<WidgetSyncService>()) {
       await Get.find<WidgetSyncService>().clearUserData();
     }
@@ -233,6 +237,16 @@ class SessionService extends GetxService with WidgetsBindingObserver {
         .onBroadcast(
           event: SupabaseRealtime.partnerWeather,
           callback: (_) => refreshPartnerSnapshot(),
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.notificationNew,
+          callback: (payload) {
+            if (Get.isRegistered<PushNotificationService>()) {
+              Get.find<PushNotificationService>().handleRealtimeNotification(
+                Map<String, dynamic>.from(payload),
+              );
+            }
+          },
         )
         .subscribe((status, error) {
           Log.i('[Realtime] user channel: $status ${error ?? ''}');

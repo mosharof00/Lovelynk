@@ -24,63 +24,112 @@ class NotificationsView extends GetView<NotificationsController> {
           AppBarAction(
             icon: Icons.done_all_rounded,
             tooltip: 'Mark all read',
-            onTap: controller.markAllRead,
+            onTap: () => controller.markAllRead(),
           ),
         ],
       ),
       body: Obx(() {
-        final list = controller.items;
-        if (list.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.w),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.notifications_none_rounded,
-                    size: 44.sp,
-                    color: AppColor.hintText,
-                  ),
-                  12.verticalSpace,
-                  AppText(
-                    'No notifications',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColor.textPrimary,
-                    ),
-                  ),
-                  6.verticalSpace,
-                  AppText(
-                    'Updates about visits, anniversaries, and your account will appear here.',
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: AppColor.textSecondary,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
+        if (controller.isLoading.value && controller.items.isEmpty) {
+          return const Center(
+            child: CircularProgressIndicator.adaptive(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColor.primary),
             ),
           );
         }
 
-        return ListView.separated(
-          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 32.h),
-          itemCount: list.length,
-          separatorBuilder: (_, __) => 10.verticalSpace,
-          itemBuilder: (context, index) {
-            final n = list[index];
-            return _NotificationCard(
-              notification: n,
-              timeLabel: controller.timeLabel(n.at),
-              categoryLabel: controller.categoryLabel(n.category),
-              onTap: () => controller.onTapNotification(n),
-            );
-          },
+        final list = controller.items;
+        if (list.isEmpty) {
+          return RefreshIndicator.adaptive(
+            onRefresh: controller.refreshNotifications,
+            color: AppColor.primary,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: 120.h),
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32.w),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 72.w,
+                          height: 72.w,
+                          decoration: BoxDecoration(
+                            color: AppColor.primaryLight.withValues(alpha: 0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.notifications_none_rounded,
+                            size: 36.sp,
+                            color: AppColor.primary,
+                          ),
+                        ),
+                        16.verticalSpace,
+                        AppText(
+                          'No notifications yet',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColor.textPrimary,
+                          ),
+                        ),
+                        8.verticalSpace,
+                        AppText(
+                          'Touches, kisses, emojis, and relationship reminders will appear here.',
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: AppColor.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator.adaptive(
+          onRefresh: controller.refreshNotifications,
+          color: AppColor.primary,
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 32.h),
+            itemCount: list.length,
+            separatorBuilder: (_, __) => 10.verticalSpace,
+            itemBuilder: (context, index) {
+              final n = list[index];
+              return Dismissible(
+                key: Key(n.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: EdgeInsets.only(right: 20.w),
+                  decoration: BoxDecoration(
+                    color: AppColor.error,
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColor.white,
+                    size: 24.sp,
+                  ),
+                ),
+                onDismissed: (_) => controller.deleteItem(n.id),
+                child: _NotificationCard(
+                  notification: n,
+                  timeLabel: controller.timeLabel(n.at),
+                  categoryLabel: controller.categoryLabel(n.category),
+                  onTap: () => controller.onTapNotification(n),
+                ),
+              );
+            },
+          ),
         );
       }),
     );
@@ -102,14 +151,40 @@ class _NotificationCard extends StatelessWidget {
 
   IconData get _icon {
     switch (notification.category) {
+      case NotificationCategory.heartbeat:
+        return Icons.favorite_rounded;
+      case NotificationCategory.kiss:
+        return Icons.volunteer_activism_rounded;
+      case NotificationCategory.emoji:
+        return Icons.sentiment_very_satisfied_rounded;
       case NotificationCategory.relationship:
         return Icons.favorite_border_rounded;
-      case NotificationCategory.account:
-        return Icons.person_outline_rounded;
       case NotificationCategory.subscription:
         return Icons.workspace_premium_outlined;
       case NotificationCategory.system:
         return Icons.info_outline_rounded;
+      case NotificationCategory.account:
+        return Icons.person_outline_rounded;
+      case NotificationCategory.announcement:
+        return Icons.campaign_outlined;
+    }
+  }
+
+  Color get _iconColor {
+    switch (notification.category) {
+      case NotificationCategory.heartbeat:
+      case NotificationCategory.kiss:
+      case NotificationCategory.relationship:
+        return AppColor.primary;
+      case NotificationCategory.emoji:
+        return const Color(0xFFFFA000);
+      case NotificationCategory.subscription:
+        return const Color(0xFF7C4DFF);
+      case NotificationCategory.announcement:
+        return const Color(0xFF00ACC1);
+      case NotificationCategory.system:
+      case NotificationCategory.account:
+        return AppColor.secondary;
     }
   }
 
@@ -141,7 +216,7 @@ class _NotificationCard extends StatelessWidget {
                   ),
                 ),
                 alignment: Alignment.center,
-                child: Icon(_icon, size: 20.sp, color: AppColor.primary),
+                child: Icon(_icon, size: 20.sp, color: _iconColor),
               ),
               12.horizontalSpace,
               Expanded(
@@ -166,6 +241,7 @@ class _NotificationCard extends StatelessWidget {
                           Container(
                             width: 8.w,
                             height: 8.w,
+                            margin: EdgeInsets.only(left: 6.w),
                             decoration: const BoxDecoration(
                               color: AppColor.primary,
                               shape: BoxShape.circle,
@@ -203,7 +279,7 @@ class _NotificationCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 10.sp,
                               fontWeight: FontWeight.w600,
-                              color: AppColor.primary,
+                              color: _iconColor,
                             ),
                           ),
                         ),

@@ -10,6 +10,7 @@ import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/custom_appbar.dart';
 import '../../../global/widgets/global_button.dart';
 import '../../profile/widgets/profile_menu_section.dart';
+import '../../../data/models/notification_models/app_notification.dart';
 import '../controllers/settings_controller.dart';
 
 class SettingsView extends GetView<SettingsController> {
@@ -54,7 +55,8 @@ class SettingsView extends GetView<SettingsController> {
                       scale: 0.85,
                       child: Switch.adaptive(
                         value: controller.isLocationSharing.value,
-                        activeColor: AppColor.primary,
+                        activeThumbColor: AppColor.primary,
+                        activeTrackColor: AppColor.primary.withValues(alpha: 0.5),
                         onChanged: (val) => controller.toggleLocationSharing(val),
                       ),
                     ),
@@ -67,6 +69,12 @@ class SettingsView extends GetView<SettingsController> {
                       valueColor: AppColor.error,
                       onTap: () => controller.openLocationPermissionSettings(),
                     ),
+                  ProfileMenuItemData(
+                    icon: Icons.notifications_none_rounded,
+                    label: 'Push notifications',
+                    value: controller.notifPrefsSummary,
+                    onTap: () => _showNotificationPreferencesSheet(context),
+                  ),
                 ],
               ),
             ),
@@ -331,4 +339,277 @@ class SettingsView extends GetView<SettingsController> {
       isScrollControlled: true,
     );
   }
+
+  void _showNotificationPreferencesSheet(BuildContext context) {
+    _openSheet(
+      title: 'Notification preferences',
+      child: Obx(() {
+        if (controller.isLoadingNotifPrefs.value &&
+            controller.notifPrefs.value == null) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 32.h),
+            child: const Center(
+              child: CircularProgressIndicator.adaptive(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColor.primary),
+              ),
+            ),
+          );
+        }
+
+        final p =
+            controller.notifPrefs.value ?? const NotificationPreferences();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppText(
+              'Notification Categories',
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColor.textSecondary,
+              ),
+            ),
+            10.verticalSpace,
+            _buildPrefSwitch(
+              label: 'Heartbeat touches',
+              subtitle: 'When your partner sends you a heartbeat vibration',
+              value: p.pushHeartbeat,
+              onChanged: (val) =>
+                  controller.updatePreference(pushHeartbeat: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Kisses sent',
+              subtitle: 'When your partner blows you a kiss',
+              value: p.pushKiss,
+              onChanged: (val) => controller.updatePreference(pushKiss: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Emoji reactions',
+              subtitle: 'When your partner sends you reaction emojis',
+              value: p.pushEmoji,
+              onChanged: (val) => controller.updatePreference(pushEmoji: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Relationship updates',
+              subtitle: 'Anniversaries, visit reminders, and milestones',
+              value: p.pushRelationship,
+              onChanged: (val) =>
+                  controller.updatePreference(pushRelationship: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Subscriptions & billing',
+              subtitle: 'Trial alerts, renewal reminders, and receipts',
+              value: p.pushSubscription,
+              onChanged: (val) =>
+                  controller.updatePreference(pushSubscription: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Announcements & tips',
+              subtitle: 'Feature updates and relationship tips',
+              value: p.pushAnnouncements,
+              onChanged: (val) =>
+                  controller.updatePreference(pushAnnouncements: val),
+            ),
+            14.verticalSpace,
+            const Divider(),
+            12.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(
+                        'Quiet Hours',
+                        style: TextStyle(
+                          fontSize: 14.5.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColor.textPrimary,
+                        ),
+                      ),
+                      3.verticalSpace,
+                      AppText(
+                        'Silently refresh widgets without alert banners or sound.',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: AppColor.textSecondary,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                12.horizontalSpace,
+                Transform.scale(
+                  scale: 0.85,
+                  child: Switch.adaptive(
+                    value: p.hasQuietHours,
+                    activeThumbColor: AppColor.primary,
+                    activeTrackColor: AppColor.primary.withValues(alpha: 0.5),
+                    onChanged: (val) {
+                      if (val) {
+                        controller.updatePreference(
+                          quietHoursStart: '22:00',
+                          quietHoursEnd: '07:00',
+                        );
+                      } else {
+                        controller.updatePreference(clearQuietHours: true);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+            if (p.hasQuietHours) ...[
+              12.verticalSpace,
+              Container(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: AppColor.background,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: AppColor.inputBorder.withValues(alpha: 0.7),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildTimePickerButton(
+                      context: context,
+                      label: 'Start time',
+                      timeStr: p.quietHoursStart ?? '22:00',
+                      onTimePicked: (newTime) {
+                        controller.updatePreference(
+                            quietHoursStart: newTime);
+                      },
+                    ),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16.sp,
+                      color: AppColor.hintText,
+                    ),
+                    _buildTimePickerButton(
+                      context: context,
+                      label: 'End time',
+                      timeStr: p.quietHoursEnd ?? '07:00',
+                      onTimePicked: (newTime) {
+                        controller.updatePreference(quietHoursEnd: newTime);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            16.verticalSpace,
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildPrefSwitch({
+    required String label,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 6.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.textPrimary,
+                  ),
+                ),
+                2.verticalSpace,
+                AppText(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11.5.sp,
+                    color: AppColor.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          8.horizontalSpace,
+          Transform.scale(
+            scale: 0.85,
+            child: Switch.adaptive(
+              value: value,
+              activeThumbColor: AppColor.primary,
+              activeTrackColor: AppColor.primary.withValues(alpha: 0.5),
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimePickerButton({
+    required BuildContext context,
+    required String label,
+    required String timeStr,
+    required ValueChanged<String> onTimePicked,
+  }) {
+    final parts = timeStr.split(':');
+    final initialTime = TimeOfDay(
+      hour: int.tryParse(parts[0]) ?? 0,
+      minute: parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0,
+    );
+
+    return InkWell(
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: initialTime,
+        );
+        if (picked != null) {
+          final hh = picked.hour.toString().padLeft(2, '0');
+          final mm = picked.minute.toString().padLeft(2, '0');
+          onTimePicked('$hh:$mm');
+        }
+      },
+      borderRadius: BorderRadius.circular(8.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppText(
+              label,
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w500,
+                color: AppColor.textSecondary,
+              ),
+            ),
+            2.verticalSpace,
+            AppText(
+              timeStr,
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColor.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+

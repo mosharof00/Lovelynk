@@ -10,6 +10,7 @@ import 'app/core/services/app_settings_service.dart';
 import 'app/core/services/compass_service.dart';
 import 'app/core/services/local_store_service.dart';
 import 'app/core/services/location_sync_service.dart';
+import 'app/core/services/push_notification_service.dart';
 import 'app/core/services/session_service.dart';
 import 'app/core/services/subscription_service.dart';
 import 'app/core/services/user_prefs_service.dart';
@@ -21,14 +22,16 @@ import 'app/core/theme/app_theme.dart';
 import 'app/data/repositories/app_repository_binding.dart';
 import 'app/routes/app_pages.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   /// Initialize Firebase FIRST
-  // await Firebase.initializeApp(
-  //   name: 'meeza',
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   await HiveService.initHive();
 
@@ -52,6 +55,10 @@ void main() async {
   );
   await Get.putAsync<WidgetDeepLinkService>(
     () => WidgetDeepLinkService().init(),
+    permanent: true,
+  );
+  await Get.putAsync<PushNotificationService>(
+    () => PushNotificationService().init(),
     permanent: true,
   );
 

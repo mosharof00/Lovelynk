@@ -7,7 +7,11 @@ import '../../../core/services/location_sync_service.dart';
 import '../../../core/services/session_service.dart';
 import '../../../core/services/user_prefs_service.dart';
 import '../../../core/utils/helper_utils.dart';
+import '../../../core/network/supabase/supabase_service.dart';
+import '../../../core/utils/logger.dart';
+import '../../../data/models/notification_models/app_notification.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../data/repositories/notification_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../global/widgets/global_snackbar.dart';
 import '../../../routes/app_pages.dart';
@@ -15,6 +19,26 @@ import '../../../routes/app_pages.dart';
 class SettingsController extends GetxController {
   final IAuthRepository _authRepository = Get.find<IAuthRepository>();
   final IUserRepository _userRepository = Get.find<IUserRepository>();
+
+  INotificationRepository get _notificationRepo {
+    if (!Get.isRegistered<INotificationRepository>()) {
+      Get.lazyPut<INotificationRepository>(
+        () => NotificationRepository(Get.find<SupabaseService>()),
+        fenix: true,
+      );
+    }
+    return Get.find<INotificationRepository>();
+  }
+
+  final notifPrefs = Rxn<NotificationPreferences>();
+  final isLoadingNotifPrefs = false.obs;
+
+  String get notifPrefsSummary {
+    final p = notifPrefs.value;
+    if (p == null) return 'Customize';
+    if (p.hasQuietHours) return 'Quiet hours on';
+    return 'Enabled';
+  }
 
   final appVersion = ''.obs;
 
@@ -71,6 +95,58 @@ class SettingsController extends GetxController {
       canDelete.value = deleteConfirmController.text.trim() == deleteKeyword;
     });
     _loadVersion();
+    loadNotificationPreferences();
+  }
+
+  Future<void> loadNotificationPreferences() async {
+    isLoadingNotifPrefs.value = true;
+    try {
+      final prefs = await _notificationRepo.getPreferences();
+      notifPrefs.value = prefs;
+    } catch (e) {
+      Log.w('Failed to load notification preferences: $e');
+    } finally {
+      isLoadingNotifPrefs.value = false;
+    }
+  }
+
+  Future<void> updatePreference({
+    bool? pushHeartbeat,
+    bool? pushKiss,
+    bool? pushEmoji,
+    bool? pushRelationship,
+    bool? pushSubscription,
+    bool? pushAnnouncements,
+    String? quietHoursStart,
+    String? quietHoursEnd,
+    bool clearQuietHours = false,
+  }) async {
+    final current = notifPrefs.value ?? const NotificationPreferences();
+    final updated = current.copyWith(
+      pushHeartbeat: pushHeartbeat,
+      pushKiss: pushKiss,
+      pushEmoji: pushEmoji,
+      pushRelationship: pushRelationship,
+      pushSubscription: pushSubscription,
+      pushAnnouncements: pushAnnouncements,
+      quietHoursStart: quietHoursStart,
+      quietHoursEnd: quietHoursEnd,
+      clearQuietHours: clearQuietHours,
+    );
+
+    // Optimistic UI update
+    notifPrefs.value = updated;
+    try {
+      final saved = await _notificationRepo.updatePreferences(
+        updated,
+        clearQuietHours: clearQuietHours,
+      );
+      notifPrefs.value = saved;
+    } catch (e) {
+      Log.w('Failed to save notification preferences: $e');
+      notifPrefs.value = current;
+      handleException(e, context: 'Notification preferences');
+    }
   }
 
   Future<void> _loadVersion() async {

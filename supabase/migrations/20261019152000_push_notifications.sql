@@ -260,26 +260,47 @@ begin
 end;
 $$;
 
--- 9. Trigger to broadcast notification.new on insert
+-- 9. Trigger to broadcast notification.new on insert and dispatch push via pg_net
 create or replace function public.on_notification_inserted()
 returns trigger
 language plpgsql
 security definer
-set search_path = ''
+set search_path = public
 as $$
+declare
+  v_payload jsonb;
 begin
-  perform pg_notify('pgrst', json_build_object(
-    'channel', 'user:' || NEW.user_id::text,
-    'event', 'notification.new',
-    'payload', json_build_object(
-      'id', NEW.id,
-      'category', NEW.category,
-      'title', NEW.title,
-      'body', NEW.body,
-      'data', NEW.data,
-      'created_at', NEW.created_at
-    )
-  )::text);
+  v_payload := jsonb_build_object(
+    'id', NEW.id,
+    'user_id', NEW.user_id,
+    'category', NEW.category,
+    'title', NEW.title,
+    'body', NEW.body,
+    'data', NEW.data,
+    'created_at', NEW.created_at
+  );
+
+  -- Realtime broadcast for foreground listeners
+  begin
+    perform realtime.broadcast_from(
+      'user:' || NEW.user_id::text,
+      'notification.new',
+      v_payload
+    );
+  exception when others then
+    raise warning 'broadcast_from error: %', SQLERRM;
+  end;
+
+  -- Async dispatch push notification via pg_net
+  begin
+    perform net.http_post(
+      url := 'https://yvfolpaqchdmqdluprpo.supabase.co/functions/v1/push-dispatch',
+      headers := '{"Content-Type": "application/json"}'::jsonb,
+      body := jsonb_build_object('record', v_payload)
+    );
+  exception when others then
+    raise warning 'net.http_post error: %', SQLERRM;
+  end;
 
   return NEW;
 end;

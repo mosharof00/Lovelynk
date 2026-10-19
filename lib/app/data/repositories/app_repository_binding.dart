@@ -4,6 +4,7 @@ import 'package:bulkretail/app/core/network/supabase/supabase_service.dart';
 import 'package:bulkretail/app/core/services/subscription_service.dart';
 import 'auth_repository.dart';
 import 'couple_repository.dart';
+import 'notification_repository.dart';
 import 'product_repository.dart';
 import 'user_repository.dart';
 
@@ -36,6 +37,11 @@ class AppRepositoryBinding extends Bindings {
 
     Get.lazyPut<IProductRepository>(
           () => ProductRepository(Get.find<ApiClient>()),
+      fenix: true,
+    );
+
+    Get.lazyPut<INotificationRepository>(
+      () => NotificationRepository(Get.find<SupabaseService>()),
       fenix: true,
     );
   }

@@ -266,7 +266,8 @@ class UserRepository implements IUserRepository {
         },
       ),
       (dynamic res) {
-        final data = res as Map<String, dynamic>?;
+        final raw = res is FunctionResponse ? res.data : res;
+        final data = raw is Map ? Map<String, dynamic>.from(raw) : null;
         final weatherJson = data?['weather'] as Map<String, dynamic>?;
         if (weatherJson != null) {
           return PartnerLiveWeather.fromJson(weatherJson);

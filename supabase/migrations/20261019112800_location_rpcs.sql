@@ -108,7 +108,7 @@ begin
         cos(radians(v_my_loc.latitude)) * sin(radians(v_loc.latitude)) -
         sin(radians(v_my_loc.latitude)) * cos(radians(v_loc.latitude)) * cos(radians(v_loc.longitude - v_my_loc.longitude))
       ));
-      v_bearing_deg := (v_bearing_deg + 360.0) % 360.0;
+      v_bearing_deg := ((v_bearing_deg + 360.0)::numeric % 360.0)::double precision;
     end if;
   end if;
 
