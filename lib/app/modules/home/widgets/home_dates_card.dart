@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/theme/app_color.dart';
+import '../../../global/widgets/app_svg_icon.dart';
 import '../../../global/widgets/app_text.dart';
 import '../controllers/home_controller.dart';
 
@@ -49,9 +50,12 @@ class HomeDatesCard extends GetView<HomeController> {
             Expanded(
               child: _DateTile(
                 icon: Icons.schedule_rounded,
+                customIconPath: controller.partnerWeatherIconPath.value,
                 label: controller.partnerCity.value ?? 'Their time',
                 value: time ?? '--',
-                unit: '',
+                unit: controller.partnerTemperatureLabel != null
+                    ? '• ${controller.partnerTemperatureLabel}'
+                    : '',
                 onTap: controller.goPartnerProfile,
               ),
             ),
@@ -65,6 +69,7 @@ class HomeDatesCard extends GetView<HomeController> {
 class _DateTile extends StatelessWidget {
   const _DateTile({
     required this.icon,
+    this.customIconPath,
     required this.label,
     required this.value,
     required this.unit,
@@ -72,6 +77,7 @@ class _DateTile extends StatelessWidget {
   });
 
   final IconData icon;
+  final String? customIconPath;
   final String label;
 
   /// Null shows a "Set date" prompt.
@@ -103,7 +109,13 @@ class _DateTile extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(icon, size: 14.sp, color: AppColor.primary),
+                  if (customIconPath != null)
+                    AppSvgIcon(
+                      customIconPath!,
+                      size: 14.sp,
+                    )
+                  else
+                    Icon(icon, size: 14.sp, color: AppColor.primary),
                   4.horizontalSpace,
                   Expanded(
                     child: AppText(

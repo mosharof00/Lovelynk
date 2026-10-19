@@ -31,6 +31,7 @@ class SettingsController extends GetxController {
   static const deleteKeyword = 'DELETE';
 
   Rx<DistanceUnit> get distanceUnit => UserPrefsService.to.distanceUnit;
+  Rx<TemperatureUnit> get temperatureUnit => UserPrefsService.to.temperatureUnit;
 
   String get email => SessionService.to.user?.email ?? '';
 
@@ -79,6 +80,9 @@ class SettingsController extends GetxController {
 
   void setDistanceUnit(DistanceUnit unit) =>
       UserPrefsService.to.setDistanceUnit(unit);
+
+  void setTemperatureUnit(TemperatureUnit unit) =>
+      UserPrefsService.to.setTemperatureUnit(unit);
 
   void resetPasswordForm() {
     currentPasswordController.clear();

@@ -41,6 +41,12 @@ class SettingsView extends GetView<SettingsController> {
                     onTap: () => _showUnitSheet(),
                   ),
                   ProfileMenuItemData(
+                    icon: Icons.thermostat_rounded,
+                    label: 'Temperature unit',
+                    value: controller.temperatureUnit.value.label,
+                    onTap: () => _showTempUnitSheet(),
+                  ),
+                  ProfileMenuItemData(
                     icon: Icons.location_on_outlined,
                     label: 'Share location with partner',
                     hideChevron: true,
@@ -143,6 +149,38 @@ class SettingsView extends GetView<SettingsController> {
                   ),
                 ),
                 trailing: controller.distanceUnit.value == unit
+                    ? Icon(Icons.check_rounded, color: AppColor.primary)
+                    : null,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTempUnitSheet() {
+    _openSheet(
+      title: 'Temperature unit',
+      child: Obx(
+        () => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final unit in TemperatureUnit.values)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                onTap: () {
+                  controller.setTemperatureUnit(unit);
+                  Get.back();
+                },
+                title: AppText(
+                  '${unit.label} (${unit.symbol})',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.textPrimary,
+                  ),
+                ),
+                trailing: controller.temperatureUnit.value == unit
                     ? Icon(Icons.check_rounded, color: AppColor.primary)
                     : null,
               ),

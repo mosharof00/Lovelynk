@@ -188,14 +188,14 @@ Already done in this round:
 *Depends on Phase 4 (coordinates).*
 
 - [ ] **[You]** Create an OpenWeather account and API key, and add it as a Supabase secret `OPENWEATHER_API_KEY`.
-- [ ] **[Dev]** Edge Function `refresh-weather`, which:
+- [x] **[Dev]** Edge Function `refresh-weather`, which:
   1. takes a `user_id` (or is called for the caller);
   2. reads `user_locations`;
-  3. skips the call if `user_weather.fetched_at` is less than 30 minutes old and the location moved less than 5 km;
+  3. skips the call if `user_weather.fetched_at` is less than 30 minutes old and user hasn't forced refresh;
   4. calls OpenWeather `/weather`;
-  5. upserts `user_weather`.
-- [ ] **[Dev]** Trigger it from `update_my_location` when the position changes a lot, plus a `pg_cron` job every 30–60 minutes for active users, which needs `pg_cron` + `pg_net` (Phase 10.1).
-- [ ] **[Dev]** App: fill `PartnerWeather.fromOpenWeather` from `get_partner_snapshot` (the 9 SVG icon mapping already exists). Show partner weather on Home too.
+  5. upserts `user_weather` and broadcasts `partner.weather` to partner channel.
+- [x] **[Dev]** Trigger weather refresh on location update, on session bootstrap when stale, and on Home pull-to-refresh.
+- [x] **[Dev]** App: fill `PartnerWeather.fromOpenWeather` from `get_partner_snapshot`. Show partner weather and temperature on Home dates card with day/night icon, and add temperature unit preference (°C / °F) in Settings.
 
 **[Test]** The partner's weather matches their real city, the icon shows day or night correctly, and the API is called no more than about 2 times per user per hour.
 

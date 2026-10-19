@@ -20,25 +20,53 @@ enum DistanceUnit {
       this == DistanceUnit.kilometers ? km : km * 0.621371;
 }
 
+enum TemperatureUnit {
+  celsius('°C', 'Celsius'),
+  fahrenheit('°F', 'Fahrenheit');
+
+  const TemperatureUnit(this.symbol, this.label);
+
+  final String symbol;
+  final String label;
+
+  /// Converts Celsius temperature to this unit.
+  int fromCelsius(int c) =>
+      this == TemperatureUnit.celsius ? c : ((c * 9 / 5) + 32).round();
+}
+
 /// Device-level display preferences (kept across accounts on this phone).
 class UserPrefsService extends GetxService {
   static UserPrefsService get to => Get.find<UserPrefsService>();
 
   static const _unitKey = 'distance_unit';
+  static const _tempKey = 'temperature_unit';
 
   final distanceUnit = DistanceUnit.miles.obs;
+  final temperatureUnit = TemperatureUnit.celsius.obs;
 
   UserPrefsService init() {
-    final stored = HiveService.read<String>(_unitKey);
+    final storedDistance = HiveService.read<String>(_unitKey);
     distanceUnit.value = DistanceUnit.values.firstWhere(
-      (u) => u.name == stored,
+      (u) => u.name == storedDistance,
       orElse: () => DistanceUnit.miles,
     );
+
+    final storedTemp = HiveService.read<String>(_tempKey);
+    temperatureUnit.value = TemperatureUnit.values.firstWhere(
+      (u) => u.name == storedTemp,
+      orElse: () => TemperatureUnit.celsius,
+    );
+
     return this;
   }
 
   void setDistanceUnit(DistanceUnit unit) {
     distanceUnit.value = unit;
     HiveService.write(_unitKey, unit.name);
+  }
+
+  void setTemperatureUnit(TemperatureUnit unit) {
+    temperatureUnit.value = unit;
+    HiveService.write(_tempKey, unit.name);
   }
 }

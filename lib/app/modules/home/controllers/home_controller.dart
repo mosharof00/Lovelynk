@@ -19,6 +19,8 @@ import '../../../core/utils/logger.dart';
 import '../../../data/models/user_models/session_bootstrap.dart';
 import '../../../data/models/widget_models/reaction_activity.dart';
 import '../../../global/widgets/global_snackbar.dart';
+import '../../../core/utils/weather_icon_mapper.dart';
+import '../../../data/repositories/user_repository.dart';
 import '../../../routes/app_pages.dart';
 import '../../main_page/controllers/main_page_controller.dart';
 
@@ -61,6 +63,19 @@ class HomeController extends GetxController {
   final partnerTime = RxnString();
   final partnerCity = RxnString();
   final kissesSent = '0'.obs;
+
+  // Partner weather observables
+  final partnerWeatherTemp = RxnInt();
+  final partnerWeatherCondition = RxnString();
+  final partnerWeatherIconPath = RxnString();
+
+  String? get partnerTemperatureLabel {
+    final tempC = partnerWeatherTemp.value;
+    if (tempC == null) return null;
+    final unit = UserPrefsService.to.temperatureUnit.value;
+    final converted = unit.fromCelsius(tempC);
+    return '$converted${unit.symbol}';
+  }
 
   RxBool get isOffline => SessionService.to.lastLoadFailed;
   final affirmation =
@@ -150,6 +165,21 @@ class HomeController extends GetxController {
     final liveCity = data?.partnerLive?.location?.city?.trim();
     final tzCity = TimeZoneUtils.cityFromTimezone(couple?.partner.timezone);
     partnerCity.value = (liveCity != null && liveCity.isNotEmpty) ? liveCity : tzCity;
+
+    final liveWeather = data?.partnerLive?.weather;
+    if (liveWeather != null) {
+      partnerWeatherTemp.value = liveWeather.temperatureC;
+      partnerWeatherCondition.value = liveWeather.condition;
+      final isDay = WeatherIconMapper.isDayFromIconCode(liveWeather.iconCode);
+      partnerWeatherIconPath.value = WeatherIconMapper.iconFor(
+        conditionId: liveWeather.conditionId,
+        isDay: isDay,
+      );
+    } else {
+      partnerWeatherTemp.value = null;
+      partnerWeatherCondition.value = null;
+      partnerWeatherIconPath.value = null;
+    }
 
     _updateClock();
     _updateDistance();
@@ -349,6 +379,13 @@ class HomeController extends GetxController {
       await session.load();
       if (Get.isRegistered<LocationSyncService>()) {
         await LocationSyncService.to.syncCurrentLocation(force: true);
+      }
+      if (session.isPaired) {
+        final partnerId = session.partner?.id;
+        if (partnerId != null) {
+          await Get.find<IUserRepository>().refreshWeather(userId: partnerId, force: true);
+          await session.refreshPartnerSnapshot();
+        }
       }
     } catch (e) {
       Log.w('Home: refresh failed: $e');

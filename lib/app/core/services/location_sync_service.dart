@@ -354,6 +354,11 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
             'city: ${currentCity.value}',
           );
         }
+        // Keep weather cache synced for the partner
+        unawaited(_userRepo.refreshWeather().catchError((e) {
+          Log.w('Background weather refresh on location update failed: $e');
+          return null;
+        }));
       }
     } on ApiException catch (e) {
       Log.w('Location upload API exception: ${e.message}');

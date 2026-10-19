@@ -31,6 +31,7 @@ class SupabaseFunction {
   SupabaseFunction._();
 
   static const deleteAccount = 'delete-account';
+  static const refreshWeather = 'refresh-weather';
 }
 
 /// Realtime Broadcast on the private `user:{id}` channel.
@@ -47,6 +48,9 @@ class SupabaseRealtime {
 
   /// Partner location changed.
   static const partnerLocation = 'partner.location';
+
+  /// Partner weather refreshed.
+  static const partnerWeather = 'partner.weather';
 }
 
 /// Supabase table / view names (`supabase.from(...)`).

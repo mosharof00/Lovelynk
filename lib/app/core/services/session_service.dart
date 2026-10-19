@@ -138,6 +138,10 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     if (wasPaired != null && wasPaired != data.isPaired) {
       _coupleEvents.add(data.isPaired ? CoupleEvent.paired : CoupleEvent.left);
     }
+
+    if (data.isPaired) {
+      _checkAndRefreshWeather(data.partnerLive?.weather);
+    }
   }
 
   /// Reports app version + timezone; the server throttles `last_seen_at`.
@@ -226,12 +230,16 @@ class SessionService extends GetxService with WidgetsBindingObserver {
           event: SupabaseRealtime.partnerLocation,
           callback: (_) => refreshPartnerSnapshot(),
         )
+        .onBroadcast(
+          event: SupabaseRealtime.partnerWeather,
+          callback: (_) => refreshPartnerSnapshot(),
+        )
         .subscribe((status, error) {
           Log.i('[Realtime] user channel: $status ${error ?? ''}');
         });
   }
 
-  /// Lightweight refresh of partner snapshot only (called on partner.location).
+  /// Lightweight refresh of partner snapshot only (called on partner.location / partner.weather).
   Future<void> refreshPartnerSnapshot() async {
     if (!hasSession || !isPaired) return;
     try {
@@ -247,6 +255,25 @@ class SessionService extends GetxService with WidgetsBindingObserver {
       }
     } catch (e) {
       Log.w('refreshPartnerSnapshot failed: $e');
+    }
+  }
+
+  void _checkAndRefreshWeather(PartnerLiveWeather? weather) {
+    final partnerId = partner?.id;
+    if (partnerId == null) return;
+
+    final fetched = weather?.fetchedAt;
+    final isStale = fetched == null ||
+        DateTime.now().difference(fetched).inMinutes >= 30;
+
+    if (isStale) {
+      unawaited(_userRepo.refreshWeather(userId: partnerId).then((w) {
+        if (w != null) {
+          refreshPartnerSnapshot();
+        }
+      }).catchError((e) {
+        Log.w('Background partner weather refresh failed: $e');
+      }));
     }
   }
 

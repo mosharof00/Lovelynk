@@ -59,6 +59,9 @@ abstract class IUserRepository {
   /// Live partner coordinates, distance, bearing, and weather snapshot.
   Future<PartnerLiveSnapshot?> getPartnerSnapshot();
 
+  /// Refreshes weather via the refresh-weather Edge Function.
+  Future<PartnerLiveWeather?> refreshWeather({String? userId, bool force = false});
+
   /// Permanently deletes the signed-in account on the server.
   Future<void> deleteAccount();
 }
@@ -248,6 +251,29 @@ class UserRepository implements IUserRepository {
       mapper: (dynamic data) => data == null
           ? null
           : PartnerLiveSnapshot.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
+  }
+
+  @override
+  Future<PartnerLiveWeather?> refreshWeather({String? userId, bool force = false}) {
+    return _supabase.handleRequest(
+      () => _supabase.client.functions.invoke(
+        SupabaseFunction.refreshWeather,
+        method: HttpMethod.post,
+        body: {
+          if (userId != null) 'user_id': userId,
+          'force': force,
+        },
+      ),
+      (dynamic res) {
+        final data = res as Map<String, dynamic>?;
+        final weatherJson = data?['weather'] as Map<String, dynamic>?;
+        if (weatherJson != null) {
+          return PartnerLiveWeather.fromJson(weatherJson);
+        }
+        return null;
+      },
+      'Refresh weather',
     );
   }
 

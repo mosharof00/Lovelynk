@@ -1,3 +1,6 @@
+import 'package:get/get.dart';
+
+import '../../../core/services/user_prefs_service.dart';
 import '../../../core/utils/time_zone_utils.dart';
 import '../../../core/utils/weather_icon_mapper.dart';
 import '../user_models/session_bootstrap.dart';
@@ -126,10 +129,15 @@ class WidgetData {
     final compassBearing = live?.bearingDegrees ?? 0.0;
     final compassMiles = distanceMiles;
 
+    final tempC = live?.weather?.temperatureC;
+    final temp = (tempC != null && Get.isRegistered<UserPrefsService>())
+        ? UserPrefsService.to.temperatureUnit.value.fromCelsius(tempC)
+        : (tempC ?? 0);
+
     final weather = live?.weather != null
         ? PartnerWeather.fromOpenWeather(
-            temperature: live!.weather!.temperatureC,
-            condition: live.weather!.condition,
+            temperature: temp,
+            condition: live!.weather!.condition,
             conditionId: live.weather!.conditionId,
             iconCode: live.weather!.iconCode,
           )
