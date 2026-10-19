@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/network/handle_exceptions.dart';
+import '../../../core/services/location_sync_service.dart';
 import '../../../core/services/session_service.dart';
 import '../../../core/services/user_prefs_service.dart';
 import '../../../core/utils/helper_utils.dart';
@@ -32,6 +33,35 @@ class SettingsController extends GetxController {
   Rx<DistanceUnit> get distanceUnit => UserPrefsService.to.distanceUnit;
 
   String get email => SessionService.to.user?.email ?? '';
+
+  bool get hasLocationSync => Get.isRegistered<LocationSyncService>();
+  RxBool get isLocationSharing => hasLocationSync
+      ? LocationSyncService.to.isSharingEnabled
+      : true.obs;
+  bool get hasLocationPermission =>
+      hasLocationSync && LocationSyncService.to.hasPermission;
+  String get locationStatusText =>
+      hasLocationSync ? LocationSyncService.to.statusMessage : '';
+
+  Future<void> toggleLocationSharing(bool value) async {
+    if (!hasLocationSync) return;
+    try {
+      await LocationSyncService.to.setSharingEnabled(value);
+      globalSnackBar(
+        title: value ? 'Location sharing active' : 'Location sharing paused',
+        message: value
+            ? 'Your partner can now see your distance and compass direction.'
+            : 'Your location is hidden from your partner.',
+      );
+    } catch (e) {
+      handleException(e, context: 'Location sharing');
+    }
+  }
+
+  Future<void> openLocationPermissionSettings() async {
+    if (!hasLocationSync) return;
+    await LocationSyncService.to.openAppSettings();
+  }
 
   @override
   void onInit() {

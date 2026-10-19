@@ -34,12 +34,43 @@ class PartnerDistanceCard extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Obx(() {
       final connected = controller.isConnected.value;
-      final chip = connected
-          ? _DistanceChip(
-              value: controller.distanceLabel.value,
-              unit: controller.distanceUnit,
-            )
-          : _LockedChip(unit: controller.distanceUnit);
+      Widget chip;
+
+      if (!connected) {
+        chip = _LockedChip(unit: controller.distanceUnit);
+      } else if (controller.isLocationServiceDisabled.value) {
+        chip = _WarningChip(
+          icon: Icons.location_off_rounded,
+          label: 'GPS Off',
+          onTap: controller.onDistanceChipTapped,
+        );
+      } else if (!controller.hasLocationPermission.value) {
+        chip = _WarningChip(
+          icon: Icons.near_me_disabled_rounded,
+          label: 'Location Needed',
+          onTap: controller.onDistanceChipTapped,
+        );
+      } else if (controller.isMyLocationPaused.value) {
+        chip = _WarningChip(
+          icon: Icons.pause_circle_outline_rounded,
+          label: 'Sharing Paused',
+          onTap: controller.onDistanceChipTapped,
+        );
+      } else if (controller.isPartnerLocationPaused.value) {
+        chip = const _WarningChip(
+          icon: Icons.pause_circle_filled_rounded,
+          label: 'Partner Paused',
+        );
+      } else if (controller.isTogether.value) {
+        chip = _TogetherChip(onTap: controller.onDistanceChipTapped);
+      } else {
+        chip = _DistanceChip(
+          value: controller.distanceLabel.value,
+          unit: controller.distanceUnit,
+          lastUpdated: controller.locationLastUpdated.value,
+          onTap: controller.onDistanceChipTapped,
+        );
+      }
 
       return Container(
         width: double.infinity,
@@ -170,47 +201,170 @@ class _LockedChip extends StatelessWidget {
 }
 
 class _DistanceChip extends StatelessWidget {
-  const _DistanceChip({required this.value, required this.unit});
+  const _DistanceChip({
+    required this.value,
+    required this.unit,
+    this.lastUpdated,
+    this.onTap,
+  });
 
   final String value;
   final String unit;
+  final String? lastUpdated;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppText(
+              value,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColor.textPrimary,
+              ),
+            ),
+            if (value != '--') ...[
+              4.horizontalSpace,
+              AppText(
+                unit,
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.textSecondary,
+                ),
+              ),
+            ],
+            if (lastUpdated != null) ...[
+              6.horizontalSpace,
+              Container(
+                width: 4.w,
+                height: 4.w,
+                decoration: const BoxDecoration(
+                  color: AppColor.hintText,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              6.horizontalSpace,
+              AppText(
+                lastUpdated!,
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppColor.textSecondary,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppText(
-            value,
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w800,
-              color: AppColor.textPrimary,
+    );
+  }
+}
+
+class _TogetherChip extends StatelessWidget {
+  const _TogetherChip({this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.r),
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.primary.withValues(alpha: 0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-          ),
-          4.horizontalSpace,
-          AppText(
-            unit,
-            style: TextStyle(
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColor.textSecondary,
+          ],
+          border: Border.all(color: AppColor.primary.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.favorite_rounded, size: 14.sp, color: AppColor.primary),
+            6.horizontalSpace,
+            AppText(
+              'Together',
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColor.primary,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WarningChip extends StatelessWidget {
+  const _WarningChip({
+    required this.icon,
+    required this.label,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13.sp, color: AppColor.textSecondary),
+            4.horizontalSpace,
+            AppText(
+              label,
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColor.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

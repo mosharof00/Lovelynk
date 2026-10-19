@@ -107,18 +107,43 @@ class WidgetData {
       now;
 
   /// Real values from the session. Unpaired users and unset dates get
-  /// empty values so the UI can show "Set date". Distance, compass and
-  /// weather stay at defaults until those features are connected.
+  /// empty values so the UI can show "Set date". Reads live coordinates,
+  /// distance, bearing and weather when available from [SessionBootstrap.partnerLive].
   factory WidgetData.fromSession(SessionBootstrap? session) {
     final now = DateTime.now();
     final couple = session?.couple;
     final partner = couple?.partner;
     final visit = couple?.nextVisitAt;
+    final live = session?.partnerLive;
+
+    final liveCity = live?.location?.city?.trim();
+    final tzCity = TimeZoneUtils.cityFromTimezone(partner?.timezone) ?? '';
+    final partnerCity = (liveCity != null && liveCity.isNotEmpty)
+        ? liveCity
+        : tzCity;
+
+    final distanceMiles = live?.distanceMiles?.round() ?? 0;
+    final compassBearing = live?.bearingDegrees ?? 0.0;
+    final compassMiles = distanceMiles;
+
+    final weather = live?.weather != null
+        ? PartnerWeather.fromOpenWeather(
+            temperature: live!.weather!.temperatureC,
+            condition: live.weather!.condition,
+            conditionId: live.weather!.conditionId,
+            iconCode: live.weather!.iconCode,
+          )
+        : PartnerWeather.fromOpenWeather(
+            temperature: 0,
+            condition: '--',
+            conditionId: 803,
+            iconCode: '04d',
+          );
 
     return WidgetData(
       userName: session?.user.firstName ?? '',
       partnerName: partner?.displayName ?? '',
-      distanceMiles: 0,
+      distanceMiles: distanceMiles,
       togetherSince: couple?.togetherSince,
       partnerTimezone: partner?.timezone,
       partnerUtcOffsetMinutes:
@@ -127,21 +152,16 @@ class WidgetData {
             fallback: partner?.utcOffsetMinutes,
           ) ??
           now.timeZoneOffset.inMinutes,
-      partnerCity: TimeZoneUtils.cityFromTimezone(partner?.timezone) ?? '',
-      partnerWeather: PartnerWeather.fromOpenWeather(
-        temperature: 0,
-        condition: '--',
-        conditionId: 803,
-        iconCode: '04d',
-      ),
+      partnerCity: partnerCity,
+      partnerWeather: weather,
       nextVisit:
           visit == null ||
               visit.toLocal().isBefore(DateTime(now.year, now.month, now.day))
           ? null
           : visit,
       anniversary: couple?.togetherSince,
-      compassBearing: 0,
-      compassMiles: 0,
+      compassBearing: compassBearing,
+      compassMiles: compassMiles,
     );
   }
 

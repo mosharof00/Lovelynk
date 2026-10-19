@@ -19,6 +19,11 @@ class SupabaseRpc {
   // Profile & support
   static const updateMyProfile = 'update_my_profile';
   static const submitSupportTicket = 'submit_support_ticket';
+
+  // Location & partner snapshot
+  static const updateMyLocation = 'update_my_location';
+  static const setLocationSharing = 'set_location_sharing';
+  static const getPartnerSnapshot = 'get_partner_snapshot';
 }
 
 /// Edge Function names (`supabase.functions.invoke(...)`).
@@ -39,6 +44,9 @@ class SupabaseRealtime {
 
   /// Partner changed their profile or shared couple data.
   static const coupleUpdated = 'couple.updated';
+
+  /// Partner location changed.
+  static const partnerLocation = 'partner.location';
 }
 
 /// Supabase table / view names (`supabase.from(...)`).

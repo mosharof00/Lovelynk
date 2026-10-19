@@ -40,6 +40,27 @@ class SettingsView extends GetView<SettingsController> {
                     value: controller.distanceUnit.value.label,
                     onTap: () => _showUnitSheet(),
                   ),
+                  ProfileMenuItemData(
+                    icon: Icons.location_on_outlined,
+                    label: 'Share location with partner',
+                    hideChevron: true,
+                    trailing: Transform.scale(
+                      scale: 0.85,
+                      child: Switch.adaptive(
+                        value: controller.isLocationSharing.value,
+                        activeColor: AppColor.primary,
+                        onChanged: (val) => controller.toggleLocationSharing(val),
+                      ),
+                    ),
+                  ),
+                  if (!controller.hasLocationPermission)
+                    ProfileMenuItemData(
+                      icon: Icons.near_me_disabled_rounded,
+                      label: 'Location permission',
+                      value: 'Fix in Settings',
+                      valueColor: AppColor.error,
+                      onTap: () => controller.openLocationPermissionSettings(),
+                    ),
                 ],
               ),
             ),

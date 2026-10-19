@@ -14,6 +14,10 @@ enum DistanceUnit {
   /// Converts a distance in miles to this unit.
   double fromMiles(double miles) =>
       this == DistanceUnit.miles ? miles : miles * 1.609344;
+
+  /// Converts a distance in kilometers to this unit.
+  double fromKilometers(double km) =>
+      this == DistanceUnit.kilometers ? km : km * 0.621371;
 }
 
 /// Device-level display preferences (kept across accounts on this phone).

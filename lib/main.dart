@@ -9,6 +9,7 @@ import 'app/core/network/supabase/supabase_service.dart';
 import 'app/core/services/app_settings_service.dart';
 import 'app/core/services/compass_service.dart';
 import 'app/core/services/local_store_service.dart';
+import 'app/core/services/location_sync_service.dart';
 import 'app/core/services/session_service.dart';
 import 'app/core/services/subscription_service.dart';
 import 'app/core/services/user_prefs_service.dart';
@@ -36,6 +37,7 @@ void main() async {
   Get.put<SessionService>(SessionService().init(), permanent: true);
   Get.put<AppSettingsService>(AppSettingsService().init(), permanent: true);
   Get.put<UserPrefsService>(UserPrefsService().init(), permanent: true);
+  Get.put<LocationSyncService>(LocationSyncService().init(), permanent: true);
 
   Get.put<SubscriptionService>(SubscriptionService(), permanent: true);
   Get.put<WidgetDataService>(WidgetDataService().init(), permanent: true);

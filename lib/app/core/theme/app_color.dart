@@ -27,6 +27,8 @@ class AppColor {
   static const Color darkSurface = Color(0xFF2C2C2C);
 
   // ── Text / Neutral ────────────────────────────────────
+  static const Color black = Color(0xFF000000);
+  static const Color blackText = Color(0xFF1A1530);
   static const Color textPrimary = Color(0xFF1A1530);
   static const Color textSecondary = Color(0xFF6B667A);
   static const Color hintText = Color(0xFF9A96A8);

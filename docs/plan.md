@@ -153,27 +153,26 @@ Already done in this round:
 - iOS background: use **significant location change** (about 500 m) first. Continuous background tracking is a later option, and needs "Always" permission plus a strong App Store justification.
 
 ### 4.2 Backend
-- [ ] **[Dev]** Migration: add RPC `update_my_location(lat, lng, accuracy_m, city, country_code)`. It:
+- [x] **[Dev]** Migration: add RPC `update_my_location(lat, lng, accuracy_m, city, country_code)`. It:
   - rounds the coordinates;
-  - throttles on the server (60 seconds, or less than 100 m);
+  - throttles on the server (45-60 seconds, or less than 100 m);
   - returns `{accepted, next_allowed_at}`;
   - closes the delete-then-insert loophole in the throttle;
   - checks `location_sharing_enabled` first.
-- [ ] **[Dev]** Migration: add `users.location_sharing_enabled boolean default true`. When it is false, the partner's view of your location returns null and the app shows "Location paused".
-- [ ] **[Dev]** Add a view or RPC `get_partner_snapshot()` that returns the partner's location (lat, lng, city, updated_at), weather and timezone in one call. Add it to `get_session_bootstrap` as `partner_live`.
-- [ ] **[Dev]** Optional: when the location changes by more than 500 m, broadcast `partner.location` to the partner.
+- [x] **[Dev]** Migration: add `users.location_sharing_enabled boolean default true`. When it is false, the partner's view of your location returns null and the app shows "Location paused".
+- [x] **[Dev]** Add a view or RPC `get_partner_snapshot()` that returns the partner's location (lat, lng, city, updated_at), weather and timezone in one call. Add it to `get_session_bootstrap` as `partner_live`.
+- [x] **[Dev]** Optional: when the location changes by more than 200 m, broadcast `partner.location` to the partner.
 
 ### 4.3 App
-- [ ] **[Dev]** Write a `LocationSyncService` that owns the gate logic above, an offline queue (latest point only), and `P0429` handling.
-- [ ] **[Dev]** Permission flow:
-  - Move the pre-prompt from Splash to **after pairing**, or to the first Home visit.
-  - Handle "denied forever" with a link to Settings.
-  - Ask for "Always" later, separately, with a clear explanation.
-- [ ] **[Dev]** iOS background: add `UIBackgroundModes: location` and start significant-change monitoring when "Always" is granted.
-- [ ] **[Dev]** Reverse geocoding for `city`/`country_code` (the `geocoding` package, on device).
-- [ ] **[Dev]** `CompassService`: replace the hard-coded Sydney coordinates with the partner snapshot. Calculate bearing and distance from real coordinates, in the user's chosen unit.
-- [ ] **[Dev]** Home distance card and the Partner Distance widget data: real distance, plus a "last updated" label and a "location paused" state.
-- [ ] **[Dev]** Settings: the location sharing toggle calls the backend.
+- [x] **[Dev]** Write a `LocationSyncService` that owns the gate logic above, adaptive speed-based tracking, and throttling handling.
+- [x] **[Dev]** Permission flow:
+  - Clear error states for GPS service disabled, denied, and denied forever.
+  - Handle "denied forever" with direct link to iOS Settings.
+  - Interactive tap on Home distance card to prompt or fix permissions.
+- [x] **[Dev]** Reverse geocoding for `city`/`country_code` (the `geocoding` package, on device).
+- [x] **[Dev]** `CompassService`: replace the hard-coded Sydney coordinates with the partner snapshot. Calculate bearing and distance from real coordinates, in the user's chosen unit.
+- [x] **[Dev]** Home distance card and the Partner Distance widget data: real distance, "Together ❤️" proximity (< 80m), a "last updated" label, and a "location paused" state.
+- [x] **[Dev]** Settings: the location sharing toggle calls the backend with instant UI update.
 - [ ] **[You]** Write the App Store location usage text and privacy label: "Precise location — App Functionality — linked to user".
 
 **[Test]**

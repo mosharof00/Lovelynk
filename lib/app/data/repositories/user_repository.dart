@@ -44,6 +44,21 @@ abstract class IUserRepository {
     String? osVersion,
   });
 
+  /// Uploads current location and returns acceptance/throttling state.
+  Future<Map<String, dynamic>> updateMyLocation({
+    required double latitude,
+    required double longitude,
+    double? accuracyM,
+    String? city,
+    String? countryCode,
+  });
+
+  /// Updates user's location sharing preference.
+  Future<bool> setLocationSharing(bool enabled);
+
+  /// Live partner coordinates, distance, bearing, and weather snapshot.
+  Future<PartnerLiveSnapshot?> getPartnerSnapshot();
+
   /// Permanently deletes the signed-in account on the server.
   Future<void> deleteAccount();
 }
@@ -192,6 +207,47 @@ class UserRepository implements IUserRepository {
       ),
       (_) {},
       'Delete account',
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateMyLocation({
+    required double latitude,
+    required double longitude,
+    double? accuracyM,
+    String? city,
+    String? countryCode,
+  }) {
+    return _supabase.rpc(
+      SupabaseRpc.updateMyLocation,
+      params: {
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+        'p_accuracy_m': accuracyM,
+        'p_city': city,
+        'p_country_code': countryCode,
+      },
+      mapper: (dynamic data) =>
+          Map<String, dynamic>.from((data as Map?) ?? const {}),
+    );
+  }
+
+  @override
+  Future<bool> setLocationSharing(bool enabled) {
+    return _supabase.rpc(
+      SupabaseRpc.setLocationSharing,
+      params: {'p_enabled': enabled},
+      mapper: (dynamic data) => (data as bool?) ?? enabled,
+    );
+  }
+
+  @override
+  Future<PartnerLiveSnapshot?> getPartnerSnapshot() {
+    return _supabase.rpc(
+      SupabaseRpc.getPartnerSnapshot,
+      mapper: (dynamic data) => data == null
+          ? null
+          : PartnerLiveSnapshot.fromJson(Map<String, dynamic>.from(data as Map)),
     );
   }
 

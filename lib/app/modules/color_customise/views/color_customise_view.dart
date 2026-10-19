@@ -6,7 +6,6 @@ import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/global_button.dart';
 import '../controllers/color_customise_controller.dart';
-import '../widgets/background_toggle_section.dart';
 import '../widgets/colour_theme_picker.dart';
 import '../widgets/customise_home_preview.dart';
 import '../widgets/font_and_size_selectors.dart';

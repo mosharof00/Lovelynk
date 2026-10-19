@@ -49,7 +49,13 @@ class SessionService extends GetxService with WidgetsBindingObserver {
   CoupleSummary? get couple => bootstrap.value?.couple;
   PartnerSummary? get partner => couple?.partner;
   AccessStatus? get access => bootstrap.value?.access;
+  PartnerLiveSnapshot? get partnerLive => bootstrap.value?.partnerLive;
   bool get isPaired => couple != null;
+  bool get isLocationSharingEnabled =>
+      bootstrap.value?.user.locationSharingEnabled ?? true;
+  bool get isPartnerLocationSharingEnabled =>
+      bootstrap.value?.partnerLive?.locationSharingEnabled ??
+      (bootstrap.value?.couple?.partner.locationSharingEnabled ?? true);
 
   static const _recoveryPendingKey = 'password_recovery_pending';
 
@@ -216,9 +222,32 @@ class SessionService extends GetxService with WidgetsBindingObserver {
           event: SupabaseRealtime.coupleUpdated,
           callback: (_) => refresh(),
         )
+        .onBroadcast(
+          event: SupabaseRealtime.partnerLocation,
+          callback: (_) => refreshPartnerSnapshot(),
+        )
         .subscribe((status, error) {
           Log.i('[Realtime] user channel: $status ${error ?? ''}');
         });
+  }
+
+  /// Lightweight refresh of partner snapshot only (called on partner.location).
+  Future<void> refreshPartnerSnapshot() async {
+    if (!hasSession || !isPaired) return;
+    try {
+      final snap = await _userRepo.getPartnerSnapshot();
+      if (snap != null && bootstrap.value != null) {
+        final current = bootstrap.value!;
+        bootstrap.value = SessionBootstrap(
+          user: current.user,
+          couple: current.couple,
+          access: current.access,
+          partnerLive: snap,
+        );
+      }
+    } catch (e) {
+      Log.w('refreshPartnerSnapshot failed: $e');
+    }
   }
 
   Future<void> _unsubscribeRealtime() async {
@@ -253,7 +282,8 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     if (bootstrap.value == null) return;
     switch (state) {
       case AppLifecycleState.resumed:
-        // Catches anything missed while in the background.
+        // Catches anything missed while in the background and resubscribes.
+        _subscribeRealtime();
         refresh();
         break;
       case AppLifecycleState.paused:
