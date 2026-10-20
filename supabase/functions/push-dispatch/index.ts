@@ -273,7 +273,6 @@ Deno.serve(async (req) => {
       },
       payload: {
         aps: {
-          badge: badge,
           // content-available: 1 wakes up app & extensions to update widgets
           'content-available': 1,
           'mutable-content': 1,

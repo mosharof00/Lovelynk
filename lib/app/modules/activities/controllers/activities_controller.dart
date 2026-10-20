@@ -66,6 +66,10 @@ class ActivitiesController extends GetxController {
     super.onInit();
     _data = Get.find<WidgetDataService>();
     _repo = Get.find<IInteractionRepository>();
+    final initialFilter = Get.arguments?['filter'] as ActivityFilter?;
+    if (initialFilter != null) {
+      filter.value = initialFilter;
+    }
     loadFeed(refresh: true);
   }
 

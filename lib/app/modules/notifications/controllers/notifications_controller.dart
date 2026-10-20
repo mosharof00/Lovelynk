@@ -1,5 +1,4 @@
-import 'dart:async';
-
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -12,22 +11,46 @@ import '../../../routes/app_pages.dart';
 class NotificationsController extends GetxController {
   final INotificationRepository _repo = Get.find<INotificationRepository>();
 
+  static const int pageSize = 20;
+  final scrollController = ScrollController();
+
   final items = <AppNotification>[].obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final hasMore = true.obs;
 
   int get unreadCount => items.where((e) => !e.isRead).length;
 
   @override
   void onInit() {
     super.onInit();
-    loadNotifications();
+    scrollController.addListener(_onScroll);
+    loadNotifications(refresh: true);
   }
 
-  Future<void> loadNotifications() async {
-    isLoading.value = true;
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  void _onScroll() {
+    if (scrollController.hasClients &&
+        scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 200) {
+      loadMore();
+    }
+  }
+
+  Future<void> loadNotifications({bool refresh = false}) async {
+    if (refresh) {
+      isLoading.value = true;
+      hasMore.value = true;
+    }
     try {
-      final list = await _repo.getNotifications(limit: 50);
+      final list = await _repo.getNotifications(limit: pageSize, offset: 0);
       items.assignAll(list);
+      hasMore.value = list.length >= pageSize;
       if (Get.isRegistered<PushNotificationService>()) {
         PushNotificationService.to.refreshUnreadCount();
       }
@@ -38,16 +61,25 @@ class NotificationsController extends GetxController {
     }
   }
 
-  Future<void> refreshNotifications() async {
+  Future<void> loadMore() async {
+    if (!hasMore.value || isLoadingMore.value || isLoading.value) return;
+    isLoadingMore.value = true;
     try {
-      final list = await _repo.getNotifications(limit: 50);
-      items.assignAll(list);
-      if (Get.isRegistered<PushNotificationService>()) {
-        PushNotificationService.to.refreshUnreadCount();
-      }
+      final list = await _repo.getNotifications(
+        limit: pageSize,
+        offset: items.length,
+      );
+      items.addAll(list);
+      hasMore.value = list.length >= pageSize;
     } catch (e) {
-      Log.w('Failed to refresh notifications: $e');
+      Log.w('Failed to load more notifications: $e');
+    } finally {
+      isLoadingMore.value = false;
     }
+  }
+
+  Future<void> refreshNotifications() async {
+    await loadNotifications(refresh: false);
   }
 
   Future<void> markRead(String id) async {

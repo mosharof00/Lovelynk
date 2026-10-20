@@ -12,6 +12,8 @@ import '../../../data/models/widget_models/reaction_activity.dart';
 import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/custom_appbar.dart';
 import '../../../global/widgets/global_button.dart';
+import '../../../routes/app_pages.dart';
+import '../../activities/controllers/activities_controller.dart';
 import '../../widgets/widgets/dialogs/emoji_send_dialog.dart';
 import '../controllers/emoji_summary_controller.dart';
 
@@ -47,13 +49,39 @@ class EmojiSummaryView extends GetView<EmojiSummaryController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppText(
-                        'Today',
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppColor.textPrimary,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AppText(
+                            'Today',
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.textPrimary,
+                            ),
+                          ),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => Get.toNamed(
+                              Routes.ACTIVITIES,
+                              arguments: {'filter': ActivityFilter.emoji},
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 4.h,
+                                horizontal: 4.w,
+                              ),
+                              child: AppText(
+                                'See all',
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColor.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       14.verticalSpace,
                       const _ActivityList(),

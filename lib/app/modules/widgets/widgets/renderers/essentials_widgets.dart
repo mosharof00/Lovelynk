@@ -29,17 +29,21 @@ class PartnerDistanceWidget extends StatelessWidget {
 
       return Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AppText(
-            'Our distance: ${data.distanceMiles} miles',
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w500,
-              color: AppColor.textSecondary,
+          Center(
+            child: AppText(
+              'Our distance: ${data.distanceMiles} miles',
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
+                color: AppColor.textSecondary,
+              ),
             ),
           ),
           16.verticalSpace,
           SizedBox(
+            width: double.infinity,
             height: 36.w,
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -83,11 +87,12 @@ class _DistanceTrack extends StatelessWidget {
   Widget build(BuildContext context) {
     final diameter = 34.w;
     final radius = diameter / 2;
-    final heartHalf = 13.w;
+    final heartSize = 24.w;
+    final heartHalf = heartSize / 2;
     final centerX = width / 2;
     final centerY = 18.w;
 
-    // Closest the user circle centre can sit next to the heart.
+    // Closest the user circle centre can sit next to the heart (8.w gap).
     final userMin = centerX - heartHalf - 8.w - radius;
     final userX = radius + (userMin - radius) * t;
     final partnerX = width - userX;
@@ -100,21 +105,19 @@ class _DistanceTrack extends StatelessWidget {
           child: CustomPaint(
             painter: _DistanceDotsPainter(
               y: centerY,
-              leftStart: userX + radius + 5.w,
-              leftEnd: centerX - heartHalf - 5.w,
-              rightStart: centerX + heartHalf + 5.w,
-              rightEnd: partnerX - radius - 5.w,
+              leftStart: userX + radius + 4.w,
+              leftEnd: centerX - heartHalf - 4.w,
+              rightStart: centerX + heartHalf + 4.w,
+              rightEnd: partnerX - radius - 4.w,
               color: AppColor.primaryDisable,
             ),
           ),
         ),
-        Positioned(
-          left: centerX - heartHalf,
-          top: centerY - heartHalf,
-          child:
-          AppSvgIcon(
-            Assets.icons.loveIcon,
-            size: heartHalf * 2,
+        Align(
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.favorite_rounded,
+            size: heartSize,
             color: WidgetAccentScope.of(context),
           ),
         ),
@@ -186,16 +189,20 @@ class _DistanceDotsPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    _dots(canvas, paint, leftStart, leftEnd);
-    _dots(canvas, paint, rightStart, rightEnd);
+    _drawSymmetricDots(canvas, paint, leftStart, leftEnd);
+    _drawSymmetricDots(canvas, paint, rightStart, rightEnd);
   }
 
-  void _dots(Canvas canvas, Paint paint, double start, double end) {
-    if (end <= start) return;
-    const spacing = 7.0;
+  void _drawSymmetricDots(Canvas canvas, Paint paint, double start, double end) {
+    final span = end - start;
+    if (span <= 6.0) return;
     const dotRadius = 1.6;
-    for (double x = start; x <= end; x += spacing) {
-      canvas.drawCircle(Offset(x, y), dotRadius, paint);
+    const targetSpacing = 7.0;
+    final count = (span / targetSpacing).round();
+    if (count <= 0) return;
+    final step = span / (count + 1);
+    for (int i = 1; i <= count; i++) {
+      canvas.drawCircle(Offset(start + i * step, y), dotRadius, paint);
     }
   }
 

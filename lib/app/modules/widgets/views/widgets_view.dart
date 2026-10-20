@@ -55,38 +55,51 @@ class WidgetsView extends GetView<WidgetsController> {
                 final categories = controller.visibleCategories;
 
                 if (controller.filteredWidgets.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 32.w),
-                      child: AppText(
-                        'No widgets found',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: AppColor.textSecondary,
+                  return RefreshIndicator.adaptive(
+                    onRefresh: controller.onRefresh,
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(height: 120.h),
+                        Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 32.w),
+                            child: AppText(
+                              'No widgets found',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: AppColor.textSecondary,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   );
                 }
 
-                return ListView(
-                  padding: EdgeInsets.fromLTRB(20.w, 18.h, 20.w, 24.h),
-                  children: [
-                    for (final category in categories) ...[
-                      WidgetCategorySection(
-                        category: category,
-                        widgets: controller.widgetsFor(category),
-                        isUnlocked: unlocked,
-                        onAdd: controller.onAddTap,
-                        onUnlock: controller.onUnlockTap,
-                        onSend: controller.onSendTap,
-                        showSeeAll: selected == null,
-                        onSeeAll: () => controller.onSeeAll(category),
-                      ),
-                      24.verticalSpace,
+                return RefreshIndicator.adaptive(
+                  onRefresh: controller.onRefresh,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(20.w, 18.h, 20.w, 24.h),
+                    children: [
+                      for (final category in categories) ...[
+                        WidgetCategorySection(
+                          category: category,
+                          widgets: controller.widgetsFor(category),
+                          isUnlocked: unlocked,
+                          onAdd: controller.onAddTap,
+                          onUnlock: controller.onUnlockTap,
+                          onSend: controller.onSendTap,
+                          showSeeAll: selected == null,
+                          onSeeAll: () => controller.onSeeAll(category),
+                        ),
+                        24.verticalSpace,
+                      ],
                     ],
-                  ],
+                  ),
                 );
               }),
             ),

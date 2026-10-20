@@ -19,6 +19,11 @@ import flutter_local_notifications
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    application.applicationIconBadgeNumber = 0
+  }
+
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
   }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services/subscription_service.dart';
+import '../../../core/services/widget_data_service.dart';
+import '../../../core/utils/logger.dart';
 import '../../../core/utils/partner_guard.dart';
+import '../../../core/widgets/widget_sync_service.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../data/models/widget_models/widget_definition.dart';
 import '../../../data/widget_catalog/widget_catalog.dart';
@@ -17,6 +20,19 @@ class WidgetsController extends GetxController {
 
   /// `null` = All categories
   final selectedCategory = Rxn<WidgetCategory>();
+
+  Future<void> onRefresh() async {
+    try {
+      if (Get.isRegistered<WidgetDataService>()) {
+        await Get.find<WidgetDataService>().refreshFromBackend();
+      }
+      if (Get.isRegistered<WidgetSyncService>()) {
+        await Get.find<WidgetSyncService>().syncAll();
+      }
+    } catch (e) {
+      Log.e('[WidgetsController] onRefresh error: $e');
+    }
+  }
 
   @override
   void onInit() {

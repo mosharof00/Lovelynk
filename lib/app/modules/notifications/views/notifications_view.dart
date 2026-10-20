@@ -98,11 +98,22 @@ class NotificationsView extends GetView<NotificationsController> {
           onRefresh: controller.refreshNotifications,
           color: AppColor.primary,
           child: ListView.separated(
+            controller: controller.scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 32.h),
-            itemCount: list.length,
+            itemCount: list.length + (controller.isLoadingMore.value ? 1 : 0),
             separatorBuilder: (_, __) => 10.verticalSpace,
             itemBuilder: (context, index) {
+              if (index >= list.length) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  child: const Center(
+                    child: CircularProgressIndicator.adaptive(
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColor.primary),
+                    ),
+                  ),
+                );
+              }
               final n = list[index];
               return Dismissible(
                 key: Key(n.id),
