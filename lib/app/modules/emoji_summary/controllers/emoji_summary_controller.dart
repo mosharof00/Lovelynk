@@ -11,6 +11,7 @@ class EmojiSummaryController extends GetxController {
   void onInit() {
     super.onInit();
     _data = Get.find<WidgetDataService>();
+    _data.refreshFromBackend();
   }
 
   String get partnerName => _data.data.value.partnerName;

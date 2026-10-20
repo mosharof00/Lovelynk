@@ -181,11 +181,12 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   // If user disabled push for this category, check if we should suppress alert
+  const notifKind = dataPayload.kind || category;
   let isCategoryDisabled = false;
   if (prefs) {
-    if (category === 'heartbeat' && prefs.push_heartbeat === false) isCategoryDisabled = true;
-    if (category === 'kiss' && prefs.push_kiss === false) isCategoryDisabled = true;
-    if (category === 'emoji' && prefs.push_emoji === false) isCategoryDisabled = true;
+    if (notifKind === 'heartbeat' && prefs.push_heartbeat === false) isCategoryDisabled = true;
+    if (notifKind === 'kiss' && prefs.push_kiss === false) isCategoryDisabled = true;
+    if (notifKind === 'emoji' && prefs.push_emoji === false) isCategoryDisabled = true;
     if (category === 'relationship' && prefs.push_relationship === false) isCategoryDisabled = true;
     if (category === 'subscription' && prefs.push_subscription === false) isCategoryDisabled = true;
     if (category === 'announcement' && prefs.push_announcements === false) isCategoryDisabled = true;

@@ -34,6 +34,11 @@ class SupabaseRpc {
   static const deleteNotification = 'delete_notification';
   static const getNotificationPreferences = 'get_notification_preferences';
   static const updateNotificationPreferences = 'update_notification_preferences';
+
+  // Interactions (Heartbeat, Kiss, Emoji)
+  static const sendInteraction = 'send_interaction';
+  static const getInteractionSummary = 'get_interaction_summary';
+  static const getInteractionFeed = 'get_interaction_feed';
 }
 
 /// Edge Function names (`supabase.functions.invoke(...)`).
@@ -65,6 +70,9 @@ class SupabaseRealtime {
 
   /// New in-app notification arrived.
   static const notificationNew = 'notification.new';
+
+  /// Partner sent an interaction (heartbeat, kiss, or emoji).
+  static const interactionNew = 'interaction.new';
 }
 
 /// Supabase table / view names (`supabase.from(...)`).
@@ -76,6 +84,8 @@ class SupabaseTable {
   static const notifications = 'notifications';
   static const notificationPreferences = 'notification_preferences';
   static const pushDevices = 'push_devices';
+  static const interactions = 'interactions';
+  static const interactionTotals = 'interaction_totals';
 }
 
 /// Supabase Storage bucket ids.

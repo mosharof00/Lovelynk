@@ -19,6 +19,7 @@ import '../utils/logger.dart';
 import '../widgets/widget_sync_service.dart';
 import 'push_notification_service.dart';
 import 'subscription_service.dart';
+import 'widget_data_service.dart';
 
 enum CoupleEvent { paired, left }
 
@@ -243,6 +244,16 @@ class SessionService extends GetxService with WidgetsBindingObserver {
           callback: (payload) {
             if (Get.isRegistered<PushNotificationService>()) {
               Get.find<PushNotificationService>().handleRealtimeNotification(
+                Map<String, dynamic>.from(payload),
+              );
+            }
+          },
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.interactionNew,
+          callback: (payload) {
+            if (Get.isRegistered<WidgetDataService>()) {
+              Get.find<WidgetDataService>().handleIncomingInteraction(
                 Map<String, dynamic>.from(payload),
               );
             }

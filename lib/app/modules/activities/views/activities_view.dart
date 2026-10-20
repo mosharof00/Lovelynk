@@ -28,57 +28,104 @@ class ActivitiesView extends GetView<ActivitiesController> {
           12.verticalSpace,
           Expanded(
             child: Obx(() {
+              if (controller.isLoading.value && controller.allItems.isEmpty) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColor.primary),
+                );
+              }
+
               final items = controller.filteredItems;
               if (items.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 32.w),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.favorite_border_rounded,
-                          size: 40.sp,
-                          color: AppColor.hintText,
-                        ),
-                        12.verticalSpace,
-                        AppText(
-                          'No activity yet',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w700,
-                            color: AppColor.textPrimary,
+                return RefreshIndicator(
+                  onRefresh: controller.refreshFeed,
+                  color: AppColor.primary,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(height: 120.h),
+                      Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32.w),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.favorite_border_rounded,
+                                size: 40.sp,
+                                color: AppColor.hintText,
+                              ),
+                              12.verticalSpace,
+                              AppText(
+                                'No activity yet',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColor.textPrimary,
+                                ),
+                              ),
+                              6.verticalSpace,
+                              AppText(
+                                'Heartbeats, kisses, and emojis you share will show up here.',
+                                textAlign: TextAlign.center,
+                                maxLines: 3,
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  color: AppColor.textSecondary,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        6.verticalSpace,
-                        AppText(
-                          'Heartbeats, kisses, and emojis you share will show up here.',
-                          textAlign: TextAlign.center,
-                          maxLines: 3,
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            color: AppColor.textSecondary,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               }
 
-              return ListView.separated(
-                padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 32.h),
-                itemCount: items.length,
-                separatorBuilder: (_, __) => 10.verticalSpace,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return _ActivityCard(
-                    item: item,
-                    timeLabel: controller.timeLabel(item.reaction.at),
-                    onTap: () => controller.openSummary(item.kind),
-                  );
-                },
+              return RefreshIndicator(
+                onRefresh: controller.refreshFeed,
+                color: AppColor.primary,
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (scrollInfo) {
+                    if (scrollInfo.metrics.pixels >=
+                            scrollInfo.metrics.maxScrollExtent - 200 &&
+                        controller.hasMore.value &&
+                        !controller.isLoadingMore.value) {
+                      controller.loadMore();
+                    }
+                    return false;
+                  },
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 32.h),
+                    itemCount: items.length + (controller.hasMore.value ? 1 : 0),
+                    separatorBuilder: (_, __) => 10.verticalSpace,
+                    itemBuilder: (context, index) {
+                      if (index == items.length) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColor.primary,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      final item = items[index];
+                      return _ActivityCard(
+                        item: item,
+                        timeLabel: controller.timeLabel(item.reaction.at),
+                        onTap: () => controller.openSummary(item.kind),
+                      );
+                    },
+                  ),
+                ),
               );
             }),
           ),
