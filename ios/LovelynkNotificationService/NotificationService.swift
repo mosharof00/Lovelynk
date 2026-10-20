@@ -1,14 +1,13 @@
+//
+//  NotificationService.swift
+//  LovelynkNotificationService
+//
+//  Created by M.K on 10/20/26.
+//
+
 import UserNotifications
 import WidgetKit
 
-/// UNNotificationServiceExtension: Executed by iOS in the background whenever an APNs
-/// notification arrives with `"mutable-content": 1`, EVEN IF THE APP IS TERMINATED / KILLED.
-///
-/// Responsibilities:
-/// 1. Reads incoming interaction payload (heartbeat, kiss, emoji).
-/// 2. Updates canonical counts & recent emojis in the shared App Group (`group.com.lovelynk.ios`).
-/// 3. Signals `WidgetCenter.shared.reloadTimelines` immediately, so the Home Screen and
-///    Lock Screen widgets reflect the new count before the user even taps the banner.
 class NotificationService: UNNotificationServiceExtension {
 
     var contentHandler: ((UNNotificationContent) -> Void)?
@@ -37,24 +36,33 @@ class NotificationService: UNNotificationServiceExtension {
         let userInfo = request.content.userInfo
 
         // 2. Extract payload metadata
+        // FCM sends keys at the root of userInfo, or inside "widget" or "data" dictionaries
+        let widgetDict = userInfo["widget"] as? [String: Any]
+        let dataDict = userInfo["data"] as? [String: Any]
+
         let kind = (userInfo["kind"] as? String)
-            ?? ((userInfo["widget"] as? [String: Any])?["kind"] as? String)
+            ?? (widgetDict?["kind"] as? String)
+            ?? (dataDict?["kind"] as? String)
             ?? (userInfo["category"] as? String)
             ?? ""
 
         let totalStr = (userInfo["total"] as? String)
-            ?? ((userInfo["widget"] as? [String: Any])?["total"] as? String)
+            ?? (widgetDict?["total"] as? String)
+            ?? (dataDict?["total"] as? String)
         let totalVal = totalStr != nil ? Int(totalStr!) : (userInfo["total"] as? Int)
 
         let countStr = (userInfo["count"] as? String)
-            ?? ((userInfo["widget"] as? [String: Any])?["count"] as? String)
+            ?? (widgetDict?["count"] as? String)
+            ?? (dataDict?["count"] as? String)
         let countToAdd = (countStr != nil ? Int(countStr!) : nil) ?? (userInfo["count"] as? Int) ?? 1
 
         let emoji = (userInfo["emoji"] as? String)
-            ?? ((userInfo["widget"] as? [String: Any])?["emoji"] as? String)
+            ?? (widgetDict?["emoji"] as? String)
+            ?? (dataDict?["emoji"] as? String)
 
         let recentEmojisStr = (userInfo["recent_emojis"] as? String)
-            ?? ((userInfo["widget"] as? [String: Any])?["recent_emojis"] as? String)
+            ?? (widgetDict?["recent_emojis"] as? String)
+            ?? (dataDict?["recent_emojis"] as? String)
 
         // 3. Update WidgetKit App Group storage & trigger reload
         switch kind {
@@ -67,6 +75,7 @@ class NotificationService: UNNotificationServiceExtension {
                 finalCount = current + countToAdd
             }
             defaults.set("\(finalCount)", forKey: "heartbeat_count")
+            defaults.synchronize()
             WidgetCenter.shared.reloadTimelines(ofKind: "HeartbeatWidget")
 
         case "kiss":
@@ -78,12 +87,13 @@ class NotificationService: UNNotificationServiceExtension {
                 finalCount = current + countToAdd
             }
             defaults.set("\(finalCount)", forKey: "kiss_count")
+            defaults.synchronize()
             WidgetCenter.shared.reloadTimelines(ofKind: "KissWidget")
 
         case "emoji":
             if let recentEmojisStr = recentEmojisStr, !recentEmojisStr.isEmpty {
                 let top3 = recentEmojisStr.split(separator: ",").prefix(3).joined(separator: ",")
-                defaults.set(top3, forKey: "emoji_recent")
+                defaults.set(String(top3), forKey: "emoji_recent")
             } else if let emoji = emoji, !emoji.isEmpty {
                 var current = (defaults.string(forKey: "emoji_recent") ?? "")
                     .split(separator: ",")
@@ -93,13 +103,14 @@ class NotificationService: UNNotificationServiceExtension {
                 let top3 = current.prefix(3).joined(separator: ",")
                 defaults.set(top3, forKey: "emoji_recent")
             }
+            defaults.synchronize()
             WidgetCenter.shared.reloadTimelines(ofKind: "EmojiWidget")
 
         default:
             break
         }
 
-        // Reload all timelines to ensure Lock Screen accessories refresh immediately
+        // Also reload all timelines to ensure Lock Screen accessories refresh immediately
         WidgetCenter.shared.reloadAllTimelines()
     }
 
