@@ -13,6 +13,7 @@ class PartnerWeather {
     required this.iconPath,
     this.conditionId,
     this.isDay = true,
+    this.updatedAt,
   });
 
   /// Celsius.
@@ -25,6 +26,7 @@ class PartnerWeather {
   /// OpenWeather `weather[0].id` — used to re-map icon when data refreshes.
   final int? conditionId;
   final bool isDay;
+  final DateTime? updatedAt;
 
   /// Build from OpenWeather API fields (Edge Function / Supabase later).
   factory PartnerWeather.fromOpenWeather({
@@ -32,6 +34,7 @@ class PartnerWeather {
     required String condition,
     required int conditionId,
     String? iconCode,
+    DateTime? updatedAt,
   }) {
     final isDay = WeatherIconMapper.isDayFromIconCode(iconCode);
     return PartnerWeather(
@@ -39,6 +42,7 @@ class PartnerWeather {
       condition: condition,
       conditionId: conditionId,
       isDay: isDay,
+      updatedAt: updatedAt,
       iconPath: WeatherIconMapper.iconFor(
         conditionId: conditionId,
         isDay: isDay,
@@ -62,6 +66,8 @@ class WidgetData {
     required this.anniversary,
     required this.compassBearing,
     required this.compassMiles,
+    this.partnerLocationSharing = true,
+    this.partnerLocationUpdatedAt,
   });
 
   final String userName;
@@ -82,6 +88,8 @@ class WidgetData {
   final DateTime? anniversary;
   final double compassBearing;
   final int compassMiles;
+  final bool partnerLocationSharing;
+  final DateTime? partnerLocationUpdatedAt;
 
   String get userInitial =>
       userName.isNotEmpty ? userName[0].toUpperCase() : '?';
@@ -140,6 +148,7 @@ class WidgetData {
             condition: live!.weather!.condition,
             conditionId: live.weather!.conditionId,
             iconCode: live.weather!.iconCode,
+            updatedAt: live.weather!.fetchedAt,
           )
         : PartnerWeather.fromOpenWeather(
             temperature: 0,
@@ -147,6 +156,10 @@ class WidgetData {
             conditionId: 803,
             iconCode: '04d',
           );
+
+    final isSharing = live?.locationSharingEnabled ??
+        (partner?.locationSharingEnabled ?? true);
+    final locationUpdatedAt = live?.location?.updatedAt;
 
     return WidgetData(
       userName: session?.user.firstName ?? '',
@@ -170,6 +183,8 @@ class WidgetData {
       anniversary: couple?.togetherSince,
       compassBearing: compassBearing,
       compassMiles: compassMiles,
+      partnerLocationSharing: isSharing,
+      partnerLocationUpdatedAt: locationUpdatedAt,
     );
   }
 
@@ -190,6 +205,7 @@ class WidgetData {
         condition: 'Partly Cloudy',
         conditionId: 802,
         iconCode: '03d',
+        updatedAt: now,
       ),
       nextVisit: now.add(
         const Duration(days: 76, hours: 3, minutes: 27, seconds: 9),
@@ -197,6 +213,8 @@ class WidgetData {
       anniversary: DateTime(2025, 10, 12),
       compassBearing: 45,
       compassMiles: 213,
+      partnerLocationSharing: true,
+      partnerLocationUpdatedAt: now,
     );
   }
 
@@ -213,6 +231,8 @@ class WidgetData {
     DateTime? anniversary,
     double? compassBearing,
     int? compassMiles,
+    bool? partnerLocationSharing,
+    DateTime? partnerLocationUpdatedAt,
   }) {
     return WidgetData(
       userName: userName ?? this.userName,
@@ -228,6 +248,10 @@ class WidgetData {
       anniversary: anniversary ?? this.anniversary,
       compassBearing: compassBearing ?? this.compassBearing,
       compassMiles: compassMiles ?? this.compassMiles,
+      partnerLocationSharing:
+          partnerLocationSharing ?? this.partnerLocationSharing,
+      partnerLocationUpdatedAt:
+          partnerLocationUpdatedAt ?? this.partnerLocationUpdatedAt,
     );
   }
 }

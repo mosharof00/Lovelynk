@@ -28,3 +28,14 @@ enum WidgetWeatherIcon {
         }
     }
 }
+
+/// SwiftUI icon helper that draws the system symbol for the weather key.
+struct WidgetWeatherIconView: View {
+    let iconKey: String
+    let size: CGFloat
+
+    var body: some View {
+        Image(systemName: WidgetWeatherIcon.systemName(for: iconKey))
+            .font(.system(size: size))
+    }
+}

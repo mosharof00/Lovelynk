@@ -253,6 +253,8 @@ Deno.serve(async (req) => {
   const stringifiedData: Record<string, string> = {
     notification_id: notificationId || '',
     category: category || '',
+    kind: category || '',
+    widget_kind: category || '',
     route: dataPayload.route || '',
   };
   for (const [k, v] of Object.entries(dataPayload)) {
@@ -274,7 +276,17 @@ Deno.serve(async (req) => {
           badge: badge,
           // content-available: 1 wakes up app & extensions to update widgets
           'content-available': 1,
+          'mutable-content': 1,
           category: category,
+        },
+        kind: dataPayload.kind || category,
+        total: dataPayload.total != null ? String(dataPayload.total) : '',
+        count: dataPayload.count != null ? String(dataPayload.count) : '1',
+        emoji: dataPayload.emoji || '',
+        recent_emojis: dataPayload.recent_emojis || '',
+        widget: {
+          kind: dataPayload.kind || category,
+          ...dataPayload,
         },
       },
     };

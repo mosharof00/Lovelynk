@@ -27,28 +27,30 @@ WidgetSyncService                    reads style keys
 
 **iOS:** `ios/LovelynkWidgets/`
 
-## Native widgets implemented
+## Native widgets implemented (Phase 8 Production Pass)
 
-| Widget | iOS kind | Status |
-|--------|----------|--------|
-| Days Together | `DaysTogetherWidget` | ✅ |
-| Initials | `InitialsWidget` | ✅ |
-| Partner Distance | `PartnerDistanceWidget` | ✅ |
-| Anniversary | `AnniversaryWidget` | ✅ |
-| Partner Time | `PartnerTimeWidget` | ✅ (live, updates every minute) |
-| Together Counter | `TogetherCounterWidget` | ✅ (live, updates every second) |
-| Next Visit Countdown | `NextVisitCountdownWidget` | ✅ (live, updates every second) |
-| Partner Weather | `PartnerWeatherWidget` | ✅ |
-| Love Compass | `LoveCompassWidget` | ✅ |
-| Heartbeat | `HeartbeatWidget` | ✅ (tap → open app to send) |
-| Kiss | `KissWidget` | ✅ (tap → open app to send) |
-| Emoji | `EmojiWidget` | ✅ (tap → open app to send) |
+| Widget | iOS kind | Features |
+|--------|----------|----------|
+| Days Together | `DaysTogetherWidget` | ✅ Calculates in Swift; automatic midnight rollover; `.privacySensitive()` |
+| Initials | `InitialsWidget` | ✅ Neutral "—" fallback; paired check; `.privacySensitive()` |
+| Partner Distance | `PartnerDistanceWidget` | ✅ Distance in `mi`/`km`; "Location paused" state; "last updated" age; `.privacySensitive()` |
+| Anniversary | `AnniversaryWidget` | ✅ Dynamic days-to-go Swift calculation; "Set anniversary" empty state |
+| Partner Time | `PartnerTimeWidget` | ✅ IANA timezone; live minute updates; neutral fallbacks |
+| Together Counter | `TogetherCounterWidget` | ✅ `WidgetLiveTimer` / `Text(style: .timer)` (0 CPU overhead live seconds, 60s loop eliminated) |
+| Next Visit Countdown | `NextVisitCountdownWidget` | ✅ `WidgetLiveTimer` live countdown; "Set next visit" placeholder |
+| Partner Weather | `PartnerWeatherWidget` | ✅ Real weather data; "as of" age; neutral fallback; `.privacySensitive()` |
+| Love Compass | `LoveCompassWidget` | ✅ Distance + direction (e.g. "NE 45°") relative to North; `.privacySensitive()` |
+| Heartbeat | `HeartbeatWidget` | ✅ Real count; iOS 17+ interactive `SendInteractionIntent`; iOS 16 deep link |
+| Kiss | `KissWidget` | ✅ Real count; iOS 17+ interactive `SendInteractionIntent`; iOS 16 deep link |
+| Emoji | `EmojiWidget` | ✅ 3 most recent emojis; iOS 17+ interactive `SendInteractionIntent`; iOS 16 deep link |
 
-All **12** widgets are implemented natively on iOS.
+All **12** widgets are implemented natively on iOS with full dark mode, container background, and `.widgetAccentable()` support for iOS 18 tinted icons.
 
 ### Interactive widgets (Heartbeat, Kiss, Emoji)
 
-Tapping the widget opens the app via `lovelynk://widget/{heartbeat|kiss|emoji}?homeWidget` and shows the send dialog on the Widgets tab. The `homeWidget` query param is required for the `home_widget` plugin to deliver the URL to Flutter (`WidgetDeepLinkService`).
+- **iOS 17+**: One-tap interactive button (`SendInteractionIntent`) sends the reaction straight from the widget without opening the app, updating the counter instantly.
+- **iOS 16 & fallback**: Tapping the widget opens the app via `lovelynk://widget/{heartbeat|kiss|emoji}?homeWidget` into the interaction summary screen (`WidgetDeepLinkService`).
+- **All 12 widgets**: Each widget has its own deep link URL (`lovelynk://widget/{widgetId}?homeWidget`) routing to its detailed view.
 
 URL scheme `lovelynk` is registered in `ios/Runner/Info.plist`.
 

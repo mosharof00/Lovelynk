@@ -7,7 +7,8 @@ enum AppGroupStore {
     }
 
     static func string(_ key: String, default defaultValue: String = "") -> String {
-        defaults?.string(forKey: key) ?? defaultValue
+        let val = defaults?.string(forKey: key) ?? ""
+        return val.isEmpty ? defaultValue : val
     }
 
     static func bool(_ key: String) -> Bool {

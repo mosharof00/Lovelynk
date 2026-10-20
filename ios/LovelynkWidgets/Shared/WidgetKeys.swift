@@ -6,10 +6,13 @@ enum WidgetKeys {
 
     static let globalLocked = "widget_global_locked"
     static let globalLockMessage = "widget_global_lock_message"
+    static let isPaired = "widget_is_paired"
+    static let partnerName = "widget_partner_name"
 
     enum DaysTogether {
         static let widgetId = "days_together"
         static let count = "days_together_count"
+        static let since = "days_together_since"
         static let title = "days_together_title"
 
         static func style(_ field: String) -> String { "\(widgetId)_\(field)" }
@@ -26,14 +29,18 @@ enum WidgetKeys {
     enum PartnerDistance {
         static let widgetId = "partner_distance"
         static let miles = "partner_distance_miles"
+        static let unit = "partner_distance_unit"
         static let userInitial = "partner_distance_user_initial"
         static let partnerInitial = "partner_distance_partner_initial"
+        static let isSharing = "partner_distance_is_sharing"
+        static let updatedAt = "partner_distance_updated_at"
 
         static func style(_ field: String) -> String { "\(widgetId)_\(field)" }
     }
 
     enum Anniversary {
         static let widgetId = "anniversary"
+        static let date = "anniversary_date"
         static let dateLabel = "anniversary_date_label"
         static let daysToGo = "anniversary_days_to_go"
 
@@ -70,6 +77,7 @@ enum WidgetKeys {
         static let condition = "partner_weather_condition"
         static let city = "partner_weather_city"
         static let iconKey = "partner_weather_icon_key"
+        static let updatedAt = "partner_weather_updated_at"
 
         static func style(_ field: String) -> String { "\(widgetId)_\(field)" }
     }
@@ -77,6 +85,8 @@ enum WidgetKeys {
     enum LoveCompass {
         static let widgetId = "love_compass"
         static let miles = "love_compass_miles"
+        static let bearing = "love_compass_bearing"
+        static let direction = "love_compass_direction"
         static let partnerLabel = "love_compass_partner_label"
         static let needleDegrees = "love_compass_needle_degrees"
 

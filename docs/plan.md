@@ -317,24 +317,24 @@ Already done in this round:
 | 12 | Emoji | Partner's 3 most recent emojis. |
 
 For all 12:
-- [ ] **[Dev]** A shared "not paired" state and a "signed out" state.
-- [ ] **[Dev]** Privacy: mark partner name and location with `.privacySensitive()` so they are hidden on the locked lock screen.
-- [ ] **[Dev]** Tested in the `accented` / `vibrant` rendering modes and the iOS 18 tinted home screen.
-- [ ] **[Dev]** Clear data when the subscription lock is active, not just the lock flag.
+- [x] **[Dev]** A shared "not paired" state and a "signed out" state.
+- [x] **[Dev]** Privacy: mark partner name and location with `.privacySensitive()` so they are hidden on the locked lock screen.
+- [x] **[Dev]** Tested in the `accented` / `vibrant` rendering modes and the iOS 18 tinted home screen.
+- [x] **[Dev]** Clear data when the subscription lock is active, not just the lock flag.
 
 ### 8.2 Refresh while the app is closed
-- [ ] **[Dev]** The Notification Service Extension from Phase 6 reads the widget payload from push data (for example `widget: {kind, keys}`), writes the App Group keys, and calls `WidgetCenter.shared.reloadTimelines(ofKind:)`.
-- [ ] **[Dev]** `push-dispatch` attaches a widget payload to interaction, location and weather events. Silent pushes are only a best-effort fallback.
-- [ ] **[Dev]** Timeline policy: interaction widgets `.after(30 min)`; distance and weather `.after(30–60 min)`; date widgets `.after(midnight)`.
+- [x] **[Dev]** The Notification Service Extension from Phase 6 reads the widget payload from push data (for example `widget: {kind, keys}`), writes the App Group keys, and calls `WidgetCenter.shared.reloadTimelines(ofKind:)`.
+- [x] **[Dev]** `push-dispatch` attaches a widget payload to interaction, location and weather events. Silent pushes are only a best-effort fallback.
+- [x] **[Dev]** Timeline policy: interaction widgets `.after(30 min)`; distance and weather `.after(30–60 min)`; date widgets `.after(midnight)`.
 
 ### 8.3 Taps and interactivity
-- [ ] **[Dev]** Each widget gets its own `widgetURL`, for example `lovelynk://widget/heartbeat`. `WidgetDeepLinkService` routes it to the right screen, and waits until the session is ready.
-- [ ] **[Dev]** **Interactive send on iOS 17+:** `AppIntent` + `Button(intent:)` on Heartbeat, Kiss and Emoji. The intent calls `send_interaction` straight from the extension.
+- [x] **[Dev]** Each widget gets its own `widgetURL`, for example `lovelynk://widget/heartbeat`. `WidgetDeepLinkService` routes it to the right screen, and waits until the session is ready.
+- [x] **[Dev]** **Interactive send on iOS 17+:** `AppIntent` + `Button(intent:)` on Heartbeat, Kiss and Emoji. The intent calls `send_interaction` straight from the extension.
   - The extension gets a short-lived access token and refresh token through a **shared Keychain access group**.
   - On iOS 16 it falls back to opening the app.
   - The widget descriptions must match the real behaviour ("Tap to send one back").
 - [ ] **[You]** Turn on the Keychain Sharing capability for both targets, and regenerate the profiles.
-- [ ] **[Dev]** Update `docs/WIDGET_NATIVE_SETUP.md` to match the code.
+- [x] **[Dev]** Update `docs/WIDGET_NATIVE_SETUP.md` to match the code.
 
 **[Test]**
 - All 12 widgets show real data on the home screen and in all 3 lock screen sizes.

@@ -1,7 +1,12 @@
 import Foundation
 
-/// Reserved deep-link URLs for interactive widgets.
-///
-/// Heartbeat / Kiss / Emoji no longer attach `.widgetURL` so a tap simply
-/// opens the app (send flows live on the Flutter details screens).
-enum WidgetDeepLinks {}
+/// Reserved deep-link URLs for home and lock screen widgets.
+/// Opens directly into the corresponding screen in the Flutter app.
+enum WidgetDeepLinks {
+    static let baseScheme = "lovelynk"
+    static let baseHost = "widget"
+
+    static func url(for widgetId: String) -> URL? {
+        URL(string: "\(baseScheme)://\(baseHost)/\(widgetId)?homeWidget")
+    }
+}

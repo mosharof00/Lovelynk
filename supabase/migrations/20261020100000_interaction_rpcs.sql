@@ -21,6 +21,8 @@ declare
   v_title          text;
   v_body           text;
   v_interaction_id bigint;
+  v_new_total      bigint;
+  v_new_emojis     text[];
   v_payload        jsonb;
 begin
   if v_uid is null then
@@ -106,7 +108,8 @@ begin
         (array_prepend(v_clean_emoji, array_remove(public.interaction_totals.recent_emojis, v_clean_emoji)))[1:9]
       else public.interaction_totals.recent_emojis
     end,
-    last_sent_at = excluded.last_sent_at;
+    last_sent_at = excluded.last_sent_at
+  returning total, recent_emojis into v_new_total, v_new_emojis;
 
   -- Determine sender name as viewed by partner:
   -- If the partner gave caller a nickname, use it. Otherwise use caller's first name.
@@ -157,7 +160,9 @@ begin
       'type', 'interaction',
       'kind', p_kind::text,
       'count', p_count,
+      'total', v_new_total,
       'emoji', v_clean_emoji,
+      'recent_emojis', array_to_string(v_new_emojis, ','),
       'sender_id', v_uid,
       'sender_name', v_sender_name,
       'route', '/activities'
@@ -170,7 +175,9 @@ begin
     'interaction_id', v_interaction_id,
     'kind', p_kind::text,
     'count', p_count,
+    'total', v_new_total,
     'emoji', v_clean_emoji,
+    'recent_emojis', v_new_emojis,
     'sender_id', v_uid,
     'sender_name', v_sender_name,
     'created_at', now()
@@ -191,7 +198,9 @@ begin
     'interaction_id', v_interaction_id,
     'kind', p_kind::text,
     'count', p_count,
+    'total', v_new_total,
     'emoji', v_clean_emoji,
+    'recent_emojis', v_new_emojis,
     'created_at', now()
   );
 end;

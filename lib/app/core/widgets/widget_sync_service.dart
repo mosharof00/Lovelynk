@@ -17,11 +17,12 @@ import 'widget_kind.dart';
 /// Central bridge between Flutter and native WidgetKit via the App Group.
 ///
 /// Responsibilities:
-/// - Write widget **data** (from [WidgetDataService] / future Supabase)
+/// - Write widget **data** (from [WidgetDataService] / Supabase)
 /// - Write widget **styles** (from customise screen)
-/// - Write global **lock** state (subscription)
+/// - Write global **lock** state and paired status
+/// - Clear data when subscription lock is active
 /// - Trigger native timeline reloads (`HomeWidget.updateWidget`)
-/// - [applyPushPayload] — entry point when a push notification arrives (later)
+/// - [applyPushPayload] — entry point when a push notification arrives
 class WidgetSyncService extends GetxService {
   late final WidgetDataService _data;
   late final SubscriptionService _subscription;
@@ -34,7 +35,7 @@ class WidgetSyncService extends GetxService {
     return this;
   }
 
-  /// Called on every cold start. Later: fetch Supabase first, then sync.
+  /// Called on every cold start.
   Future<void> syncOnAppLaunch() async {
     Log.i('[WidgetSync] App opening — starting widget sync...');
     await _data.refreshFromBackend();
@@ -47,13 +48,29 @@ class WidgetSyncService extends GetxService {
     final locked = _locked;
     Log.i(
       '[WidgetSync] syncAll — locked=$locked, '
+      'paired=$isPaired, '
       'premium=${_subscription.isPremium}, '
       'onTrial=${_subscription.isOnTrial}',
     );
 
-    await _writeGlobalLock();
+    await _writeGlobalStatus();
+
+    if (locked) {
+      // Per Phase 8 requirements: clear data when subscription lock is active
+      for (final key in WidgetAppGroup.dataKeys) {
+        if (key != WidgetAppGroup.globalLocked &&
+            key != WidgetAppGroup.globalLockMessage) {
+          await HomeWidget.saveWidgetData<String>(key, '');
+        }
+      }
+    } else {
+      for (final type in AppWidgetType.values) {
+        await _writeDataFor(type);
+      }
+    }
+
+    // Always sync styles (styles are local device preferences)
     for (final type in AppWidgetType.values) {
-      await _writeDataFor(type);
       if (WidgetKind.hasNativeImplementation(type) &&
           Get.isRegistered<WidgetStyleStore>()) {
         final styleStore = Get.find<WidgetStyleStore>();
@@ -61,14 +78,17 @@ class WidgetSyncService extends GetxService {
         await _writeStyleFor(type, style);
       }
     }
+
     await _refreshAllNativeWidgets();
     Log.i('[WidgetSync] syncAll finished — native widgets refreshed.');
   }
 
   /// Sync one widget's data + refresh its native timeline.
   Future<void> syncWidget(AppWidgetType type) async {
-    await _writeGlobalLock();
-    await _writeDataFor(type);
+    await _writeGlobalStatus();
+    if (!_locked) {
+      await _writeDataFor(type);
+    }
     await _refreshNativeWidget(type);
   }
 
@@ -78,18 +98,29 @@ class WidgetSyncService extends GetxService {
     await _refreshNativeWidget(type);
   }
 
-  /// Push notification handler (Phase: backend). Parses payload and refreshes.
+  /// Push notification handler: Parses incoming FCM / APNs background payload and refreshes widgets.
   Future<void> applyPushPayload(Map<String, dynamic> payload) async {
-    // TODO(Supabase/APNs): map payload → update WidgetDataService, then:
-  // await syncAll();
-    final typeId = payload['widget_type'] as String?;
-    if (typeId != null) {
-      final type = AppWidgetTypeX.fromId(typeId);
-      if (type != null) {
-        await syncWidget(type);
-        return;
-      }
+    Log.i('[WidgetSync] applyPushPayload: $payload');
+    final kind = payload['kind'] as String? ?? payload['category'] as String?;
+
+    if (kind == 'heartbeat') {
+      await syncWidget(AppWidgetType.heartbeat);
+      return;
+    } else if (kind == 'kiss') {
+      await syncWidget(AppWidgetType.kiss);
+      return;
+    } else if (kind == 'emoji') {
+      await syncWidget(AppWidgetType.emoji);
+      return;
+    } else if (kind == 'location' || kind == 'partner.location') {
+      await syncWidget(AppWidgetType.partnerDistance);
+      await syncWidget(AppWidgetType.loveCompass);
+      return;
+    } else if (kind == 'weather' || kind == 'partner.weather') {
+      await syncWidget(AppWidgetType.partnerWeather);
+      return;
     }
+
     await syncAll();
   }
 
@@ -97,26 +128,39 @@ class WidgetSyncService extends GetxService {
   /// user's data (partner name, location…) never stays on the lock screen.
   Future<void> clearUserData() async {
     for (final key in WidgetAppGroup.dataKeys) {
-      await HomeWidget.saveWidgetData<String>(key, null);
+      await HomeWidget.saveWidgetData<String>(key, '');
     }
-    await _writeGlobalLock();
+    await _writeGlobalStatus();
     await _refreshAllNativeWidgets();
     Log.i('[WidgetSync] User data cleared from widgets.');
   }
 
-  // ── Global lock ─────────────────────────────────────────────────────────
+  // ── Global status ────────────────────────────────────────────────────────
 
   bool get _signedIn => SessionService.to.hasSession;
 
+  bool get isPaired => SessionService.to.isPaired;
+
   bool get _locked => !_signedIn || !_subscription.isWidgetsUnlocked;
 
-  Future<void> _writeGlobalLock() async {
+  Future<void> _writeGlobalStatus() async {
     final locked = _locked;
-    Log.i('[WidgetSync] Writing global lock — locked=$locked');
     await HomeWidget.saveWidgetData<String>(
       WidgetAppGroup.globalLocked,
       locked ? '1' : '0',
     );
+    await HomeWidget.saveWidgetData<String>(
+      WidgetAppGroup.isPaired,
+      isPaired ? '1' : '0',
+    );
+
+    final d = _data.data.value;
+    final pName = d.partnerName.trim();
+    await HomeWidget.saveWidgetData<String>(
+      WidgetAppGroup.partnerName,
+      pName.isEmpty ? 'Partner' : pName,
+    );
+
     if (locked) {
       await HomeWidget.saveWidgetData<String>(
         WidgetAppGroup.globalLockMessage,
@@ -124,16 +168,19 @@ class WidgetSyncService extends GetxService {
             ? (_subscription.widgetLockMessage ?? 'Locked')
             : 'Sign in to LoveLynk',
       );
+    } else if (!isPaired) {
+      await HomeWidget.saveWidgetData<String>(
+        WidgetAppGroup.globalLockMessage,
+        'Connect with your partner',
+      );
     }
   }
 
   // ── Per-widget data ─────────────────────────────────────────────────────
 
   Future<void> _writeDataFor(AppWidgetType type) async {
-    if (_locked) {
-      Log.i('[WidgetSync] Skipping data for ${type.id} — locked');
-      return;
-    }
+    if (_locked) return;
+
     final d = _data.data.value;
     switch (type) {
       case AppWidgetType.daysTogether:
@@ -142,36 +189,59 @@ class WidgetSyncService extends GetxService {
           '${d.daysTogether ?? 0}',
         );
         await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.daysTogetherSince,
+          d.togetherSince?.toUtc().toIso8601String() ?? '',
+        );
+        await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.daysTogetherTitle,
           'Days Together',
         );
         break;
+
       case AppWidgetType.initials:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.initialsUser,
-          d.userInitial,
+          d.userInitial.isEmpty ? '—' : d.userInitial,
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.initialsPartner,
-          d.partnerInitial,
+          d.partnerInitial.isEmpty ? '—' : d.partnerInitial,
         );
         break;
+
       case AppWidgetType.partnerDistance:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerDistanceMiles,
           '${d.distanceMiles}',
         );
         await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerDistanceUnit,
+          'mi',
+        );
+        await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerDistanceUser,
-          d.userInitial,
+          d.userInitial.isEmpty ? '—' : d.userInitial,
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerDistancePartner,
-          d.partnerInitial,
+          d.partnerInitial.isEmpty ? '—' : d.partnerInitial,
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerDistanceIsSharing,
+          d.partnerLocationSharing ? '1' : '0',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerDistanceUpdatedAt,
+          d.partnerLocationUpdatedAt?.toUtc().toIso8601String() ?? '',
         );
         break;
+
       case AppWidgetType.anniversary:
         final anniversary = d.anniversary;
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.anniversaryDate,
+          anniversary?.toUtc().toIso8601String() ?? '',
+        );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.anniversaryDateLabel,
           anniversary == null
@@ -183,6 +253,7 @@ class WidgetSyncService extends GetxService {
           anniversary == null ? '0' : '${_daysToNextAnniversary(anniversary)}',
         );
         break;
+
       case AppWidgetType.partnerTime:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerTimeTimezone,
@@ -201,18 +272,21 @@ class WidgetSyncService extends GetxService {
           d.partnerCity,
         );
         break;
+
       case AppWidgetType.togetherCounter:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.togetherCounterSince,
           d.togetherSince?.toUtc().toIso8601String() ?? '',
         );
         break;
+
       case AppWidgetType.nextVisitCountdown:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.nextVisitTargetAt,
           d.nextVisit?.toUtc().toIso8601String() ?? '',
         );
         break;
+
       case AppWidgetType.partnerWeather:
         final weather = d.partnerWeather;
         await HomeWidget.saveWidgetData<String>(
@@ -234,7 +308,12 @@ class WidgetSyncService extends GetxService {
             isDay: weather.isDay,
           ),
         );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.partnerWeatherUpdatedAt,
+          weather.updatedAt?.toUtc().toIso8601String() ?? '',
+        );
         break;
+
       case AppWidgetType.loveCompass:
         final compass = Get.find<CompassService>();
         final bearing = compass.hasLocation.value
@@ -243,12 +322,18 @@ class WidgetSyncService extends GetxService {
         final miles = compass.hasLocation.value
             ? compass.partnerMiles.value
             : d.compassMiles;
-        final heading = compass.heading.value ?? 0;
-        final needle = bearing - heading;
         final partnerLabel = d.partnerName.trim().split(' ').first;
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.loveCompassMiles,
           '$miles',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.loveCompassBearing,
+          '$bearing',
+        );
+        await HomeWidget.saveWidgetData<String>(
+          WidgetAppGroup.loveCompassDirection,
+          _cardinalDirection(bearing),
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.loveCompassPartnerLabel,
@@ -256,21 +341,24 @@ class WidgetSyncService extends GetxService {
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.loveCompassNeedleDegrees,
-          '$needle',
+          '$bearing',
         );
         break;
+
       case AppWidgetType.heartbeat:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.heartbeatCount,
           '${_data.heartbeatsFromPartner.value}',
         );
         break;
+
       case AppWidgetType.kiss:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.kissCount,
           '${_data.kissesFromPartner.value}',
         );
         break;
+
       case AppWidgetType.emoji:
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.emojiRecent,
@@ -290,6 +378,16 @@ class WidgetSyncService extends GetxService {
     return next.difference(today).inDays;
   }
 
+  String _cardinalDirection(double deg) {
+    final normalized = (deg % 360 + 360) % 360;
+    const directions = [
+      'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+      'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
+    ];
+    final index = ((normalized + 11.25) / 22.5).floor() % 16;
+    return directions[index];
+  }
+
   // ── Per-widget style ────────────────────────────────────────────────────
 
   Future<void> _writeStyleFor(AppWidgetType type, WidgetStyle style) async {
@@ -302,7 +400,6 @@ class WidgetSyncService extends GetxService {
       );
     }
   }
-
 
   Future<void> _refreshAllNativeWidgets() async {
     for (final kind in WidgetKind.implementedKinds) {

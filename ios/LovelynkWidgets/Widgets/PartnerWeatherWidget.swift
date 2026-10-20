@@ -6,11 +6,14 @@ import SwiftUI
 struct PartnerWeatherEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
+    let isPaired: Bool
     let lockMessage: String
+    let hasWeather: Bool
     let temperature: Int
     let condition: String
     let city: String
     let iconKey: String
+    let updatedAt: Date?
     let style: WidgetStyleConfig
 }
 
@@ -27,39 +30,51 @@ struct PartnerWeatherProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<PartnerWeatherEntry>) -> Void) {
         let entry = readEntry()
-        let timeline = Timeline(entries: [entry], policy: .never)
+        // Phase 8: Timeline reload policy 30-60 min
+        let refreshDate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date()
+        let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
         completion(timeline)
     }
 
     private func readEntry() -> PartnerWeatherEntry {
         let locked = AppGroupStore.bool(WidgetKeys.globalLocked)
+        let isPaired = AppGroupStore.bool(WidgetKeys.isPaired)
         let lockMessage = AppGroupStore.string(
             WidgetKeys.globalLockMessage,
-            default: "Locked"
+            default: isPaired ? "Locked" : "Connect with your partner"
         )
-        let temperature = AppGroupStore.int(WidgetKeys.PartnerWeather.temperature, default: 22)
+
+        let rawTemp = AppGroupStore.string(WidgetKeys.PartnerWeather.temperature)
+        let hasWeather = !rawTemp.isEmpty
+        let temperature = Int(rawTemp) ?? 0
+
+        // Neutral fallbacks: remove mock "22° Partly Cloudy" and "Sydney"
         let condition = AppGroupStore.string(
             WidgetKeys.PartnerWeather.condition,
-            default: "Partly Cloudy"
+            default: isPaired ? "Weather unknown" : "—"
         )
         let city = AppGroupStore.string(
             WidgetKeys.PartnerWeather.city,
-            default: "Sydney, Australia"
+            default: isPaired ? "Partner's City" : "—"
         )
         let iconKey = AppGroupStore.string(
             WidgetKeys.PartnerWeather.iconKey,
             default: "partly_cloudy"
         )
+        let updatedAt = AppGroupStore.isoDate(WidgetKeys.PartnerWeather.updatedAt)
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.PartnerWeather.widgetId)
 
         return PartnerWeatherEntry(
             date: Date(),
             isLocked: locked,
+            isPaired: isPaired,
             lockMessage: lockMessage,
+            hasWeather: hasWeather,
             temperature: temperature,
             condition: condition,
             city: city,
             iconKey: iconKey,
+            updatedAt: updatedAt,
             style: style
         )
     }
@@ -68,11 +83,14 @@ struct PartnerWeatherProvider: TimelineProvider {
         PartnerWeatherEntry(
             date: Date(),
             isLocked: false,
+            isPaired: true,
             lockMessage: "Locked",
+            hasWeather: true,
             temperature: 22,
             condition: "Partly Cloudy",
-            city: "Sydney, Australia",
+            city: "Partner's City",
             iconKey: "partly_cloudy",
+            updatedAt: Date(),
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.PartnerWeather.widgetId)
         )
     }
@@ -88,10 +106,15 @@ struct PartnerWeatherWidgetView: View {
         Group {
             if entry.isLocked {
                 lockedView
+            } else if !entry.isPaired {
+                unpairedView
+            } else if !entry.hasWeather {
+                emptyWeatherView
             } else {
                 contentView
             }
         }
+        .widgetURL(WidgetDeepLinks.url(for: WidgetKeys.PartnerWeather.widgetId))
         .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
@@ -103,16 +126,78 @@ struct PartnerWeatherWidgetView: View {
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "lock.fill")
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).lineLimit(1)
             }
         case .accessoryInline:
-            Text("🔒 \(entry.lockMessage)")
+            Text("🔒 \(entry.lockMessage)").lineLimit(1)
         default:
             VStack(spacing: 6) {
                 Image(systemName: "lock.fill").font(.title2)
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var unpairedView: some View {
+        switch family {
+        case .accessoryCircular:
+            Image(systemName: "person.crop.circle.badge.plus")
+        case .accessoryRectangular:
+            HStack {
+                Image(systemName: "person.crop.circle.badge.plus")
+                Text("Connect Partner").font(.caption).bold().lineLimit(1)
+            }
+        case .accessoryInline:
+            Text("Connect Partner in LoveLynk")
+        default:
+            VStack(spacing: 8) {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.title)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                Text("Connect Partner")
+                    .font(.headline)
+                Text("Tap to pair")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(WidgetLayoutMetrics.homePadding)
+        }
+    }
+
+    @ViewBuilder
+    private var emptyWeatherView: some View {
+        switch family {
+        case .accessoryCircular:
+            VStack(spacing: 0) {
+                Image(systemName: "cloud.sun")
+                    .font(.caption)
+                Text("Weather").font(.caption2)
+            }
+        case .accessoryRectangular:
+            HStack {
+                Image(systemName: "cloud.sun")
+                Text("Partner weather").font(.headline).lineLimit(1)
+            }
+        case .accessoryInline:
+            Text("⛅ Partner weather unavailable")
+        default:
+            VStack(spacing: 8) {
+                Image(systemName: "cloud.sun")
+                    .font(.title)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                Text("Partner Weather")
+                    .font(.headline)
+                Text("Open app to update")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(WidgetLayoutMetrics.homePadding)
         }
     }
 
@@ -121,34 +206,35 @@ struct PartnerWeatherWidgetView: View {
         switch family {
         case .accessoryCircular:
             VStack(spacing: 0) {
+                WidgetWeatherIconView(iconKey: entry.iconKey, size: 14)
+                    .widgetAccentable()
                 Text("\(entry.temperature)°")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                Text(cityShort)
-                    .font(.system(size: 8, weight: .medium))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .privacySensitive()
             }
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 4) {
-                    Text(WidgetWeatherIcon.emoji(for: entry.iconKey))
-                    Text("\(entry.temperature)° \(entry.condition)")
-                        .font(.system(size: 14, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
-                HStack(spacing: 3) {
-                    Image(systemName: "location.fill")
-                        .font(.system(size: 9))
+                    WidgetWeatherIconView(iconKey: entry.iconKey, size: 14)
+                        .widgetAccentable()
                     Text(entry.city)
                         .font(.system(size: 11, weight: .medium))
                         .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                        .privacySensitive()
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("\(entry.temperature)°")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .privacySensitive()
+                    Text(entry.condition)
+                        .font(.system(size: 11, weight: .regular))
+                        .lineLimit(1)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         case .accessoryInline:
-            Text("\(WidgetWeatherIcon.emoji(for: entry.iconKey)) \(entry.temperature)° · \(entry.city)")
+            Text("⛅ \(entry.city): \(entry.temperature)° \(entry.condition)")
+                .privacySensitive()
         case .systemMedium:
             mediumLayout
         default:
@@ -156,94 +242,108 @@ struct PartnerWeatherWidgetView: View {
         }
     }
 
-    private var cityShort: String {
-        entry.city.split(separator: ",").first.map(String.init) ?? entry.city
-    }
-
     private var smallLayout: some View {
-        VStack(spacing: 0) {
-            Text("Partner Weather")
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(entry.city)
+                        .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .privacySensitive()
 
-            Spacer(minLength: 0)
-
-            HStack(alignment: .center, spacing: 8) {
-                Image(systemName: WidgetWeatherIcon.systemName(for: entry.iconKey))
-                    .font(.system(size: entry.style.homeValueSize(for: family) * 0.55))
-                    .foregroundStyle(entry.style.themeColor)
-
-                Text("\(entry.temperature)°")
-                    .font(entry.style.homeValueFont(for: family))
-                    .foregroundStyle(entry.style.themeColor)
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity)
-
-            Text(entry.condition)
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .semibold))
-                .foregroundStyle(entry.style.themeColor)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity)
-
-            Spacer(minLength: 4)
-
-            cityRow
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(WidgetLayoutMetrics.homePadding)
-    }
-
-    private var mediumLayout: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Partner Weather")
-                    .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
-                    .foregroundStyle(.secondary)
-
-                Spacer(minLength: 0)
-
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("\(entry.temperature)°")
-                        .font(entry.style.homeValueFont(for: family))
-                        .foregroundStyle(entry.style.themeColor)
                     Text(entry.condition)
-                        .font(.system(
-                            size: entry.style.homeTitleSize(for: family) + 2,
-                            weight: .medium
-                        ))
+                        .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
 
                 Spacer(minLength: 4)
 
-                cityRow
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                WidgetWeatherIconView(iconKey: entry.iconKey, size: 28)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+            }
+
+            Spacer(minLength: 4)
+
+            Text("\(entry.temperature)°")
+                .font(entry.style.homeValueFont(for: family))
+                .foregroundStyle(entry.style.themeColor)
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+                .privacySensitive()
+
+            Spacer(minLength: 4)
+
+            if let updated = entry.updatedAt {
+                HStack(spacing: 3) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 9))
+                    Text(updated, style: .relative)
+                        .font(.system(size: 10))
+                    Text("ago")
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(.secondary)
+                .privacySensitive()
+            } else {
+                Text("Partner's forecast")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(WidgetLayoutMetrics.homePadding)
+    }
+
+    private var mediumLayout: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(entry.city)
+                    .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .privacySensitive()
+
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text("\(entry.temperature)°")
+                        .font(entry.style.homeValueFont(for: family))
+                        .foregroundStyle(entry.style.themeColor)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                        .privacySensitive()
+
+                    Text(entry.condition)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                if let updated = entry.updatedAt {
+                    HStack(spacing: 3) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 10))
+                        Text("Updated")
+                            .font(.system(size: 11))
+                        Text(updated, style: .relative)
+                            .font(.system(size: 11))
+                        Text("ago")
+                            .font(.system(size: 11))
+                    }
+                    .foregroundStyle(.secondary)
+                    .privacySensitive()
+                }
             }
 
             Spacer(minLength: 0)
 
-            Image(systemName: WidgetWeatherIcon.systemName(for: entry.iconKey))
-                .font(.system(size: entry.style.homeValueSize(for: family) * 0.72))
+            WidgetWeatherIconView(iconKey: entry.iconKey, size: 48)
                 .foregroundStyle(entry.style.themeColor)
+                .widgetAccentable()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-    }
-
-    private var cityRow: some View {
-        HStack(spacing: 3) {
-            Image(systemName: "location.fill")
-                .font(.system(size: entry.style.homeTitleSize(for: family) - 1))
-            Text(entry.city)
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .regular))
-                .lineLimit(1)
-        }
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity)
     }
 }
 
@@ -257,7 +357,7 @@ struct PartnerWeatherWidget: Widget {
             PartnerWeatherWidgetView(entry: entry)
         }
         .configurationDisplayName("Partner Weather")
-        .description("Weather where your partner is.")
+        .description("Current weather and temperature where your partner is.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

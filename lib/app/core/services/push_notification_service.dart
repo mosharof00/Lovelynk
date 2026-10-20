@@ -8,19 +8,79 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:home_widget/home_widget.dart';
+
 import '../../../firebase_options.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../routes/app_pages.dart';
 import '../network/supabase/supabase_service.dart';
 import '../utils/logger.dart';
+import '../widgets/widget_app_group.dart';
 import '../widgets/widget_sync_service.dart';
 import 'session_service.dart';
+import 'widget_data_service.dart';
 
 /// Top-level background message handler for FCM.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Silent push / background payload processing
+  WidgetsFlutterBinding.ensureInitialized();
   Log.i('[FCM Background] Message received: ${message.messageId}, data: ${message.data}');
+
+  try {
+    await HomeWidget.setAppGroupId(WidgetAppGroup.id);
+    final data = message.data;
+    final kind = (data['kind'] ?? data['category'] ?? '').toString();
+    final countStr = data['count']?.toString() ?? '1';
+    final count = int.tryParse(countStr) ?? 1;
+    final totalStr = data['total']?.toString();
+
+    if (kind == 'heartbeat') {
+      int newCount;
+      if (totalStr != null && int.tryParse(totalStr) != null) {
+        newCount = int.parse(totalStr);
+      } else {
+        final currentStr =
+            await HomeWidget.getWidgetData<String>(WidgetAppGroup.heartbeatCount) ?? '0';
+        final current = int.tryParse(currentStr) ?? 0;
+        newCount = current + count;
+      }
+      await HomeWidget.saveWidgetData<String>(WidgetAppGroup.heartbeatCount, '$newCount');
+      await HomeWidget.updateWidget(iOSName: 'HeartbeatWidget');
+      Log.i('[FCM Background] Updated HeartbeatWidget count to $newCount');
+    } else if (kind == 'kiss') {
+      int newCount;
+      if (totalStr != null && int.tryParse(totalStr) != null) {
+        newCount = int.parse(totalStr);
+      } else {
+        final currentStr =
+            await HomeWidget.getWidgetData<String>(WidgetAppGroup.kissCount) ?? '0';
+        final current = int.tryParse(currentStr) ?? 0;
+        newCount = current + count;
+      }
+      await HomeWidget.saveWidgetData<String>(WidgetAppGroup.kissCount, '$newCount');
+      await HomeWidget.updateWidget(iOSName: 'KissWidget');
+      Log.i('[FCM Background] Updated KissWidget count to $newCount');
+    } else if (kind == 'emoji') {
+      final emoji = data['emoji']?.toString();
+      final recentEmojisStr = data['recent_emojis']?.toString();
+      if (recentEmojisStr != null && recentEmojisStr.isNotEmpty) {
+        final top3 = recentEmojisStr.split(',').take(3).join(',');
+        await HomeWidget.saveWidgetData<String>(WidgetAppGroup.emojiRecent, top3);
+      } else if (emoji != null && emoji.isNotEmpty) {
+        final currentStr =
+            await HomeWidget.getWidgetData<String>(WidgetAppGroup.emojiRecent) ?? '';
+        final list = currentStr.split(',').where((e) => e.isNotEmpty).toList();
+        list.remove(emoji);
+        list.insert(0, emoji);
+        final updated = list.take(3).join(',');
+        await HomeWidget.saveWidgetData<String>(WidgetAppGroup.emojiRecent, updated);
+      }
+      await HomeWidget.updateWidget(iOSName: 'EmojiWidget');
+      Log.i('[FCM Background] Updated EmojiWidget');
+    }
+  } catch (e) {
+    Log.w('[FCM Background] Error updating widget: $e');
+  }
 }
 
 class PushNotificationService extends GetxService {
@@ -232,7 +292,13 @@ class PushNotificationService extends GetxService {
     await refreshUnreadCount();
 
     // Trigger widget sync so iOS lock/home screen widgets update immediately
-    if (Get.isRegistered<WidgetSyncService>()) {
+    if (Get.isRegistered<WidgetDataService>()) {
+      try {
+        await Get.find<WidgetDataService>().refreshFromBackend();
+      } catch (e) {
+        Log.w('[FCM] WidgetData refresh error on foreground push: $e');
+      }
+    } else if (Get.isRegistered<WidgetSyncService>()) {
       try {
         await Get.find<WidgetSyncService>().syncAll();
       } catch (e) {

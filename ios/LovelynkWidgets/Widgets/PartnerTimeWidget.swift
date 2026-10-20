@@ -6,6 +6,7 @@ import SwiftUI
 struct PartnerTimeEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
+    let isPaired: Bool
     let lockMessage: String
     let timeText: String
     let period: String
@@ -28,7 +29,7 @@ struct PartnerTimeProvider: TimelineProvider {
         let now = Date()
         var entries: [PartnerTimeEntry] = []
         for minuteOffset in 0..<60 {
-            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: now)!
+            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: now) ?? now
             entries.append(readEntry(at: entryDate))
         }
         let timeline = Timeline(entries: entries, policy: .atEnd)
@@ -37,18 +38,22 @@ struct PartnerTimeProvider: TimelineProvider {
 
     private func readEntry(at date: Date) -> PartnerTimeEntry {
         let locked = AppGroupStore.bool(WidgetKeys.globalLocked)
+        let isPaired = AppGroupStore.bool(WidgetKeys.isPaired)
         let lockMessage = AppGroupStore.string(
             WidgetKeys.globalLockMessage,
-            default: "Locked"
+            default: isPaired ? "Locked" : "Connect with your partner"
         )
-        let city = AppGroupStore.string(WidgetKeys.PartnerTime.city, default: "Sydney, Australia")
+        // Phase 8: Neutral fallback, no hardcoded "Sydney"
+        let city = AppGroupStore.string(WidgetKeys.PartnerTime.city, default: isPaired ? "Partner's Time" : "—")
+
         let clock: (hour: Int, minute: Int)
-        if let zone = TimeZone(identifier: AppGroupStore.string(WidgetKeys.PartnerTime.timezone)) {
+        let tzStr = AppGroupStore.string(WidgetKeys.PartnerTime.timezone)
+        if !tzStr.isEmpty, let zone = TimeZone(identifier: tzStr) {
             clock = WidgetTimeMath.partnerClock(at: date, timeZone: zone)
         } else {
             let minutes = AppGroupStore.int(
                 WidgetKeys.PartnerTime.utcOffsetMinutes,
-                default: AppGroupStore.int(WidgetKeys.PartnerTime.utcOffsetHours, default: 10) * 60
+                default: AppGroupStore.int(WidgetKeys.PartnerTime.utcOffsetHours, default: 0) * 60
             )
             clock = WidgetTimeMath.partnerClock(at: date, offsetMinutes: minutes)
         }
@@ -58,6 +63,7 @@ struct PartnerTimeProvider: TimelineProvider {
         return PartnerTimeEntry(
             date: date,
             isLocked: locked,
+            isPaired: isPaired,
             lockMessage: lockMessage,
             timeText: formatted.time,
             period: formatted.period,
@@ -67,15 +73,14 @@ struct PartnerTimeProvider: TimelineProvider {
     }
 
     private func sampleEntry(at date: Date) -> PartnerTimeEntry {
-        let clock = WidgetTimeMath.partnerClock(at: date, offsetHours: 10)
-        let formatted = WidgetTimeMath.format12Hour(hour: clock.hour, minute: clock.minute)
-        return PartnerTimeEntry(
+        PartnerTimeEntry(
             date: date,
             isLocked: false,
+            isPaired: true,
             lockMessage: "Locked",
-            timeText: formatted.time,
-            period: formatted.period,
-            city: "Sydney, Australia",
+            timeText: "10:30",
+            period: "AM",
+            city: "Partner's City",
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.PartnerTime.widgetId)
         )
     }
@@ -91,10 +96,13 @@ struct PartnerTimeWidgetView: View {
         Group {
             if entry.isLocked {
                 lockedView
+            } else if !entry.isPaired {
+                unpairedView
             } else {
                 contentView
             }
         }
+        .widgetURL(WidgetDeepLinks.url(for: WidgetKeys.PartnerTime.widgetId))
         .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
@@ -106,16 +114,45 @@ struct PartnerTimeWidgetView: View {
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "lock.fill")
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).lineLimit(1)
             }
         case .accessoryInline:
-            Text("🔒 \(entry.lockMessage)")
+            Text("🔒 \(entry.lockMessage)").lineLimit(1)
         default:
             VStack(spacing: 6) {
                 Image(systemName: "lock.fill").font(.title2)
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var unpairedView: some View {
+        switch family {
+        case .accessoryCircular:
+            Image(systemName: "person.crop.circle.badge.plus")
+        case .accessoryRectangular:
+            HStack {
+                Image(systemName: "person.crop.circle.badge.plus")
+                Text("Connect Partner").font(.caption).bold().lineLimit(1)
+            }
+        case .accessoryInline:
+            Text("Connect Partner in LoveLynk")
+        default:
+            VStack(spacing: 8) {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.title)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                Text("Connect Partner")
+                    .font(.headline)
+                Text("Tap to pair")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(WidgetLayoutMetrics.homePadding)
         }
     }
 
@@ -123,30 +160,37 @@ struct PartnerTimeWidgetView: View {
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            Text("\(entry.timeText) \(entry.period)")
-                .font(.caption)
-                .minimumScaleFactor(0.55)
-                .lineLimit(1)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 0) {
+                Image(systemName: "clock.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                Text(entry.timeText)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .privacySensitive()
+                Text(entry.period)
+                    .font(.system(size: 9, weight: .bold))
+            }
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 12, weight: .semibold))
-                    Text("\(entry.timeText) \(entry.period)")
-                        .font(.system(size: 15, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
                 Text(entry.city)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .privacySensitive()
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(entry.timeText)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .privacySensitive()
+                    Text(entry.period)
+                        .font(.system(size: 11, weight: .semibold))
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         case .accessoryInline:
-            Text("🕐 \(entry.timeText) \(entry.period)")
+            Text("🕒 \(entry.city): \(entry.timeText) \(entry.period)")
+                .privacySensitive()
         case .systemMedium:
             mediumLayout
         default:
@@ -155,79 +199,81 @@ struct PartnerTimeWidgetView: View {
     }
 
     private var smallLayout: some View {
-        VStack(spacing: 0) {
-            Text("Partner Time")
+        VStack(alignment: .leading, spacing: 0) {
+            Text(entry.city)
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-
-            Spacer(minLength: 0)
-
-            timeDisplay(compact: true)
+                .lineLimit(1)
+                .privacySensitive()
 
             Spacer(minLength: 4)
 
-            cityRow
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(entry.timeText)
+                    .font(entry.style.homeValueFont(for: family))
+                    .foregroundStyle(entry.style.themeColor)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .privacySensitive()
+
+                Text(entry.period)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(entry.style.themeColor)
+            }
+
+            Spacer(minLength: 4)
+
+            HStack(spacing: 4) {
+                Image(systemName: "clock")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("Partner's local time")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(WidgetLayoutMetrics.homePadding)
     }
 
     private var mediumLayout: some View {
-        VStack(spacing: 0) {
-            Text("Partner Time")
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(entry.city)
+                    .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .privacySensitive()
+
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(entry.timeText)
+                        .font(entry.style.homeValueFont(for: family))
+                        .foregroundStyle(entry.style.themeColor)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                        .privacySensitive()
+
+                    Text(entry.period)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(entry.style.themeColor)
+                }
+
+                Text("Partner's current local time")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
 
             Spacer(minLength: 0)
 
-            timeDisplay(compact: false)
-
-            Spacer(minLength: 6)
-
-            cityRow
+            Image(systemName: "clock.fill")
+                .font(.system(size: 40))
+                .foregroundStyle(entry.style.themeColor)
+                .widgetAccentable()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
-    }
-
-    private func timeDisplay(compact: Bool) -> some View {
-        HStack(alignment: .lastTextBaseline, spacing: 4) {
-            Text(entry.timeText)
-                .font(.system(
-                    size: compact
-                        ? entry.style.homeValueSize(for: family) * 0.85
-                        : entry.style.homeValueSize(for: family),
-                    weight: .bold,
-                    design: .rounded
-                ))
-                .foregroundStyle(entry.style.themeColor)
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
-
-            Text(entry.period)
-                .font(.system(
-                    size: compact
-                        ? entry.style.homeTitleSize(for: family)
-                        : entry.style.homeTitleSize(for: family) + 2,
-                    weight: .semibold
-                ))
-                .foregroundStyle(entry.style.themeColor)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private var cityRow: some View {
-        HStack(spacing: 3) {
-            Image(systemName: "location.fill")
-                .font(.system(size: entry.style.homeTitleSize(for: family) - 1))
-            Text(entry.city)
-                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .regular))
-                .lineLimit(1)
-        }
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity)
     }
 }
 
@@ -241,7 +287,7 @@ struct PartnerTimeWidget: Widget {
             PartnerTimeWidgetView(entry: entry)
         }
         .configurationDisplayName("Partner Time")
-        .description("Your partner's local time.")
+        .description("Your partner's current local time.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,
