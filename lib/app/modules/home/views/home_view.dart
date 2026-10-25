@@ -8,10 +8,10 @@ import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/app_text.dart';
 import '../controllers/home_controller.dart';
 import '../widgets/home_affirmation_card.dart';
+import '../widgets/home_dates_card.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_how_to_tips.dart';
 import '../widgets/home_recent_activity.dart';
-import '../widgets/home_widgets_row.dart';
 import '../widgets/partner_distance_card.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -45,13 +45,12 @@ class HomeView extends GetView<HomeController> {
                         FadeInAnimation(
                           delay: 2,
                           shouldAnimate: controller.isFadeInAnimate,
-                          child: NotConnectedCard(),
+                          child: const HomeDatesCard(),
                         ),
-                        12.verticalSpace,
                         FadeInAnimation(
-                          delay: controller.isConnected.value ? 2 : 3,
+                          delay: 2,
                           shouldAnimate: controller.isFadeInAnimate,
-                          child: const HomeWidgetsRow(),
+                          child: NotConnectedCard(),
                         ),
                         12.verticalSpace,
                         FadeInAnimation(
