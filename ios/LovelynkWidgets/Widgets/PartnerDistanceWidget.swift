@@ -165,6 +165,12 @@ struct PartnerDistanceWidgetView: View {
                 if !entry.isSharing {
                     Text("Paused")
                         .font(.system(size: 10, weight: .bold))
+                } else if entry.miles <= 0 {
+                    Text("Together")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                        .privacySensitive()
                 } else {
                     Text("\(entry.miles) \(entry.unit)")
                         .font(.system(size: 12, weight: .bold, design: .rounded))
@@ -178,6 +184,9 @@ struct PartnerDistanceWidgetView: View {
         case .accessoryInline:
             if !entry.isSharing {
                 Text("Location paused")
+            } else if entry.miles <= 0 {
+                Text("We're together!")
+                    .privacySensitive()
             } else {
                 Text("\(entry.miles) \(entry.unit) apart")
                     .privacySensitive()
@@ -196,6 +205,11 @@ struct PartnerDistanceWidgetView: View {
                 Text("Location sharing paused")
                     .font(.system(size: 11, weight: .medium))
                     .lineLimit(1)
+            } else if entry.miles <= 0 {
+                Text("We're together!")
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(1)
+                    .privacySensitive()
             } else {
                 Text("Our distance: \(entry.miles) \(entry.unit)")
                     .font(.system(size: 12, weight: .semibold))
@@ -221,6 +235,14 @@ struct PartnerDistanceWidgetView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity)
+            } else if entry.miles <= 0 {
+                Text("We're together!")
+                    .font(.system(size: titleSize, weight: .semibold))
+                    .foregroundStyle(entry.style.themeColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity)
+                    .privacySensitive()
             } else {
                 Text("Our distance: \(entry.miles) \(entry.unit == "mi" ? "miles" : "km")")
                     .font(.system(size: titleSize, weight: .semibold))

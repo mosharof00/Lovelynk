@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../core/services/location_sync_service.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../data/models/widget_models/app_widget_type.dart';
 import '../../../global/widgets/app_text.dart';
@@ -45,6 +47,7 @@ class WidgetsView extends GetView<WidgetsController> {
                   14.verticalSpace,
                   const _WidgetFilterChips(),
                   const _TrialBanner(),
+                  const _LocationPermissionBanner(),
                 ],
               ),
             ),
@@ -305,3 +308,116 @@ class _FilterChip extends StatelessWidget {
     );
   }
 }
+
+class _LocationPermissionBanner extends GetView<WidgetsController> {
+  const _LocationPermissionBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    if (!Get.isRegistered<LocationSyncService>()) {
+      return const SizedBox.shrink();
+    }
+    final loc = LocationSyncService.to;
+    return Obx(() {
+      final perm = loc.permission.value;
+      if (controller.isLocationBannerDismissed.value ||
+          perm == LocationPermission.always ||
+          !loc.isSharingEnabled.value) {
+        return const SizedBox.shrink();
+      }
+
+      return Padding(
+        padding: EdgeInsets.only(top: 8.h),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F6FD),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: AppColor.secondary.withValues(alpha: 0.25),
+            ),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.w, 8.h, 24.w, 8.h),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 18.sp,
+                      color: AppColor.secondary,
+                    ),
+                    8.horizontalSpace,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AppText(
+                            'Live Widget Updates',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColor.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          1.verticalSpace,
+                          AppText(
+                            'Set Location to "Always" in iOS Settings for background updates.',
+                            style: TextStyle(
+                              fontSize: 10.5.sp,
+                              color: AppColor.textSecondary,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    8.horizontalSpace,
+                    GestureDetector(
+                      onTap: () => loc.openAppSettings(),
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 9.w, vertical: 5.h),
+                        decoration: BoxDecoration(
+                          color: AppColor.secondary,
+                          borderRadius: BorderRadius.circular(7.r),
+                        ),
+                        child: AppText(
+                          'Settings',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 2.h,
+                right: 2.w,
+                child: GestureDetector(
+                  onTap: () => controller.dismissLocationBanner(),
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: EdgeInsets.all(6.w),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 14.sp,
+                      color: AppColor.hintText,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+}
+

@@ -11,18 +11,23 @@ class HeartbeatSendDialog {
 
   static Future<void> show({
     required String partnerName,
-    required VoidCallback onSend,
+    required void Function(int count) onSend,
   }) {
     return InteractiveSendDialog.show(
       title: 'Send Heartbeat',
-      message: 'Tap the button to send a heartbeat to $partnerName 💞',
+      message: 'Choose how many heartbeats to send to $partnerName 💞',
       sendLabel: 'Send Heartbeat',
       partnerName: partnerName,
       widgetLabel: 'Heartbeat',
       tipEmoji: '💗',
+      enableMultiCount: true,
+      onSendWithCount: (count) {
+        Get.back();
+        onSend(count);
+      },
       onSend: () {
         Get.back();
-        onSend();
+        onSend(1);
       },
       hero: Assets.images.heartbeatImage.image(
         width: 120.w,

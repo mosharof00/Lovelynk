@@ -33,7 +33,9 @@ class PartnerDistanceWidget extends StatelessWidget {
         children: [
           Center(
             child: AppText(
-              'Our distance: ${data.distanceMiles} miles',
+              data.distanceMiles <= 0
+                  ? "We're together!"
+                  : 'Our distance: ${data.distanceMiles} miles',
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w500,

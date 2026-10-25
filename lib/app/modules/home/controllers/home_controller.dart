@@ -19,6 +19,7 @@ import '../../../data/models/user_models/session_bootstrap.dart';
 import '../../../data/models/widget_models/reaction_activity.dart';
 import '../../../global/widgets/global_snackbar.dart';
 import '../../../core/utils/weather_icon_mapper.dart';
+import '../../../data/repositories/interaction_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../routes/app_pages.dart';
 import '../../main_page/controllers/main_page_controller.dart';
@@ -120,6 +121,40 @@ class HomeController extends GetxController {
     }
   }
 
+  final feedActivities = <HomeActivityItem>[].obs;
+
+  /// Loads latest interactions from feed so Recent Activity is never empty
+  /// when activities exist outside of "today".
+  Future<void> loadRecentActivities() async {
+    if (!SessionService.to.isPaired) return;
+    try {
+      final repo = Get.find<IInteractionRepository>();
+      final page = await repo.getFeed(limit: 5);
+      final partner = partnerName.value.isEmpty ? 'Your partner' : partnerName.value;
+
+      final items = page.items.map((item) {
+        final count = item.count;
+        final isMe = item.isFromMe;
+        String text;
+        if (item.kind == 'emoji') {
+          final emoji = item.emoji ?? 'an emoji';
+          text = isMe ? 'You sent $emoji' : '$partner sent you $emoji';
+        } else if (item.kind == 'kiss') {
+          final what = count == 1 ? 'a kiss' : '$count kisses';
+          text = isMe ? 'You sent $what' : '$partner sent you $what';
+        } else {
+          final what = count == 1 ? 'a heartbeat' : '$count heartbeats';
+          text = isMe ? 'You sent $what' : '$partner sent you $what';
+        }
+        return HomeActivityItem(text: text, at: item.createdAt);
+      }).toList();
+
+      feedActivities.assignAll(items);
+    } catch (e) {
+      Log.w('Home: loadRecentActivities failed: $e');
+    }
+  }
+
   /// Latest 3 interactions across heartbeat / kiss / emoji, newest first.
   List<HomeActivityItem> get recentActivity {
     final partner = partnerName.value.isEmpty ? 'Your partner' : partnerName.value;
@@ -129,7 +164,7 @@ class HomeController extends GetxController {
       return a.isFromMe ? 'You sent $what' : '$partner sent you $what';
     }
 
-    final items = <HomeActivityItem>[
+    final localItems = <HomeActivityItem>[
       for (final a in _widgetData.kissActivity)
         HomeActivityItem(text: describe(a, 'kiss', 'kisses'), at: a.at),
       for (final a in _widgetData.heartbeatActivity)
@@ -141,9 +176,24 @@ class HomeController extends GetxController {
               : '$partner sent you ${a.emoji ?? 'an emoji'}',
           at: a.at,
         ),
+    ];
+
+    final combined = <HomeActivityItem>[
+      ...localItems,
+      ...feedActivities,
     ]..sort((a, b) => b.at.compareTo(a.at));
 
-    return items.take(3).toList();
+    // Deduplicate any items with same text and timestamp
+    final seen = <String>{};
+    final unique = <HomeActivityItem>[];
+    for (final item in combined) {
+      final key = '${item.text}_${item.at.millisecondsSinceEpoch}';
+      if (seen.add(key)) {
+        unique.add(item);
+      }
+    }
+
+    return unique.take(3).toList();
   }
 
   String timeAgo(DateTime at) {
@@ -161,6 +211,9 @@ class HomeController extends GetxController {
     isConnected.value = couple != null;
     partnerName.value = couple?.partner.displayName ?? '';
     partnerAvatarPath.value = couple?.partner.avatarPath;
+    if (couple != null) {
+      loadRecentActivities();
+    }
 
     final liveCity = data?.partnerLive?.location?.city?.trim();
     final tzCity = TimeZoneUtils.cityFromTimezone(couple?.partner.timezone);
@@ -386,6 +439,8 @@ class HomeController extends GetxController {
           await Get.find<IUserRepository>().refreshWeather(userId: partnerId, force: true);
           await session.refreshPartnerSnapshot();
         }
+        await _widgetData.refreshFromBackend();
+        await loadRecentActivities();
       }
     } catch (e) {
       Log.w('Home: refresh failed: $e');

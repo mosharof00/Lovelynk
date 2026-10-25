@@ -68,29 +68,30 @@ class CoupleEditor {
 
     final action = await Get.bottomSheet<String>(
       SafeArea(
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.edit_calendar_outlined),
-                title: const Text('Change date'),
-                onTap: () => Get.back(result: 'change'),
-              ),
-              ListTile(
-                leading: Icon(Icons.event_busy_outlined, color: AppColor.error),
-                title: Text(
-                  'Remove next visit',
-                  style: TextStyle(color: AppColor.error),
+        child: Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 12.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.edit_calendar_outlined),
+                  title: const Text('Change date'),
+                  onTap: () => Get.back(result: 'change'),
                 ),
-                onTap: () => Get.back(result: 'remove'),
-              ),
-            ],
+                ListTile(
+                  leading: Icon(Icons.event_busy_outlined, color: AppColor.error),
+                  title: Text(
+                    'Remove next visit',
+                    style: TextStyle(color: AppColor.error),
+                  ),
+                  onTap: () => Get.back(result: 'remove'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -21,6 +21,13 @@ class WidgetsController extends GetxController {
   /// `null` = All categories
   final selectedCategory = Rxn<WidgetCategory>();
 
+  /// Allows user to dismiss the "Live Widget Location" helper card.
+  final isLocationBannerDismissed = false.obs;
+
+  void dismissLocationBanner() {
+    isLocationBannerDismissed.value = true;
+  }
+
   Future<void> onRefresh() async {
     try {
       if (Get.isRegistered<WidgetDataService>()) {

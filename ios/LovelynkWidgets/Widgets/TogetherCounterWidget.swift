@@ -10,6 +10,10 @@ struct TogetherCounterEntry: TimelineEntry {
     let lockMessage: String
     let hasDate: Bool
     let since: Date
+    let days: Int
+    let hours: Int
+    let minutes: Int
+    let seconds: Int
     let style: WidgetStyleConfig
 }
 
@@ -25,12 +29,13 @@ struct TogetherCounterProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<TogetherCounterEntry>) -> Void) {
-        // Phase 8: Battery & timeline quota optimization:
-        // Use a single entry with Text(since, style: .timer). SpringBoard renders the live ticking seconds
-        // with 0 CPU overhead, eliminating the 60 entries per minute timeline burnout.
-        let entry = readEntry(at: Date())
-        let nextHour = Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
-        let timeline = Timeline(entries: [entry], policy: .after(nextHour))
+        let now = Date()
+        var entries: [TogetherCounterEntry] = []
+        for secondOffset in 0..<60 {
+            let entryDate = Calendar.current.date(byAdding: .second, value: secondOffset, to: now)!
+            entries.append(readEntry(at: entryDate))
+        }
+        let timeline = Timeline(entries: entries, policy: .atEnd)
         completion(timeline)
     }
 
@@ -46,6 +51,7 @@ struct TogetherCounterProvider: TimelineProvider {
             ?? AppGroupStore.isoDate(WidgetKeys.DaysTogether.since)
         let hasDate = parsedSince != nil
         let since = parsedSince ?? date
+        let parts = WidgetTimeMath.durationComponents(from: since, to: date)
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.TogetherCounter.widgetId)
 
         return TogetherCounterEntry(
@@ -55,12 +61,17 @@ struct TogetherCounterProvider: TimelineProvider {
             lockMessage: lockMessage,
             hasDate: hasDate,
             since: since,
+            days: parts.days,
+            hours: parts.hours,
+            minutes: parts.minutes,
+            seconds: parts.seconds,
             style: style
         )
     }
 
     private func sampleEntry(at date: Date) -> TogetherCounterEntry {
         let since = Calendar.current.date(byAdding: .day, value: -76, to: date) ?? date
+        let parts = WidgetTimeMath.durationComponents(from: since, to: date)
         return TogetherCounterEntry(
             date: date,
             isLocked: false,
@@ -68,6 +79,10 @@ struct TogetherCounterProvider: TimelineProvider {
             lockMessage: "Locked",
             hasDate: true,
             since: since,
+            days: parts.days,
+            hours: parts.hours,
+            minutes: parts.minutes,
+            seconds: parts.seconds,
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.TogetherCounter.widgetId)
         )
     }
@@ -178,32 +193,37 @@ struct TogetherCounterWidgetView: View {
         }
     }
 
+    private var counterLine: String {
+        String(
+            format: "%02d:%02d:%02d:%02d",
+            entry.days,
+            entry.hours,
+            entry.minutes,
+            entry.seconds
+        )
+    }
+
     @ViewBuilder
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            VStack(spacing: 0) {
-                Image(systemName: "heart.fill")
-                    .font(.caption2)
-                    .foregroundStyle(entry.style.themeColor)
-                    .widgetAccentable()
-                WidgetLiveTimer.countUp(from: entry.since, font: .system(size: 13, weight: .bold, design: .rounded))
-                    .privacySensitive()
-            }
+            WidgetCountdownLayout.accessoryCircular(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds,
+                title: "Together"
+            )
         case .accessoryRectangular:
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Together For")
-                    .font(.system(size: 11, weight: .medium))
-                WidgetLiveTimer.countUp(from: entry.since, font: .system(size: 16, weight: .bold, design: .rounded))
-                    .privacySensitive()
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            WidgetCountdownLayout.accessoryRectangular(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds,
+                title: "Together for"
+            )
         case .accessoryInline:
-            HStack(spacing: 2) {
-                Text("♥ ")
-                WidgetLiveTimer.countUp(from: entry.since, font: .body)
-            }
-            .privacySensitive()
+            Text("Together \(counterLine)")
         case .systemMedium:
             mediumLayout
         default:
@@ -212,64 +232,48 @@ struct TogetherCounterWidgetView: View {
     }
 
     private var smallLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Together For")
+        VStack(spacing: 0) {
+            Text("Together")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 4)
+            Spacer(minLength: 0)
 
-            WidgetLiveTimer.countUp(
-                from: entry.since,
-                font: entry.style.homeValueFont(for: family),
-                color: entry.style.themeColor
+            WidgetCountdownLayout.smallGrid(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds,
+                style: entry.style,
+                family: family
             )
-            .privacySensitive()
 
-            Spacer(minLength: 4)
-
-            HStack(spacing: 4) {
-                Image(systemName: "flame.fill")
-                    .font(.caption2)
-                    .foregroundStyle(entry.style.themeColor)
-                    .widgetAccentable()
-                Text("Live counter")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-            }
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
     }
 
     private var mediumLayout: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Together For")
-                    .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-
-                WidgetLiveTimer.countUp(
-                    from: entry.since,
-                    font: entry.style.homeValueFont(for: family),
-                    color: entry.style.themeColor
-                )
-                .privacySensitive()
-
-                Text("Every second since you fell in love")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
+        VStack(spacing: 0) {
+            Text("Together for")
+                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
 
-            Image(systemName: "heart.fill")
-                .font(.system(size: 40))
-                .foregroundStyle(entry.style.themeColor)
-                .widgetAccentable()
+            WidgetCountdownLayout.mediumRow(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds,
+                style: entry.style,
+                family: family
+            )
+
+            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
@@ -286,7 +290,7 @@ struct TogetherCounterWidget: Widget {
             TogetherCounterWidgetView(entry: entry)
         }
         .configurationDisplayName("Together Counter")
-        .description("Live timer counting every second you and your partner have been together.")
+        .description("Live count of your time together.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

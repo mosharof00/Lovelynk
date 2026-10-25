@@ -202,16 +202,23 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
     isUploading.value = true;
 
     try {
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
-        ),
-      );
+      Position? pos;
+      try {
+        pos = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
+      } catch (_) {
+        pos = await Geolocator.getLastKnownPosition();
+      }
 
-      currentPosition.value = pos;
-      await _reverseGeocode(pos);
-      await _uploadLocation(pos, force: force);
+      if (pos != null) {
+        currentPosition.value = pos;
+        await _reverseGeocode(pos);
+        await _uploadLocation(pos, force: force);
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('syncCurrentLocation error: $e');

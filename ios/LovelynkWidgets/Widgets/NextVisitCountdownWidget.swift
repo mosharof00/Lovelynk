@@ -9,6 +9,10 @@ struct NextVisitEntry: TimelineEntry {
     let isPaired: Bool
     let lockMessage: String
     let target: Date?
+    let days: Int
+    let hours: Int
+    let minutes: Int
+    let seconds: Int
     let style: WidgetStyleConfig
 }
 
@@ -24,17 +28,13 @@ struct NextVisitProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<NextVisitEntry>) -> Void) {
-        // Phase 8: Battery & timeline quota optimization:
-        // Use a single entry with Text(target, style: .timer). SpringBoard handles live second updates.
-        let entry = readEntry(at: Date())
-        let nextHour = Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
-        let refreshDate: Date
-        if let target = entry.target, target > Date(), target < nextHour {
-            refreshDate = target
-        } else {
-            refreshDate = nextHour
+        let now = Date()
+        var entries: [NextVisitEntry] = []
+        for secondOffset in 0..<60 {
+            let entryDate = Calendar.current.date(byAdding: .second, value: secondOffset, to: now)!
+            entries.append(readEntry(at: entryDate))
         }
-        let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
+        let timeline = Timeline(entries: entries, policy: .atEnd)
         completion(timeline)
     }
 
@@ -46,6 +46,12 @@ struct NextVisitProvider: TimelineProvider {
             default: isPaired ? "Locked" : "Connect with your partner"
         )
         let target = AppGroupStore.isoDate(WidgetKeys.NextVisit.targetAt)
+        let parts: (days: Int, hours: Int, minutes: Int, seconds: Int)
+        if let target, target > date {
+            parts = WidgetTimeMath.durationComponents(from: date, to: target)
+        } else {
+            parts = (0, 0, 0, 0)
+        }
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.NextVisit.widgetId)
 
         return NextVisitEntry(
@@ -54,18 +60,27 @@ struct NextVisitProvider: TimelineProvider {
             isPaired: isPaired,
             lockMessage: lockMessage,
             target: target,
+            days: parts.days,
+            hours: parts.hours,
+            minutes: parts.minutes,
+            seconds: parts.seconds,
             style: style
         )
     }
 
     private func sampleEntry(at date: Date) -> NextVisitEntry {
-        let target = Calendar.current.date(byAdding: .day, value: 14, to: date)
+        let target = Calendar.current.date(byAdding: .day, value: 76, to: date) ?? date
+        let parts = WidgetTimeMath.durationComponents(from: date, to: target)
         return NextVisitEntry(
             date: date,
             isLocked: false,
             isPaired: true,
             lockMessage: "Locked",
             target: target,
+            days: parts.days,
+            hours: parts.hours,
+            minutes: parts.minutes,
+            seconds: parts.seconds,
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.NextVisit.widgetId)
         )
     }
@@ -176,32 +191,37 @@ struct NextVisitCountdownWidgetView: View {
         }
     }
 
+    private var counterLine: String {
+        String(
+            format: "%02d:%02d:%02d:%02d",
+            entry.days,
+            entry.hours,
+            entry.minutes,
+            entry.seconds
+        )
+    }
+
     @ViewBuilder
     private var contentView: some View {
         switch family {
         case .accessoryCircular:
-            VStack(spacing: 0) {
-                Image(systemName: "airplane")
-                    .font(.caption2)
-                    .foregroundStyle(entry.style.themeColor)
-                    .widgetAccentable()
-                WidgetLiveTimer.countDown(to: entry.target, font: .system(size: 13, weight: .bold, design: .rounded))
-                    .privacySensitive()
-            }
+            WidgetCountdownLayout.accessoryCircular(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds,
+                title: "Visit"
+            )
         case .accessoryRectangular:
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Next Visit In")
-                    .font(.system(size: 11, weight: .medium))
-                WidgetLiveTimer.countDown(to: entry.target, font: .system(size: 16, weight: .bold, design: .rounded))
-                    .privacySensitive()
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            WidgetCountdownLayout.accessoryRectangular(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds,
+                title: "Next Visit"
+            )
         case .accessoryInline:
-            HStack(spacing: 2) {
-                Text("✈️ Next visit: ")
-                WidgetLiveTimer.countDown(to: entry.target, font: .body)
-            }
-            .privacySensitive()
+            Text("✈️ \(counterLine)")
         case .systemMedium:
             mediumLayout
         default:
@@ -210,64 +230,48 @@ struct NextVisitCountdownWidgetView: View {
     }
 
     private var smallLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Next Visit In")
+        VStack(spacing: 0) {
+            Text("Next Visit")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 4)
+            Spacer(minLength: 0)
 
-            WidgetLiveTimer.countDown(
-                to: entry.target,
-                font: entry.style.homeValueFont(for: family),
-                color: entry.style.themeColor
+            WidgetCountdownLayout.smallGrid(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds,
+                style: entry.style,
+                family: family
             )
-            .privacySensitive()
 
-            Spacer(minLength: 4)
-
-            HStack(spacing: 4) {
-                Image(systemName: "airplane")
-                    .font(.caption2)
-                    .foregroundStyle(entry.style.themeColor)
-                    .widgetAccentable()
-                Text("Until you reunite")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-            }
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
     }
 
     private var mediumLayout: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Next Visit")
-                    .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-
-                WidgetLiveTimer.countDown(
-                    to: entry.target,
-                    font: entry.style.homeValueFont(for: family),
-                    color: entry.style.themeColor
-                )
-                .privacySensitive()
-
-                Text("Countdown until your next trip together")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
+        VStack(spacing: 0) {
+            Text("Next Visit")
+                .font(.system(size: entry.style.homeTitleSize(for: family), weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
 
-            Image(systemName: "airplane")
-                .font(.system(size: 40))
-                .foregroundStyle(entry.style.themeColor)
-                .widgetAccentable()
+            WidgetCountdownLayout.mediumRow(
+                days: entry.days,
+                hours: entry.hours,
+                minutes: entry.minutes,
+                seconds: entry.seconds,
+                style: entry.style,
+                family: family
+            )
+
+            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
@@ -283,8 +287,8 @@ struct NextVisitCountdownWidget: Widget {
         StaticConfiguration(kind: kind, provider: NextVisitProvider()) { entry in
             NextVisitCountdownWidgetView(entry: entry)
         }
-        .configurationDisplayName("Next Visit")
-        .description("Countdown timer until you and your partner see each other next.")
+        .configurationDisplayName("Next Visit Countdown")
+        .description("Countdown to your next visit together.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

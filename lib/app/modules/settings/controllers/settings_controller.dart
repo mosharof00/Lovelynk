@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/network/handle_exceptions.dart';
@@ -65,6 +66,16 @@ class SettingsController extends GetxController {
       : true.obs;
   bool get hasLocationPermission =>
       hasLocationSync && LocationSyncService.to.hasPermission;
+  bool get isLocationAlways =>
+      hasLocationSync &&
+      LocationSyncService.to.permission.value == LocationPermission.always;
+  String get locationPermissionLabel {
+    if (!hasLocationSync) return 'Not available';
+    final perm = LocationSyncService.to.permission.value;
+    if (perm == LocationPermission.always) return 'Always';
+    if (perm == LocationPermission.whileInUse) return 'While using';
+    return 'Disabled';
+  }
   String get locationStatusText =>
       hasLocationSync ? LocationSyncService.to.statusMessage : '';
 

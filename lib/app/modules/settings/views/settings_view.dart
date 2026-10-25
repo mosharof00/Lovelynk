@@ -61,14 +61,19 @@ class SettingsView extends GetView<SettingsController> {
                       ),
                     ),
                   ),
-                  if (!controller.hasLocationPermission)
-                    ProfileMenuItemData(
-                      icon: Icons.near_me_disabled_rounded,
-                      label: 'Location permission',
-                      value: 'Fix in Settings',
-                      valueColor: AppColor.error,
-                      onTap: () => controller.openLocationPermissionSettings(),
-                    ),
+                  ProfileMenuItemData(
+                    icon: controller.isLocationAlways
+                        ? Icons.location_on_rounded
+                        : Icons.location_on_outlined,
+                    label: 'Location permission',
+                    value: controller.locationPermissionLabel,
+                    valueColor: controller.isLocationAlways
+                        ? AppColor.primary
+                        : (controller.hasLocationPermission
+                            ? AppColor.secondary
+                            : AppColor.error),
+                    onTap: () => _showLocationPermissionSheet(context),
+                  ),
                   ProfileMenuItemData(
                     icon: Icons.notifications_none_rounded,
                     label: 'Push notifications',
@@ -130,6 +135,111 @@ class SettingsView extends GetView<SettingsController> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showLocationPermissionSheet(BuildContext context) {
+    final isAlways = controller.isLocationAlways;
+    final hasPerm = controller.hasLocationPermission;
+
+    _openSheet(
+      title: 'Location Permission',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40.w,
+                height: 40.w,
+                decoration: BoxDecoration(
+                  color: (isAlways ? AppColor.primary : AppColor.secondary)
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  isAlways
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.location_on_outlined,
+                  size: 22.sp,
+                  color: isAlways ? AppColor.primary : AppColor.secondary,
+                ),
+              ),
+              12.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      isAlways
+                          ? 'Always (Optimal)'
+                          : (hasPerm ? 'While Using the App' : 'Permission Needed'),
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColor.textPrimary,
+                      ),
+                    ),
+                    2.verticalSpace,
+                    AppText(
+                      isAlways
+                          ? 'Widgets update live in background'
+                          : 'Set to "Always" for background updates',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: AppColor.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          16.verticalSpace,
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F8FA),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: AppText(
+              isAlways
+                  ? 'Your location access is fully set up. Partner Distance & Love Compass widgets can update automatically even when LoveLynk is closed.'
+                  : 'To show live distance and compass direction on your Home Screen when LoveLynk is closed, Apple requires setting Location to "Always" in iOS Settings.',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: AppColor.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ),
+          20.verticalSpace,
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              controller.openLocationPermissionSettings();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: EdgeInsets.symmetric(vertical: 13.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+            ),
+            child: AppText(
+              'Open iOS Settings',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -306,13 +416,13 @@ class SettingsView extends GetView<SettingsController> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: Container(
-            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 24.h),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-            ),
-            child: SafeArea(
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+            clipBehavior: Clip.antiAlias,
+            child: Container(
+              padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 24.h),
+              child: SafeArea(
               top: false,
               child: SingleChildScrollView(
                 child: Column(
@@ -336,8 +446,9 @@ class SettingsView extends GetView<SettingsController> {
           ),
         ),
       ),
-      isScrollControlled: true,
-    );
+    ),
+    isScrollControlled: true,
+  );
   }
 
   void _showNotificationPreferencesSheet(BuildContext context) {

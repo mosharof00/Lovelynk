@@ -34,8 +34,8 @@ class SubscriptionsView extends GetView<SubscriptionsController> {
                   padding: EdgeInsets.fromLTRB(20.w, 4.h, 20.w, 20.h),
                   children: [
                     const _Header(),
-                    18.verticalSpace,
-                    const _FeatureCards(),
+                    // 18.verticalSpace,
+                    // const _FeatureCards(),
                     18.verticalSpace,
                     const _FeatureChecklist(),
                     16.verticalSpace,

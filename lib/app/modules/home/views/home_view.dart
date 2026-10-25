@@ -8,7 +8,6 @@ import '../../../core/theme/app_color.dart';
 import '../../../global/widgets/app_text.dart';
 import '../controllers/home_controller.dart';
 import '../widgets/home_affirmation_card.dart';
-import '../widgets/home_dates_card.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_how_to_tips.dart';
 import '../widgets/home_recent_activity.dart';
@@ -42,11 +41,6 @@ class HomeView extends GetView<HomeController> {
                           delay: 1,
                           shouldAnimate: controller.isFadeInAnimate,
                           child: PartnerDistanceCard(),
-                        ),
-                        FadeInAnimation(
-                          delay: 2,
-                          shouldAnimate: controller.isFadeInAnimate,
-                          child: const HomeDatesCard(),
                         ),
                         FadeInAnimation(
                           delay: 2,

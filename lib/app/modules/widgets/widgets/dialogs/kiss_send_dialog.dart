@@ -11,18 +11,23 @@ class KissSendDialog {
 
   static Future<void> show({
     required String partnerName,
-    required VoidCallback onSend,
+    required void Function(int count) onSend,
   }) {
     return InteractiveSendDialog.show(
       title: 'Send a Kiss',
-      message: 'Tap the button to send a kiss to $partnerName 💞',
+      message: 'Choose how many kisses to send to $partnerName 💞',
       sendLabel: 'Send a Kiss',
       partnerName: partnerName,
       widgetLabel: 'Kiss',
       tipEmoji: '💋',
+      enableMultiCount: true,
+      onSendWithCount: (count) {
+        Get.back();
+        onSend(count);
+      },
       onSend: () {
         Get.back();
-        onSend();
+        onSend(1);
       },
       hero: Assets.images.kissImage.image(
         width: 128.w,

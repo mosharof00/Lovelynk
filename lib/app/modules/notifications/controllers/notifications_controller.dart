@@ -100,7 +100,8 @@ class NotificationsController extends GetxController {
   Future<void> markAllRead() async {
     if (items.isEmpty || unreadCount == 0) return;
 
-    items.assignAll(items.map((e) => e.copyWith(isRead: true)));
+    final updated = items.map((e) => e.copyWith(isRead: true)).toList();
+    items.assignAll(updated);
     if (Get.isRegistered<PushNotificationService>()) {
       PushNotificationService.to.unreadCount.value = 0;
     }
