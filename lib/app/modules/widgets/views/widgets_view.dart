@@ -8,6 +8,7 @@ import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/notification_bell_button.dart';
 import '../controllers/widgets_controller.dart';
 import '../widgets/widget_category_section.dart';
+import '../../../routes/app_pages.dart';
 
 class WidgetsView extends GetView<WidgetsController> {
   const WidgetsView({super.key});
@@ -116,25 +117,53 @@ class _TrialBanner extends GetView<WidgetsController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.subscription.state.value.isWidgetsUnlocked) {
+      final sub = controller.subscription;
+      if (sub.state.value.isWidgetsUnlocked) {
         return const SizedBox.shrink();
       }
+      final message = sub.hasUsedTrial.value
+          ? 'Trial ended — widgets are locked. Tap to unlock.'
+          : 'Unlock all couple widgets with 7 days free trial. Tap to view.';
+
       return Padding(
         padding: EdgeInsets.only(top: 12.h),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-          decoration: BoxDecoration(
-            color: AppColor.primaryLight,
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: AppText(
-            'Trial ended — widgets are locked. Unlock to continue.',
-            maxLines: 2,
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: AppColor.primary,
-              fontWeight: FontWeight.w500,
+        child: GestureDetector(
+          onTap: () => Get.toNamed(Routes.SUBSCRIPTIONS),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+            decoration: BoxDecoration(
+              color: AppColor.primaryLight,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(
+                color: AppColor.primary.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.lock_outline_rounded,
+                  size: 16.sp,
+                  color: AppColor.primary,
+                ),
+                8.horizontalSpace,
+                Expanded(
+                  child: AppText(
+                    message,
+                    maxLines: 2,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: AppColor.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18.sp,
+                  color: AppColor.primary,
+                ),
+              ],
             ),
           ),
         ),

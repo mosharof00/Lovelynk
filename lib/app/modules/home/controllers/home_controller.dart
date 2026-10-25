@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bulkretail/app/core/theme/app_color.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -116,8 +115,9 @@ class HomeController extends GetxController {
         Log.w('Home: session bootstrap failed: $e');
       }
     }
-    // TODO(RevenueCat): drive SubscriptionService from session.access.
-    await _subscription.refreshFromUser();
+    if (session.bootstrap.value?.access != null) {
+      _subscription.applyFromAccess(session.bootstrap.value!.access);
+    }
   }
 
   /// Latest 3 interactions across heartbeat / kiss / emoji, newest first.

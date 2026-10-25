@@ -48,6 +48,7 @@ class SupabaseFunction {
   static const deleteAccount = 'delete-account';
   static const refreshWeather = 'refresh-weather';
   static const pushDispatch = 'push-dispatch';
+  static const revenuecatWebhook = 'revenuecat-webhook';
 }
 
 /// Realtime Broadcast on the private `user:{id}` channel.
@@ -73,6 +74,9 @@ class SupabaseRealtime {
 
   /// Partner sent an interaction (heartbeat, kiss, or emoji).
   static const interactionNew = 'interaction.new';
+
+  /// Subscription status changed (self or partner).
+  static const accessChanged = 'access.changed';
 }
 
 /// Supabase table / view names (`supabase.from(...)`).

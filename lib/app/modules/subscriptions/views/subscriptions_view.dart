@@ -1,5 +1,4 @@
 import 'package:bulkretail/app/core/config/app_config.dart';
-import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
 import 'package:bulkretail/app/core/services/app_settings_service.dart';
 import 'package:bulkretail/app/global/widgets/app_svg_icon.dart';
 import 'package:bulkretail/gen/assets.gen.dart';
@@ -65,9 +64,11 @@ class SubscriptionsView extends GetView<SubscriptionsController> {
                 _BottomCta(
                   plan: selected,
                   canStartTrial: controller.canStartTrial,
-                  onPrimary: controller.canStartTrial
-                      ? controller.startFreeTrial
-                      : controller.subscribe,
+                  isLoading: controller.isPurchasing.value,
+                  priceString: controller.selectedPlan.value == SubscriptionPlanId.yearly
+                      ? controller.yearlyPriceString
+                      : controller.monthlyPriceString,
+                  onPrimary: controller.onPrimaryAction,
                 ),
             ],
           );
@@ -85,7 +86,7 @@ class _TopBar extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(8.w, 4.h, 12.w, 0),
       child: Row(
-        crossAxisAlignment: .start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           IconButton(
             onPressed: () => Get.back(),
@@ -100,18 +101,18 @@ class _TopBar extends StatelessWidget {
               child: Image.asset(AppConfig.appLogo, height: 90.w, width: 90.w),
             ),
           ),
-          // TextButton(
-          //   onPressed: Get.find<SubscriptionsController>().restorePurchases,
-          //   child: AppText(
-          //     'Restore',
-          //     style: TextStyle(
-          //       fontSize: 14.sp,
-          //       fontWeight: FontWeight.w600,
-          //       color: AppColor.primary.withValues(alpha: 0.75),
-          //     ),
-          //   ),
-          // ),
-          24.width,
+          TextButton(
+            onPressed: Get.find<SubscriptionsController>().restorePurchases,
+            child: AppText(
+              'Restore',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColor.primary.withValues(alpha: 0.85),
+              ),
+            ),
+          ),
+          8.horizontalSpace,
         ],
       ),
     );
@@ -543,17 +544,22 @@ class _BottomCta extends StatelessWidget {
     required this.plan,
     required this.canStartTrial,
     required this.onPrimary,
+    this.isLoading = false,
+    this.priceString,
   });
 
   final SubscriptionPlan plan;
   final bool canStartTrial;
   final VoidCallback onPrimary;
+  final bool isLoading;
+  final String? priceString;
 
   @override
   Widget build(BuildContext context) {
+    final activePrice = priceString ?? plan.thenPriceLine;
     final thenLine = canStartTrial
-        ? 'Then ${plan.thenPriceLine}. Cancel anytime.'
-        : '${plan.billingLine}. Cancel anytime.';
+        ? 'Then $activePrice / period. Cancel anytime.'
+        : '$activePrice. Cancel anytime.';
 
     return Container(
       width: double.infinity,
@@ -573,6 +579,7 @@ class _BottomCta extends StatelessWidget {
         children: [
           GlobalButton(
             onTap: onPrimary,
+            isLoading: isLoading,
             text: canStartTrial ? 'Start 7-day free trial' : 'Subscribe now',
           ),
           10.verticalSpace,

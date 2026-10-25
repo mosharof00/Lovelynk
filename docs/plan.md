@@ -359,7 +359,7 @@ For all 12:
   - Entitlement `plus`; offering `default` with the monthly and yearly packages.
   - Webhook URL set to the Supabase Edge Function, with an auth header (`REVENUECAT_WEBHOOK_AUTH` secret).
 ### 9.2 Backend
-- [ ] **[Dev]** Edge Function `revenuecat-webhook`. It:
+- [x] **[Dev]** Edge Function `revenuecat-webhook`. It:
   - checks the auth header and skips duplicate events (idempotent on `event_id`);
   - logs each event to `private.revenuecat_events`;
   - upserts `subscription_entitlements` and inserts `subscription_transactions`;
@@ -367,16 +367,16 @@ For all 12:
   - broadcasts `access.changed` to the user **and their partner**, because premium is shared through the partner.
 
 ### 9.3 App
-- [ ] **[Dev]** Add `purchases_flutter`. Call `Purchases.logIn(supabaseUserId)` after login and `logOut` on logout.
-- [ ] **[Dev]** Rebuild `SubscriptionService` to read the **server** `access` (from the bootstrap plus `access.changed`) as the source of truth, with RevenueCat `CustomerInfo` for an instant update after purchase. Delete the Hive mock.
-- [ ] **[Dev]** Paywall:
+- [x] **[Dev]** Add `purchases_flutter`. Call `Purchases.logIn(supabaseUserId)` after login and `logOut` on logout.
+- [x] **[Dev]** Rebuild `SubscriptionService` to read the **server** `access` (from the bootstrap plus `access.changed`) as the source of truth, with RevenueCat `CustomerInfo` for an instant update after purchase. Delete the Hive mock.
+- [x] **[Dev]** Paywall:
   - Localised prices from offerings.
   - Trial eligibility.
   - Purchase, restore and cancelled-purchase states.
   - Real Terms and Privacy links.
   - "Manage subscription" through `showManageSubscriptions`.
-- [ ] **[Dev]** Lock rules: what free users see, and what Plus (yours or your partner's) unlocks. Applies to the widgets, Customise and the Home previews. Fix the trial banner text for users who never started a trial.
-- [ ] **[Dev]** Profile: subscription status row, showing "Plus via Milla" when premium comes from the partner.
+- [x] **[Dev]** Lock rules: what free users see, and what Plus (yours or your partner's) unlocks. Applies to the widgets, Customise and the Home previews. Fix the trial banner text for users who never started a trial.
+- [x] **[Dev]** Profile: subscription status row, showing "Plus via Milla" when premium comes from the partner.
 
 **[Test]**
 - A sandbox purchase unlocks the buyer **and** the partner within seconds.

@@ -141,6 +141,11 @@ class SessionService extends GetxService with WidgetsBindingObserver {
       _coupleEvents.add(data.isPaired ? CoupleEvent.paired : CoupleEvent.left);
     }
 
+    if (Get.isRegistered<SubscriptionService>()) {
+      Get.find<SubscriptionService>().applyFromAccess(data.access);
+      Get.find<SubscriptionService>().logInUser(data.user.id);
+    }
+
     if (data.isPaired) {
       _checkAndRefreshWeather(data.partnerLive?.weather);
     }
@@ -197,7 +202,7 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     setRecoveryPending(false);
     AvatarUrlCache.clear();
     if (Get.isRegistered<SubscriptionService>()) {
-      Get.find<SubscriptionService>().clear();
+      await Get.find<SubscriptionService>().logOutUser();
     }
     if (Get.isRegistered<PushNotificationService>()) {
       await Get.find<PushNotificationService>().unregisterDevice();
@@ -257,6 +262,13 @@ class SessionService extends GetxService with WidgetsBindingObserver {
                 Map<String, dynamic>.from(payload),
               );
             }
+          },
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.accessChanged,
+          callback: (_) {
+            Log.i('[Realtime] access.changed event received — refreshing session');
+            refresh();
           },
         )
         .subscribe((status, error) {
