@@ -21,6 +21,18 @@ class AppConfig {
   /// Seconds before "Resend code" is enabled again.
   static const otpResendCooldownSeconds = 60;
 
-  //Push Notification key
+  // ── RevenueCat ────────────────────────────────────────────────────────
+  /// RevenueCat Public SDK API key for Apple (starts with 'appl_').
+  /// Can be provided via `--dart-define=REVENUECAT_APPLE_KEY=appl_xxx`.
+  static const revenueCatAppleApiKey = String.fromEnvironment(
+    'REVENUECAT_APPLE_KEY',
+    defaultValue: 'appl_placeholder_key',
+  );
 
+  /// Main entitlement identifier configured in RevenueCat dashboard.
+  static const entitlementPlus = 'premium';
+
+  /// Store product identifiers.
+  static const productMonthly = 'lovelynk_monthly';
+  static const productYearly = 'lovelynk_yearly';
 }

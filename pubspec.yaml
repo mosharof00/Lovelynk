@@ -3,7 +3,7 @@ description: "LoveLynk — couples app with home and lock screen widgets."
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+4
+version: 1.0.1+1
 environment:
   sdk: ^3.11.4
 
@@ -51,6 +51,11 @@ dependencies:
   in_app_review: ^2.0.12
   device_info_plus: ^13.3.0
   timezone: ^0.11.2
+  geocoding: ^5.0.0
+  firebase_core: ^5.0.0
+  firebase_messaging: ^17.0.0
+  flutter_local_notifications: ^22.3.2
+  purchases_flutter: ^10.18.1
 
 dev_dependencies:
   flutter_test:

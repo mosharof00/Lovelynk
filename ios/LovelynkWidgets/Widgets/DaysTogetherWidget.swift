@@ -6,6 +6,7 @@ import SwiftUI
 struct DaysTogetherEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
+    let isPaired: Bool
     let lockMessage: String
     let count: Int
     let title: String
@@ -25,9 +26,9 @@ struct DaysTogetherProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<DaysTogetherEntry>) -> Void) {
         let entry = readEntry()
-        // Midnight refresh so day count stays accurate.
+        // Midnight refresh so day count automatically rolls over at 00:00 without app opening
         let nextMidnight = Calendar.current.startOfDay(
-            for: Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+            for: Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
         )
         let timeline = Timeline(entries: [entry], policy: .after(nextMidnight))
         completion(timeline)
@@ -35,19 +36,31 @@ struct DaysTogetherProvider: TimelineProvider {
 
     private func readEntry() -> DaysTogetherEntry {
         let locked = AppGroupStore.bool(WidgetKeys.globalLocked)
+        let isPaired = AppGroupStore.bool(WidgetKeys.isPaired)
         let lockMessage = AppGroupStore.string(
             WidgetKeys.globalLockMessage,
-            default: "Locked"
+            default: isPaired ? "Locked" : "Connect with your partner"
         )
-        let count = AppGroupStore.int(WidgetKeys.DaysTogether.count, default: 0)
+
+        // Phase 8: Calculate in Swift so midnight rollover occurs automatically
+        var count = AppGroupStore.int(WidgetKeys.DaysTogether.count, default: 0)
+        if let since = AppGroupStore.isoDate(WidgetKeys.DaysTogether.since) {
+            let startOfSince = Calendar.current.startOfDay(for: since)
+            let startOfToday = Calendar.current.startOfDay(for: Date())
+            let diff = Calendar.current.dateComponents([.day], from: startOfSince, to: startOfToday).day ?? 0
+            count = max(0, diff)
+        }
+
         let title = AppGroupStore.string(
             WidgetKeys.DaysTogether.title,
             default: "Days Together"
         )
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.DaysTogether.widgetId)
+
         return DaysTogetherEntry(
             date: Date(),
             isLocked: locked,
+            isPaired: isPaired,
             lockMessage: lockMessage,
             count: count,
             title: title,
@@ -59,6 +72,7 @@ struct DaysTogetherProvider: TimelineProvider {
         DaysTogetherEntry(
             date: Date(),
             isLocked: false,
+            isPaired: true,
             lockMessage: "Locked",
             count: 76,
             title: "Days Together",
@@ -77,10 +91,13 @@ struct DaysTogetherWidgetView: View {
         Group {
             if entry.isLocked {
                 lockedView
+            } else if !entry.isPaired {
+                unpairedView
             } else {
                 contentView
             }
         }
+        .widgetURL(WidgetDeepLinks.url(for: WidgetKeys.DaysTogether.widgetId))
         .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
@@ -92,18 +109,48 @@ struct DaysTogetherWidgetView: View {
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "lock.fill")
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).lineLimit(1)
             }
         case .accessoryInline:
-            Text("🔒 \(entry.lockMessage)")
+            Text("🔒 \(entry.lockMessage)").lineLimit(1)
         default:
             VStack(spacing: 6) {
                 Image(systemName: "lock.fill")
                     .font(.title2)
                 Text(entry.lockMessage)
                     .font(.headline)
+                    .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var unpairedView: some View {
+        switch family {
+        case .accessoryCircular:
+            Image(systemName: "person.crop.circle.badge.plus")
+        case .accessoryRectangular:
+            HStack {
+                Image(systemName: "person.crop.circle.badge.plus")
+                Text("Connect Partner").font(.caption).bold().lineLimit(1)
+            }
+        case .accessoryInline:
+            Text("Connect Partner in LoveLynk")
+        default:
+            VStack(spacing: 8) {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.title)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                Text("Connect Partner")
+                    .font(.headline)
+                Text("Tap to pair")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(WidgetLayoutMetrics.homePadding)
         }
     }
 
@@ -115,16 +162,23 @@ struct DaysTogetherWidgetView: View {
                 Image(systemName: "heart.fill")
                     .font(.caption2)
                     .foregroundStyle(entry.style.themeColor)
-                Text("\(entry.count)").font(.headline)
+                    .widgetAccentable()
+                Text("\(entry.count)")
+                    .font(.headline)
+                    .privacySensitive()
             }
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "heart.fill")
                     .foregroundStyle(entry.style.themeColor)
-                Text("\(entry.count) days").font(.headline)
+                    .widgetAccentable()
+                Text("\(entry.count) days")
+                    .font(.headline)
+                    .privacySensitive()
             }
         case .accessoryInline:
             Text("♥ \(entry.count) days")
+                .privacySensitive()
         case .systemMedium:
             mediumLayout
         default:
@@ -147,6 +201,7 @@ struct DaysTogetherWidgetView: View {
                 .foregroundStyle(entry.style.themeColor)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
+                .privacySensitive()
 
             Text("days")
                 .font(.system(size: entry.style.homeTitleSize(for: family), weight: .regular))
@@ -170,6 +225,7 @@ struct DaysTogetherWidgetView: View {
                         .foregroundStyle(entry.style.themeColor)
                         .minimumScaleFactor(0.5)
                         .lineLimit(1)
+                        .privacySensitive()
                     Text("days")
                         .font(.system(
                             size: entry.style.homeTitleSize(for: family) + 4,
@@ -184,6 +240,7 @@ struct DaysTogetherWidgetView: View {
             Image(systemName: "heart.fill")
                 .font(.system(size: entry.style.homeValueSize(for: family) * 0.72))
                 .foregroundStyle(entry.style.themeColor)
+                .widgetAccentable()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
@@ -200,7 +257,7 @@ struct DaysTogetherWidget: Widget {
             DaysTogetherWidgetView(entry: entry)
         }
         .configurationDisplayName("Days Together")
-        .description("How many days you've been together.")
+        .description("How many days you've been together. Automatically rolls over at midnight.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

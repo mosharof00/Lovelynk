@@ -8,18 +8,17 @@ import 'package:get/get.dart';
 
 import '../../data/models/widget_models/app_widget_type.dart';
 import '../widgets/widget_sync_service.dart';
+import 'location_sync_service.dart';
+import 'session_service.dart';
 
-/// Live device heading + optional location for the Love Compass.
+/// Live device heading + partner bearing for the Love Compass.
 ///
 /// Needle angle = partnerBearing − deviceHeading.
-/// Location is started from Splash after the user taps Continue.
-///
-/// **iOS note:** You may see a console message like
-/// "Swift Package Manager is not supported for iOS" from Flutter tooling.
-/// [flutter_compass] ships as a CocoaPod (see `ios/Podfile.lock`) — the
-/// warning is harmless and the compass still works on a physical device.
-/// Simulators have no magnetometer, so heading stays at mock values there.
+/// Uses real partner coordinates from [SessionService] and real device location
+/// from [LocationSyncService].
 class CompassService extends GetxService {
+  static CompassService get to => Get.find<CompassService>();
+
   /// Device heading in degrees (0–360, north = 0). Null until sensor ready.
   final heading = Rxn<double>();
 
@@ -29,22 +28,25 @@ class CompassService extends GetxService {
   /// False when the device has no compass stream (e.g. iOS Simulator).
   final hasCompass = true.obs;
 
+  /// True if partner has an active, shared location.
+  final isPartnerLocationAvailable = false.obs;
+
+  /// True when partners are very close (< 80 meters).
+  final isTogether = false.obs;
+
+  /// Bearing (degrees) from me → partner (0–360).
+  final partnerBearing = 0.0.obs;
+
+  /// Distance in meters to partner. Null when locations unavailable.
+  final partnerDistanceMeters = Rxn<double>();
+
+  /// Miles to partner (derived).
+  final partnerMiles = 0.obs;
+
   StreamSubscription<CompassEvent>? _headingSub;
-  StreamSubscription<Position>? _positionSub;
+  StreamSubscription<Position>? _localPosSub;
   Timer? _compassWidgetSyncDebounce;
-
-  /// Mock partner coords (Sydney). Replaced by Supabase later.
-  static const double partnerLat = -33.8688;
-  static const double partnerLng = 151.2093;
-
-  double? _myLat;
-  double? _myLng;
-
-  /// Bearing (degrees) from me → partner. Falls back to mock when no GPS.
-  final partnerBearing = 45.0.obs;
-
-  /// Haversine miles to partner. Falls back to mock when no GPS.
-  final partnerMiles = 213.obs;
+  final _workers = <Worker>[];
 
   CompassService init() {
     final events = FlutterCompass.events;
@@ -56,70 +58,117 @@ class CompassService extends GetxService {
           '(simulator or unsupported device). Using mock bearing.',
         );
       }
-      return this;
+    } else {
+      _headingSub = events.listen(
+        (event) {
+          final h = event.heading;
+          if (h == null) return;
+          heading.value = (h + 360) % 360;
+        },
+        onError: (Object error) {
+          if (kDebugMode) {
+            debugPrint('CompassService heading stream error: $error');
+          }
+        },
+      );
     }
 
-    _headingSub = events.listen(
-      (event) {
-        final h = event.heading;
-        if (h == null) return;
-        heading.value = (h + 360) % 360;
-      },
-      onError: (Object error) {
-        if (kDebugMode) {
-          debugPrint('CompassService heading stream error: $error');
-        }
-      },
+    // Recompute when session or partner snapshot updates
+    _workers.add(
+      ever(SessionService.to.bootstrap, (_) => _recomputeBearingAndDistance()),
     );
-    // Location starts only after Splash permission Continue.
+
+    // Recompute when local position updates
+    if (Get.isRegistered<LocationSyncService>()) {
+      _workers.add(
+        ever(
+          LocationSyncService.to.currentPosition,
+          (_) => _recomputeBearingAndDistance(),
+        ),
+      );
+    }
+
+    _recomputeBearingAndDistance();
     return this;
   }
 
-  /// Called from Splash when the user taps Continue on the permission dialog.
+  /// Called from Splash when user continues, or from permissions dialog.
   Future<bool> requestAndStartLocation() async {
-    final enabled = await Geolocator.isLocationServiceEnabled();
-    if (!enabled) return false;
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+    if (!Get.isRegistered<LocationSyncService>()) return false;
+    final granted = await LocationSyncService.to.requestPermission();
+    if (granted) {
+      hasLocation.value = true;
+      _recomputeBearingAndDistance();
     }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      return false;
-    }
-
-    await _listenPosition();
-    return true;
+    return granted;
   }
 
-  Future<void> _listenPosition() async {
-    if (_positionSub != null) return;
+  /// Recalculates bearing & distance between current user and partner.
+  void _recomputeBearingAndDistance() {
+    final session = SessionService.to;
+    final partnerLive = session.partnerLive;
+    final partnerLoc = partnerLive?.location;
+
+    // Check if partner location sharing is active
+    final partnerSharing = session.isPartnerLocationSharingEnabled;
+    if (!partnerSharing || partnerLoc == null) {
+      isPartnerLocationAvailable.value = false;
+      isTogether.value = false;
+      partnerDistanceMeters.value = null;
+
+      // If server returned a snapshot distance/bearing fallback:
+      if (partnerLive?.bearingDegrees != null) {
+        partnerBearing.value = partnerLive!.bearingDegrees!;
+      }
+      if (partnerLive?.distanceKm != null) {
+        final meters = partnerLive!.distanceKm! * 1000.0;
+        partnerDistanceMeters.value = meters;
+        partnerMiles.value = (meters / 1609.344).round();
+      }
+      return;
+    }
+
+    isPartnerLocationAvailable.value = true;
+
+    final myPos = Get.isRegistered<LocationSyncService>()
+        ? LocationSyncService.to.currentPosition.value
+        : null;
+
+    if (myPos == null) {
+      // Use server snapshot fallback
+      if (partnerLive?.bearingDegrees != null) {
+        partnerBearing.value = partnerLive!.bearingDegrees!;
+      }
+      if (partnerLive?.distanceKm != null) {
+        final meters = partnerLive!.distanceKm! * 1000.0;
+        partnerDistanceMeters.value = meters;
+        partnerMiles.value = (meters / 1609.344).round();
+        isTogether.value = meters < 80;
+      }
+      return;
+    }
+
     hasLocation.value = true;
-    _positionSub = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.medium,
-        distanceFilter: 25,
-      ),
-    ).listen(_onPosition);
-  }
 
-  void _onPosition(Position pos) {
-    _myLat = pos.latitude;
-    _myLng = pos.longitude;
-    partnerBearing.value = Geolocator.bearingBetween(
-      _myLat!,
-      _myLng!,
-      partnerLat,
-      partnerLng,
+    final bearing = Geolocator.bearingBetween(
+      myPos.latitude,
+      myPos.longitude,
+      partnerLoc.latitude,
+      partnerLoc.longitude,
     );
+    partnerBearing.value = (bearing + 360.0) % 360.0;
+
     final meters = Geolocator.distanceBetween(
-      _myLat!,
-      _myLng!,
-      partnerLat,
-      partnerLng,
+      myPos.latitude,
+      myPos.longitude,
+      partnerLoc.latitude,
+      partnerLoc.longitude,
     );
+
+    partnerDistanceMeters.value = meters;
     partnerMiles.value = (meters / 1609.344).round();
+    isTogether.value = meters < 80;
+
     _scheduleLoveCompassWidgetSync();
   }
 
@@ -149,7 +198,10 @@ class CompassService extends GetxService {
   void onClose() {
     _compassWidgetSyncDebounce?.cancel();
     _headingSub?.cancel();
-    _positionSub?.cancel();
+    _localPosSub?.cancel();
+    for (final w in _workers) {
+      w.dispose();
+    }
     super.onClose();
   }
 }

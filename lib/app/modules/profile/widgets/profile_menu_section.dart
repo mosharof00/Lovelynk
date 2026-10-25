@@ -12,6 +12,8 @@ class ProfileMenuItemData {
     this.value,
     this.valueColor,
     this.showStatusDot = false,
+    this.trailing,
+    this.hideChevron = false,
     this.onTap,
   });
 
@@ -20,6 +22,8 @@ class ProfileMenuItemData {
   final String? value;
   final Color? valueColor;
   final bool showStatusDot;
+  final Widget? trailing;
+  final bool hideChevron;
   final VoidCallback? onTap;
 }
 
@@ -138,11 +142,14 @@ class _ProfileMenuTile extends StatelessWidget {
               ],
               6.horizontalSpace,
             ],
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 20.sp,
-              color: AppColor.hintText,
-            ),
+            if (item.trailing != null)
+              item.trailing!
+            else if (!item.hideChevron)
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20.sp,
+                color: AppColor.hintText,
+              ),
           ],
         ),
       ),

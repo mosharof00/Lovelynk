@@ -6,10 +6,14 @@ import SwiftUI
 struct PartnerDistanceEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
+    let isPaired: Bool
     let lockMessage: String
     let miles: Int
+    let unit: String
     let userInitial: String
     let partnerInitial: String
+    let isSharing: Bool
+    let updatedAt: Date?
     let style: WidgetStyleConfig
 }
 
@@ -26,27 +30,38 @@ struct PartnerDistanceProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<PartnerDistanceEntry>) -> Void) {
         let entry = readEntry()
-        let timeline = Timeline(entries: [entry], policy: .never)
+        // Phase 8: Timeline reload policy 30-60 min
+        let refreshDate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date()
+        let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
         completion(timeline)
     }
 
     private func readEntry() -> PartnerDistanceEntry {
         let locked = AppGroupStore.bool(WidgetKeys.globalLocked)
+        let isPaired = AppGroupStore.bool(WidgetKeys.isPaired)
         let lockMessage = AppGroupStore.string(
             WidgetKeys.globalLockMessage,
-            default: "Locked"
+            default: isPaired ? "Locked" : "Connect with your partner"
         )
         let miles = AppGroupStore.int(WidgetKeys.PartnerDistance.miles, default: 0)
-        let user = AppGroupStore.string(WidgetKeys.PartnerDistance.userInitial, default: "J")
-        let partner = AppGroupStore.string(WidgetKeys.PartnerDistance.partnerInitial, default: "M")
+        let unit = AppGroupStore.string(WidgetKeys.PartnerDistance.unit, default: "mi")
+        let user = AppGroupStore.string(WidgetKeys.PartnerDistance.userInitial, default: "—")
+        let partner = AppGroupStore.string(WidgetKeys.PartnerDistance.partnerInitial, default: "—")
+        let isSharing = AppGroupStore.string(WidgetKeys.PartnerDistance.isSharing, default: "1") != "0"
+        let updatedAt = AppGroupStore.isoDate(WidgetKeys.PartnerDistance.updatedAt)
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.PartnerDistance.widgetId)
+
         return PartnerDistanceEntry(
             date: Date(),
             isLocked: locked,
+            isPaired: isPaired,
             lockMessage: lockMessage,
             miles: miles,
-            userInitial: user.isEmpty ? "?" : user,
-            partnerInitial: partner.isEmpty ? "?" : partner,
+            unit: unit,
+            userInitial: user.isEmpty ? "—" : user,
+            partnerInitial: partner.isEmpty ? "—" : partner,
+            isSharing: isSharing,
+            updatedAt: updatedAt,
             style: style
         )
     }
@@ -55,10 +70,14 @@ struct PartnerDistanceProvider: TimelineProvider {
         PartnerDistanceEntry(
             date: Date(),
             isLocked: false,
+            isPaired: true,
             lockMessage: "Locked",
             miles: 168,
-            userInitial: "J",
-            partnerInitial: "M",
+            unit: "mi",
+            userInitial: "—",
+            partnerInitial: "—",
+            isSharing: true,
+            updatedAt: Date(),
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.PartnerDistance.widgetId)
         )
     }
@@ -74,10 +93,13 @@ struct PartnerDistanceWidgetView: View {
         Group {
             if entry.isLocked {
                 lockedView
+            } else if !entry.isPaired {
+                unpairedView
             } else {
                 contentView
             }
         }
+        .widgetURL(WidgetDeepLinks.url(for: WidgetKeys.PartnerDistance.widgetId))
         .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
@@ -89,16 +111,45 @@ struct PartnerDistanceWidgetView: View {
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "lock.fill")
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).lineLimit(1)
             }
         case .accessoryInline:
-            Text("🔒 \(entry.lockMessage)")
+            Text("🔒 \(entry.lockMessage)").lineLimit(1)
         default:
             VStack(spacing: 6) {
                 Image(systemName: "lock.fill").font(.title2)
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var unpairedView: some View {
+        switch family {
+        case .accessoryCircular:
+            Image(systemName: "person.crop.circle.badge.plus")
+        case .accessoryRectangular:
+            HStack {
+                Image(systemName: "person.crop.circle.badge.plus")
+                Text("Connect Partner").font(.caption).bold().lineLimit(1)
+            }
+        case .accessoryInline:
+            Text("Connect Partner in LoveLynk")
+        default:
+            VStack(spacing: 8) {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.title)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                Text("Connect Partner")
+                    .font(.headline)
+                Text("Tap to pair")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(WidgetLayoutMetrics.homePadding)
         }
     }
 
@@ -109,15 +160,37 @@ struct PartnerDistanceWidgetView: View {
             VStack(spacing: 0) {
                 Image(systemName: "heart.fill")
                     .font(.system(size: 14, weight: .semibold))
-                Text("\(entry.miles) mi")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.55)
-                    .lineLimit(1)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                if !entry.isSharing {
+                    Text("Paused")
+                        .font(.system(size: 10, weight: .bold))
+                } else if entry.miles <= 0 {
+                    Text("Together")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                        .privacySensitive()
+                } else {
+                    Text("\(entry.miles) \(entry.unit)")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .minimumScaleFactor(0.55)
+                        .lineLimit(1)
+                        .privacySensitive()
+                }
             }
         case .accessoryRectangular:
             accessoryRectangularLayout
         case .accessoryInline:
-            Text("\(entry.miles) mi apart")
+            if !entry.isSharing {
+                Text("Location paused")
+            } else if entry.miles <= 0 {
+                Text("We're together!")
+                    .privacySensitive()
+            } else {
+                Text("\(entry.miles) \(entry.unit) apart")
+                    .privacySensitive()
+            }
         case .systemMedium:
             competitorLayout(circleSize: 36, heartSize: 28, titleSize: entry.style.homeTitleSize(for: family) + 2)
         default:
@@ -127,12 +200,24 @@ struct PartnerDistanceWidgetView: View {
 
     /// Lock rectangular: compact competitor-style track.
     private var accessoryRectangularLayout: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Our distance: \(entry.miles) mi")
-                .font(.system(size: 12, weight: .semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            distanceConnectionRow(circleSize: 22, heartSize: 16, lineColor: .primary)
+        VStack(alignment: .leading, spacing: 3) {
+            if !entry.isSharing {
+                Text("Location sharing paused")
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+            } else if entry.miles <= 0 {
+                Text("We're together!")
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(1)
+                    .privacySensitive()
+            } else {
+                Text("Our distance: \(entry.miles) \(entry.unit)")
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .privacySensitive()
+            }
+            distanceConnectionRow(circleSize: 20, heartSize: 14, lineColor: .primary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
@@ -144,12 +229,29 @@ struct PartnerDistanceWidgetView: View {
         titleSize: CGFloat
     ) -> some View {
         VStack(spacing: 0) {
-            Text("Our distance: \(entry.miles) miles")
-                .font(.system(size: titleSize, weight: .semibold))
-                .foregroundStyle(entry.style.themeColor)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity)
+            if !entry.isSharing {
+                Text("Location sharing paused")
+                    .font(.system(size: titleSize, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity)
+            } else if entry.miles <= 0 {
+                Text("We're together!")
+                    .font(.system(size: titleSize, weight: .semibold))
+                    .foregroundStyle(entry.style.themeColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity)
+                    .privacySensitive()
+            } else {
+                Text("Our distance: \(entry.miles) \(entry.unit == "mi" ? "miles" : "km")")
+                    .font(.system(size: titleSize, weight: .semibold))
+                    .foregroundStyle(entry.style.themeColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity)
+                    .privacySensitive()
+            }
 
             Spacer(minLength: 8)
 
@@ -159,7 +261,20 @@ struct PartnerDistanceWidgetView: View {
                 lineColor: entry.style.themeColor
             )
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 4)
+
+            if let updated = entry.updatedAt, entry.isSharing {
+                HStack(spacing: 3) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 9))
+                    Text(updated, style: .relative)
+                        .font(.system(size: 10))
+                    Text("ago")
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(.secondary)
+                .privacySensitive()
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(WidgetLayoutMetrics.homePadding)
@@ -180,6 +295,7 @@ struct PartnerDistanceWidgetView: View {
                 .foregroundStyle(lineColor)
                 .frame(width: heartSize, height: heartSize)
                 .padding(.horizontal, 4)
+                .widgetAccentable()
 
             connectionLine(color: lineColor)
 
@@ -200,6 +316,7 @@ struct PartnerDistanceWidgetView: View {
             .font(.system(size: size * 0.42, weight: .bold, design: .rounded))
             .foregroundStyle(color)
             .frame(width: size, height: size)
+            .privacySensitive()
             .background(
                 Circle()
                     .fill(color.opacity(0.12))

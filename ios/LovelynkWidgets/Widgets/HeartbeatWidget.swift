@@ -6,6 +6,7 @@ import SwiftUI
 struct HeartbeatEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
+    let isPaired: Bool
     let lockMessage: String
     let count: Int
     let style: WidgetStyleConfig
@@ -24,20 +25,25 @@ struct HeartbeatProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<HeartbeatEntry>) -> Void) {
         let entry = readEntry()
-        completion(Timeline(entries: [entry], policy: .never))
+        // Phase 8: Refreshed by push payload or app sync; fallback to after 30 min
+        let refreshDate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date()
+        completion(Timeline(entries: [entry], policy: .after(refreshDate)))
     }
 
     private func readEntry() -> HeartbeatEntry {
         let locked = AppGroupStore.bool(WidgetKeys.globalLocked)
+        let isPaired = AppGroupStore.bool(WidgetKeys.isPaired)
         let lockMessage = AppGroupStore.string(
             WidgetKeys.globalLockMessage,
-            default: "Locked"
+            default: isPaired ? "Locked" : "Connect with your partner"
         )
         let count = AppGroupStore.int(WidgetKeys.Heartbeat.count, default: 0)
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.Heartbeat.widgetId)
+
         return HeartbeatEntry(
             date: Date(),
             isLocked: locked,
+            isPaired: isPaired,
             lockMessage: lockMessage,
             count: count,
             style: style
@@ -48,8 +54,9 @@ struct HeartbeatProvider: TimelineProvider {
         HeartbeatEntry(
             date: Date(),
             isLocked: false,
+            isPaired: true,
             lockMessage: "Locked",
-            count: 90,
+            count: 24,
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.Heartbeat.widgetId)
         )
     }
@@ -65,10 +72,13 @@ struct HeartbeatWidgetView: View {
         Group {
             if entry.isLocked {
                 lockedView
+            } else if !entry.isPaired {
+                unpairedView
             } else {
                 contentView
             }
         }
+        .widgetURL(WidgetDeepLinks.url(for: WidgetKeys.Heartbeat.widgetId))
         .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
@@ -80,16 +90,45 @@ struct HeartbeatWidgetView: View {
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "lock.fill")
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).lineLimit(1)
             }
         case .accessoryInline:
-            Text("🔒 \(entry.lockMessage)")
+            Text("🔒 \(entry.lockMessage)").lineLimit(1)
         default:
             VStack(spacing: 6) {
                 Image(systemName: "lock.fill").font(.title2)
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var unpairedView: some View {
+        switch family {
+        case .accessoryCircular:
+            Image(systemName: "person.crop.circle.badge.plus")
+        case .accessoryRectangular:
+            HStack {
+                Image(systemName: "person.crop.circle.badge.plus")
+                Text("Connect Partner").font(.caption).bold().lineLimit(1)
+            }
+        case .accessoryInline:
+            Text("Connect Partner in LoveLynk")
+        default:
+            VStack(spacing: 8) {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.title)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                Text("Connect Partner")
+                    .font(.headline)
+                Text("Tap to pair")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(WidgetLayoutMetrics.homePadding)
         }
     }
 
@@ -101,16 +140,23 @@ struct HeartbeatWidgetView: View {
                 Image(systemName: "waveform.path.ecg")
                     .font(.caption2)
                     .foregroundStyle(entry.style.themeColor)
-                Text("\(entry.count)").font(.headline)
+                    .widgetAccentable()
+                Text("\(entry.count)")
+                    .font(.headline)
+                    .privacySensitive()
             }
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "waveform.path.ecg")
                     .foregroundStyle(entry.style.themeColor)
-                Text("\(entry.count) heartbeats").font(.headline)
+                    .widgetAccentable()
+                Text("\(entry.count) heartbeats")
+                    .font(.headline)
+                    .privacySensitive()
             }
         case .accessoryInline:
             Text("💓 \(entry.count) from partner")
+                .privacySensitive()
         case .systemMedium:
             mediumLayout
         default:
@@ -121,13 +167,17 @@ struct HeartbeatWidgetView: View {
     private var smallLayout: some View {
         VStack(spacing: 6) {
             Image(systemName: "waveform.path.ecg")
-                .font(.system(size: entry.style.homeValueSize(for: family) * 0.55))
+                .font(.system(size: entry.style.homeValueSize(for: family) * 0.65))
                 .foregroundStyle(entry.style.themeColor)
+                .widgetAccentable()
+
             Text("\(entry.count)")
                 .font(entry.style.homeValueFont(for: family))
                 .foregroundStyle(entry.style.themeColor)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
+                .privacySensitive()
+
             Text("from partner")
                 .font(.system(size: entry.style.homeTitleSize(for: family)))
                 .foregroundStyle(.secondary)
@@ -142,17 +192,22 @@ struct HeartbeatWidgetView: View {
             Image(systemName: "waveform.path.ecg")
                 .font(.system(size: entry.style.homeValueSize(for: family) * 0.72))
                 .foregroundStyle(entry.style.themeColor)
+                .widgetAccentable()
+
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(entry.count)")
                     .font(entry.style.homeValueFont(for: family))
                     .foregroundStyle(entry.style.themeColor)
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
-                Text("heartbeats from partner")
+                    .privacySensitive()
+
+                Text("heartbeats received from partner")
                     .font(.system(size: entry.style.homeTitleSize(for: family)))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
+
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -170,7 +225,7 @@ struct HeartbeatWidget: Widget {
             HeartbeatWidgetView(entry: entry)
         }
         .configurationDisplayName("Heartbeat")
-        .description("Heartbeats your partner sent you. Tap to send one back.")
+        .description("Heartbeats received from your partner. Tap to open app.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

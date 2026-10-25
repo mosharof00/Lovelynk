@@ -1,11 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
+import 'package:bulkretail/app/core/theme/app_color.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/utils/couple_editor.dart';
 import '../../../core/utils/time_zone_utils.dart';
+import '../../../core/services/compass_service.dart';
+import '../../../core/services/location_sync_service.dart';
 import '../../../core/services/session_service.dart';
 import '../../../core/services/subscription_service.dart';
 import '../../../core/services/user_prefs_service.dart';
@@ -14,6 +18,9 @@ import '../../../core/utils/logger.dart';
 import '../../../data/models/user_models/session_bootstrap.dart';
 import '../../../data/models/widget_models/reaction_activity.dart';
 import '../../../global/widgets/global_snackbar.dart';
+import '../../../core/utils/weather_icon_mapper.dart';
+import '../../../data/repositories/interaction_repository.dart';
+import '../../../data/repositories/user_repository.dart';
 import '../../../routes/app_pages.dart';
 import '../../main_page/controllers/main_page_controller.dart';
 
@@ -35,8 +42,14 @@ class HomeController extends GetxController {
   final userAvatarPath = RxnString();
   final partnerAvatarPath = RxnString();
 
-  // Defaults until location / interactions are connected.
+  // Location & distance observables
   final distanceLabel = '0'.obs;
+  final isTogether = false.obs;
+  final isPartnerLocationPaused = false.obs;
+  final isMyLocationPaused = false.obs;
+  final hasLocationPermission = true.obs;
+  final isLocationServiceDisabled = false.obs;
+  final locationLastUpdated = RxnString();
 
   String get distanceUnit => UserPrefsService.to.distanceUnit.value.shortLabel;
 
@@ -50,6 +63,19 @@ class HomeController extends GetxController {
   final partnerTime = RxnString();
   final partnerCity = RxnString();
   final kissesSent = '0'.obs;
+
+  // Partner weather observables
+  final partnerWeatherTemp = RxnInt();
+  final partnerWeatherCondition = RxnString();
+  final partnerWeatherIconPath = RxnString();
+
+  String? get partnerTemperatureLabel {
+    final tempC = partnerWeatherTemp.value;
+    if (tempC == null) return null;
+    final unit = UserPrefsService.to.temperatureUnit.value;
+    final converted = unit.fromCelsius(tempC);
+    return '$converted${unit.symbol}';
+  }
 
   RxBool get isOffline => SessionService.to.lastLoadFailed;
   final affirmation =
@@ -90,8 +116,43 @@ class HomeController extends GetxController {
         Log.w('Home: session bootstrap failed: $e');
       }
     }
-    // TODO(RevenueCat): drive SubscriptionService from session.access.
-    await _subscription.refreshFromUser();
+    if (session.bootstrap.value?.access != null) {
+      _subscription.applyFromAccess(session.bootstrap.value!.access);
+    }
+  }
+
+  final feedActivities = <HomeActivityItem>[].obs;
+
+  /// Loads latest interactions from feed so Recent Activity is never empty
+  /// when activities exist outside of "today".
+  Future<void> loadRecentActivities() async {
+    if (!SessionService.to.isPaired) return;
+    try {
+      final repo = Get.find<IInteractionRepository>();
+      final page = await repo.getFeed(limit: 5);
+      final partner = partnerName.value.isEmpty ? 'Your partner' : partnerName.value;
+
+      final items = page.items.map((item) {
+        final count = item.count;
+        final isMe = item.isFromMe;
+        String text;
+        if (item.kind == 'emoji') {
+          final emoji = item.emoji ?? 'an emoji';
+          text = isMe ? 'You sent $emoji' : '$partner sent you $emoji';
+        } else if (item.kind == 'kiss') {
+          final what = count == 1 ? 'a kiss' : '$count kisses';
+          text = isMe ? 'You sent $what' : '$partner sent you $what';
+        } else {
+          final what = count == 1 ? 'a heartbeat' : '$count heartbeats';
+          text = isMe ? 'You sent $what' : '$partner sent you $what';
+        }
+        return HomeActivityItem(text: text, at: item.createdAt);
+      }).toList();
+
+      feedActivities.assignAll(items);
+    } catch (e) {
+      Log.w('Home: loadRecentActivities failed: $e');
+    }
   }
 
   /// Latest 3 interactions across heartbeat / kiss / emoji, newest first.
@@ -103,7 +164,7 @@ class HomeController extends GetxController {
       return a.isFromMe ? 'You sent $what' : '$partner sent you $what';
     }
 
-    final items = <HomeActivityItem>[
+    final localItems = <HomeActivityItem>[
       for (final a in _widgetData.kissActivity)
         HomeActivityItem(text: describe(a, 'kiss', 'kisses'), at: a.at),
       for (final a in _widgetData.heartbeatActivity)
@@ -115,9 +176,24 @@ class HomeController extends GetxController {
               : '$partner sent you ${a.emoji ?? 'an emoji'}',
           at: a.at,
         ),
+    ];
+
+    final combined = <HomeActivityItem>[
+      ...localItems,
+      ...feedActivities,
     ]..sort((a, b) => b.at.compareTo(a.at));
 
-    return items.take(3).toList();
+    // Deduplicate any items with same text and timestamp
+    final seen = <String>{};
+    final unique = <HomeActivityItem>[];
+    for (final item in combined) {
+      final key = '${item.text}_${item.at.millisecondsSinceEpoch}';
+      if (seen.add(key)) {
+        unique.add(item);
+      }
+    }
+
+    return unique.take(3).toList();
   }
 
   String timeAgo(DateTime at) {
@@ -135,10 +211,182 @@ class HomeController extends GetxController {
     isConnected.value = couple != null;
     partnerName.value = couple?.partner.displayName ?? '';
     partnerAvatarPath.value = couple?.partner.avatarPath;
+    if (couple != null) {
+      loadRecentActivities();
+    }
 
-    partnerCity.value =
-        TimeZoneUtils.cityFromTimezone(couple?.partner.timezone);
+    final liveCity = data?.partnerLive?.location?.city?.trim();
+    final tzCity = TimeZoneUtils.cityFromTimezone(couple?.partner.timezone);
+    partnerCity.value = (liveCity != null && liveCity.isNotEmpty) ? liveCity : tzCity;
+
+    final liveWeather = data?.partnerLive?.weather;
+    if (liveWeather != null) {
+      partnerWeatherTemp.value = liveWeather.temperatureC;
+      partnerWeatherCondition.value = liveWeather.condition;
+      final isDay = WeatherIconMapper.isDayFromIconCode(liveWeather.iconCode);
+      partnerWeatherIconPath.value = WeatherIconMapper.iconFor(
+        conditionId: liveWeather.conditionId,
+        isDay: isDay,
+      );
+    } else {
+      partnerWeatherTemp.value = null;
+      partnerWeatherCondition.value = null;
+      partnerWeatherIconPath.value = null;
+    }
+
     _updateClock();
+    _updateDistance();
+  }
+
+  /// Calculates distance label, checks proximity, and evaluates permission/sharing states.
+  void _updateDistance() {
+    if (!isConnected.value) {
+      distanceLabel.value = '0';
+      isTogether.value = false;
+      return;
+    }
+
+    final locService = Get.isRegistered<LocationSyncService>()
+        ? LocationSyncService.to
+        : null;
+
+    if (locService != null) {
+      isLocationServiceDisabled.value = !locService.isServiceEnabled.value;
+      hasLocationPermission.value = locService.hasPermission;
+      isMyLocationPaused.value = !locService.isSharingEnabled.value;
+    }
+
+    final session = SessionService.to;
+    final partnerSharing = session.isPartnerLocationSharingEnabled;
+    isPartnerLocationPaused.value = !partnerSharing;
+
+    final partnerLive = session.partnerLive;
+    final updated = partnerLive?.location?.updatedAt;
+    if (updated != null) {
+      locationLastUpdated.value = timeAgo(updated);
+    } else {
+      locationLastUpdated.value = null;
+    }
+
+    final compass = Get.isRegistered<CompassService>() ? CompassService.to : null;
+    final meters = compass?.partnerDistanceMeters.value;
+
+    if (meters != null) {
+      if (meters < 80) {
+        isTogether.value = true;
+        distanceLabel.value = 'Together';
+      } else {
+        isTogether.value = false;
+        final unit = UserPrefsService.to.distanceUnit.value;
+        final dist = unit == DistanceUnit.miles
+            ? meters / 1609.344
+            : meters / 1000.0;
+        final formatter = NumberFormat('#,###');
+        distanceLabel.value = formatter.format(dist.round());
+      }
+    } else if (partnerLive?.distanceKm != null) {
+      final km = partnerLive!.distanceKm!;
+      if (km < 0.08) {
+        isTogether.value = true;
+        distanceLabel.value = 'Together';
+      } else {
+        isTogether.value = false;
+        final unit = UserPrefsService.to.distanceUnit.value;
+        final dist = unit.fromKilometers(km);
+        final formatter = NumberFormat('#,###');
+        distanceLabel.value = formatter.format(dist.round());
+      }
+    } else {
+      distanceLabel.value = '--';
+      isTogether.value = false;
+    }
+  }
+
+  /// Tapping the distance chip allows fixing permission errors or opening settings.
+  Future<void> onDistanceChipTapped() async {
+    if (!isConnected.value) {
+      goConnectPartner();
+      return;
+    }
+    final loc = Get.isRegistered<LocationSyncService>()
+        ? LocationSyncService.to
+        : null;
+    if (loc == null) return;
+
+    if (!loc.isServiceEnabled.value) {
+      Get.snackbar(
+        'GPS Services Disabled',
+        'Please turn on Location Services in your device settings to calculate distance.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColor.blackText.withValues(alpha: 0.9),
+        colorText: AppColor.white,
+        margin: EdgeInsets.all(16.w),
+        mainButton: TextButton(
+          onPressed: () => loc.openLocationSettings(),
+          child: const Text('Settings', style: TextStyle(color: AppColor.primary)),
+        ),
+      );
+      await loc.openLocationSettings();
+      return;
+    }
+
+    if (loc.isDeniedForever) {
+      Get.snackbar(
+        'Location Permission Denied',
+        'Location access is permanently disabled. Please allow location access in iOS Settings.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColor.blackText.withValues(alpha: 0.9),
+        colorText: AppColor.white,
+        margin: EdgeInsets.all(16.w),
+        mainButton: TextButton(
+          onPressed: () => loc.openAppSettings(),
+          child: const Text('Settings', style: TextStyle(color: AppColor.primary)),
+        ),
+      );
+      await loc.openAppSettings();
+      return;
+    }
+
+    if (!loc.hasPermission) {
+      final granted = await loc.requestPermission();
+      if (!granted) {
+        Get.snackbar(
+          'Location Permission Needed',
+          'LoveLynk requires location access to calculate distance and compass heading to your partner.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColor.blackText.withValues(alpha: 0.9),
+          colorText: AppColor.white,
+          margin: EdgeInsets.all(16.w),
+        );
+      }
+      _updateDistance();
+      return;
+    }
+
+    if (isMyLocationPaused.value) {
+      Get.snackbar(
+        'Location Sharing Paused',
+        'You have paused your location sharing. You can resume sharing anytime in Settings.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColor.blackText.withValues(alpha: 0.9),
+        colorText: AppColor.white,
+        margin: EdgeInsets.all(16.w),
+      );
+      return;
+    }
+
+    if (isPartnerLocationPaused.value) {
+      final partner = partnerName.value.isEmpty ? 'Your partner' : partnerName.value;
+      Get.snackbar(
+        'Partner Sharing Paused',
+        '$partner has currently paused their location sharing.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColor.blackText.withValues(alpha: 0.9),
+        colorText: AppColor.white,
+        margin: EdgeInsets.all(16.w),
+      );
+      return;
+    }
   }
 
   /// Day counts, partner clock and greeting; re-run every 30s so they roll
@@ -182,10 +430,23 @@ class HomeController extends GetxController {
     final session = SessionService.to;
     try {
       await session.load();
+      if (Get.isRegistered<LocationSyncService>()) {
+        await LocationSyncService.to.syncCurrentLocation(force: true);
+      }
+      if (session.isPaired) {
+        final partnerId = session.partner?.id;
+        if (partnerId != null) {
+          await Get.find<IUserRepository>().refreshWeather(userId: partnerId, force: true);
+          await session.refreshPartnerSnapshot();
+        }
+        await _widgetData.refreshFromBackend();
+        await loadRecentActivities();
+      }
     } catch (e) {
       Log.w('Home: refresh failed: $e');
     }
     _updateClock();
+    _updateDistance();
   }
 
   void editAnniversary(BuildContext context) =>
@@ -206,6 +467,28 @@ class HomeController extends GetxController {
       ..add(ever<SessionBootstrap?>(session.bootstrap, _applySession))
       ..add(ever<int>(_widgetData.kissesFromMe, (v) => kissesSent.value = '$v'));
     kissesSent.value = '${_widgetData.kissesFromMe.value}';
+
+    // Update distance when compass bearing/distance or distance unit changes
+    if (Get.isRegistered<CompassService>()) {
+      _workers.add(
+        ever(CompassService.to.partnerDistanceMeters, (_) => _updateDistance()),
+      );
+    }
+    _workers.add(
+      ever(UserPrefsService.to.distanceUnit, (_) => _updateDistance()),
+    );
+
+    if (Get.isRegistered<LocationSyncService>()) {
+      _workers.add(
+        ever(LocationSyncService.to.permission, (_) => _updateDistance()),
+      );
+      _workers.add(
+        ever(LocationSyncService.to.isServiceEnabled, (_) => _updateDistance()),
+      );
+      _workers.add(
+        ever(LocationSyncService.to.isSharingEnabled, (_) => _updateDistance()),
+      );
+    }
 
     _coupleSub = session.coupleEvents.listen(_onCoupleEvent);
 

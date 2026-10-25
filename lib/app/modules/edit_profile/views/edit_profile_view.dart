@@ -84,42 +84,43 @@ class _AvatarPicker extends StatelessWidget {
   void _showOptions(BuildContext context) {
     Get.bottomSheet(
       SafeArea(
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _SheetOption(
-                icon: Icons.photo_camera_outlined,
-                label: 'Take photo',
-                onTap: () {
-                  Get.back();
-                  controller.pick(ImageSource.camera);
-                },
-              ),
-              _SheetOption(
-                icon: Icons.photo_library_outlined,
-                label: 'Choose from library',
-                onTap: () {
-                  Get.back();
-                  controller.pick(ImageSource.gallery);
-                },
-              ),
-              if (controller.hasAvatar)
+        child: Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 12.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 _SheetOption(
-                  icon: Icons.delete_outline_rounded,
-                  label: 'Remove photo',
-                  color: AppColor.error,
+                  icon: Icons.photo_camera_outlined,
+                  label: 'Take photo',
                   onTap: () {
                     Get.back();
-                    controller.clearAvatar();
+                    controller.pick(ImageSource.camera);
                   },
                 ),
-            ],
+                _SheetOption(
+                  icon: Icons.photo_library_outlined,
+                  label: 'Choose from library',
+                  onTap: () {
+                    Get.back();
+                    controller.pick(ImageSource.gallery);
+                  },
+                ),
+                if (controller.hasAvatar)
+                  _SheetOption(
+                    icon: Icons.delete_outline_rounded,
+                    label: 'Remove photo',
+                    color: AppColor.error,
+                    onTap: () {
+                      Get.back();
+                      controller.clearAvatar();
+                    },
+                  ),
+              ],
+            ),
           ),
         ),
       ),

@@ -6,6 +6,7 @@ import SwiftUI
 struct InitialsEntry: TimelineEntry {
     let date: Date
     let isLocked: Bool
+    let isPaired: Bool
     let lockMessage: String
     let userInitial: String
     let partnerInitial: String
@@ -31,19 +32,23 @@ struct InitialsProvider: TimelineProvider {
 
     private func readEntry() -> InitialsEntry {
         let locked = AppGroupStore.bool(WidgetKeys.globalLocked)
+        let isPaired = AppGroupStore.bool(WidgetKeys.isPaired)
         let lockMessage = AppGroupStore.string(
             WidgetKeys.globalLockMessage,
-            default: "Locked"
+            default: isPaired ? "Locked" : "Connect with your partner"
         )
-        let user = AppGroupStore.string(WidgetKeys.Initials.userInitial, default: "J")
-        let partner = AppGroupStore.string(WidgetKeys.Initials.partnerInitial, default: "M")
+        // Phase 8: Remove J/M fallback; show neutral placeholder "—"
+        let user = AppGroupStore.string(WidgetKeys.Initials.userInitial, default: "—")
+        let partner = AppGroupStore.string(WidgetKeys.Initials.partnerInitial, default: "—")
         let style = WidgetStyleConfig.load(widgetId: WidgetKeys.Initials.widgetId)
+
         return InitialsEntry(
             date: Date(),
             isLocked: locked,
+            isPaired: isPaired,
             lockMessage: lockMessage,
-            userInitial: user.isEmpty ? "?" : user,
-            partnerInitial: partner.isEmpty ? "?" : partner,
+            userInitial: user.isEmpty ? "—" : user,
+            partnerInitial: partner.isEmpty ? "—" : partner,
             style: style
         )
     }
@@ -52,9 +57,10 @@ struct InitialsProvider: TimelineProvider {
         InitialsEntry(
             date: Date(),
             isLocked: false,
+            isPaired: true,
             lockMessage: "Locked",
-            userInitial: "J",
-            partnerInitial: "M",
+            userInitial: "—",
+            partnerInitial: "—",
             style: WidgetStyleConfig.load(widgetId: WidgetKeys.Initials.widgetId)
         )
     }
@@ -70,10 +76,13 @@ struct InitialsWidgetView: View {
         Group {
             if entry.isLocked {
                 lockedView
+            } else if !entry.isPaired {
+                unpairedView
             } else {
                 contentView
             }
         }
+        .widgetURL(WidgetDeepLinks.url(for: WidgetKeys.Initials.widgetId))
         .lovelynkContainerBackground(style: entry.style, family: family)
     }
 
@@ -85,16 +94,45 @@ struct InitialsWidgetView: View {
         case .accessoryRectangular:
             HStack {
                 Image(systemName: "lock.fill")
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).lineLimit(1)
             }
         case .accessoryInline:
-            Text("🔒 \(entry.lockMessage)")
+            Text("🔒 \(entry.lockMessage)").lineLimit(1)
         default:
             VStack(spacing: 6) {
                 Image(systemName: "lock.fill").font(.title2)
-                Text(entry.lockMessage).font(.headline)
+                Text(entry.lockMessage).font(.headline).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var unpairedView: some View {
+        switch family {
+        case .accessoryCircular:
+            Image(systemName: "person.crop.circle.badge.plus")
+        case .accessoryRectangular:
+            HStack {
+                Image(systemName: "person.crop.circle.badge.plus")
+                Text("Connect Partner").font(.caption).bold().lineLimit(1)
+            }
+        case .accessoryInline:
+            Text("Connect Partner in LoveLynk")
+        default:
+            VStack(spacing: 8) {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.title)
+                    .foregroundStyle(entry.style.themeColor)
+                    .widgetAccentable()
+                Text("Connect Partner")
+                    .font(.headline)
+                Text("Tap to pair")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(WidgetLayoutMetrics.homePadding)
         }
     }
 
@@ -108,6 +146,7 @@ struct InitialsWidgetView: View {
         case .accessoryInline:
             Text("\(entry.userInitial) ♥ \(entry.partnerInitial)")
                 .font(.headline)
+                .privacySensitive()
         case .systemMedium:
             homeLayout
         default:
@@ -120,10 +159,13 @@ struct InitialsWidgetView: View {
         HStack(spacing: 2) {
             Text(entry.userInitial)
                 .font(.system(size: 22, weight: .bold, design: .rounded))
+                .privacySensitive()
             Image(systemName: "heart.fill")
                 .font(.system(size: 11, weight: .bold))
+                .widgetAccentable()
             Text(entry.partnerInitial)
                 .font(.system(size: 22, weight: .bold, design: .rounded))
+                .privacySensitive()
         }
         .minimumScaleFactor(0.6)
         .lineLimit(1)
@@ -134,10 +176,13 @@ struct InitialsWidgetView: View {
         HStack(spacing: 10) {
             Text(entry.userInitial)
                 .font(.system(size: 34, weight: .bold, design: .rounded))
+                .privacySensitive()
             Image(systemName: "heart.fill")
                 .font(.system(size: 18, weight: .bold))
+                .widgetAccentable()
             Text(entry.partnerInitial)
                 .font(.system(size: 34, weight: .bold, design: .rounded))
+                .privacySensitive()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .minimumScaleFactor(0.5)
@@ -163,6 +208,7 @@ struct InitialsWidgetView: View {
             .font(.system(size: diameter * 0.38, weight: .bold, design: .rounded))
             .foregroundStyle(entry.style.themeColor)
             .frame(width: diameter, height: diameter)
+            .privacySensitive()
             .overlay(
                 Circle()
                     .stroke(entry.style.themeColor, lineWidth: 2)

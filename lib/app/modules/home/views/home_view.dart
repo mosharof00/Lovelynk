@@ -12,7 +12,6 @@ import '../widgets/home_dates_card.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_how_to_tips.dart';
 import '../widgets/home_recent_activity.dart';
-import '../widgets/home_widgets_row.dart';
 import '../widgets/partner_distance_card.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -52,12 +51,6 @@ class HomeView extends GetView<HomeController> {
                           delay: 2,
                           shouldAnimate: controller.isFadeInAnimate,
                           child: NotConnectedCard(),
-                        ),
-                        12.verticalSpace,
-                        FadeInAnimation(
-                          delay: controller.isConnected.value ? 2 : 3,
-                          shouldAnimate: controller.isFadeInAnimate,
-                          child: const HomeWidgetsRow(),
                         ),
                         12.verticalSpace,
                         FadeInAnimation(

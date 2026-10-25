@@ -1,3 +1,6 @@
+import 'package:get/get.dart';
+
+import '../../../core/services/user_prefs_service.dart';
 import '../../../core/utils/time_zone_utils.dart';
 import '../../../core/utils/weather_icon_mapper.dart';
 import '../user_models/session_bootstrap.dart';
@@ -10,6 +13,7 @@ class PartnerWeather {
     required this.iconPath,
     this.conditionId,
     this.isDay = true,
+    this.updatedAt,
   });
 
   /// Celsius.
@@ -22,6 +26,7 @@ class PartnerWeather {
   /// OpenWeather `weather[0].id` — used to re-map icon when data refreshes.
   final int? conditionId;
   final bool isDay;
+  final DateTime? updatedAt;
 
   /// Build from OpenWeather API fields (Edge Function / Supabase later).
   factory PartnerWeather.fromOpenWeather({
@@ -29,6 +34,7 @@ class PartnerWeather {
     required String condition,
     required int conditionId,
     String? iconCode,
+    DateTime? updatedAt,
   }) {
     final isDay = WeatherIconMapper.isDayFromIconCode(iconCode);
     return PartnerWeather(
@@ -36,6 +42,7 @@ class PartnerWeather {
       condition: condition,
       conditionId: conditionId,
       isDay: isDay,
+      updatedAt: updatedAt,
       iconPath: WeatherIconMapper.iconFor(
         conditionId: conditionId,
         isDay: isDay,
@@ -59,6 +66,8 @@ class WidgetData {
     required this.anniversary,
     required this.compassBearing,
     required this.compassMiles,
+    this.partnerLocationSharing = true,
+    this.partnerLocationUpdatedAt,
   });
 
   final String userName;
@@ -79,6 +88,8 @@ class WidgetData {
   final DateTime? anniversary;
   final double compassBearing;
   final int compassMiles;
+  final bool partnerLocationSharing;
+  final DateTime? partnerLocationUpdatedAt;
 
   String get userInitial =>
       userName.isNotEmpty ? userName[0].toUpperCase() : '?';
@@ -107,18 +118,53 @@ class WidgetData {
       now;
 
   /// Real values from the session. Unpaired users and unset dates get
-  /// empty values so the UI can show "Set date". Distance, compass and
-  /// weather stay at defaults until those features are connected.
+  /// empty values so the UI can show "Set date". Reads live coordinates,
+  /// distance, bearing and weather when available from [SessionBootstrap.partnerLive].
   factory WidgetData.fromSession(SessionBootstrap? session) {
     final now = DateTime.now();
     final couple = session?.couple;
     final partner = couple?.partner;
     final visit = couple?.nextVisitAt;
+    final live = session?.partnerLive;
+
+    final liveCity = live?.location?.city?.trim();
+    final tzCity = TimeZoneUtils.cityFromTimezone(partner?.timezone) ?? '';
+    final partnerCity = (liveCity != null && liveCity.isNotEmpty)
+        ? liveCity
+        : tzCity;
+
+    final distanceMiles = live?.distanceMiles?.round() ?? 0;
+    final compassBearing = live?.bearingDegrees ?? 0.0;
+    final compassMiles = distanceMiles;
+
+    final tempC = live?.weather?.temperatureC;
+    final temp = (tempC != null && Get.isRegistered<UserPrefsService>())
+        ? UserPrefsService.to.temperatureUnit.value.fromCelsius(tempC)
+        : (tempC ?? 0);
+
+    final weather = live?.weather != null
+        ? PartnerWeather.fromOpenWeather(
+            temperature: temp,
+            condition: live!.weather!.condition,
+            conditionId: live.weather!.conditionId,
+            iconCode: live.weather!.iconCode,
+            updatedAt: live.weather!.fetchedAt,
+          )
+        : PartnerWeather.fromOpenWeather(
+            temperature: 0,
+            condition: '--',
+            conditionId: 803,
+            iconCode: '04d',
+          );
+
+    final isSharing = live?.locationSharingEnabled ??
+        (partner?.locationSharingEnabled ?? true);
+    final locationUpdatedAt = live?.location?.updatedAt;
 
     return WidgetData(
       userName: session?.user.firstName ?? '',
       partnerName: partner?.displayName ?? '',
-      distanceMiles: 0,
+      distanceMiles: distanceMiles,
       togetherSince: couple?.togetherSince,
       partnerTimezone: partner?.timezone,
       partnerUtcOffsetMinutes:
@@ -127,21 +173,18 @@ class WidgetData {
             fallback: partner?.utcOffsetMinutes,
           ) ??
           now.timeZoneOffset.inMinutes,
-      partnerCity: TimeZoneUtils.cityFromTimezone(partner?.timezone) ?? '',
-      partnerWeather: PartnerWeather.fromOpenWeather(
-        temperature: 0,
-        condition: '--',
-        conditionId: 803,
-        iconCode: '04d',
-      ),
+      partnerCity: partnerCity,
+      partnerWeather: weather,
       nextVisit:
           visit == null ||
               visit.toLocal().isBefore(DateTime(now.year, now.month, now.day))
           ? null
           : visit,
       anniversary: couple?.togetherSince,
-      compassBearing: 0,
-      compassMiles: 0,
+      compassBearing: compassBearing,
+      compassMiles: compassMiles,
+      partnerLocationSharing: isSharing,
+      partnerLocationUpdatedAt: locationUpdatedAt,
     );
   }
 
@@ -162,6 +205,7 @@ class WidgetData {
         condition: 'Partly Cloudy',
         conditionId: 802,
         iconCode: '03d',
+        updatedAt: now,
       ),
       nextVisit: now.add(
         const Duration(days: 76, hours: 3, minutes: 27, seconds: 9),
@@ -169,6 +213,8 @@ class WidgetData {
       anniversary: DateTime(2025, 10, 12),
       compassBearing: 45,
       compassMiles: 213,
+      partnerLocationSharing: true,
+      partnerLocationUpdatedAt: now,
     );
   }
 
@@ -185,6 +231,8 @@ class WidgetData {
     DateTime? anniversary,
     double? compassBearing,
     int? compassMiles,
+    bool? partnerLocationSharing,
+    DateTime? partnerLocationUpdatedAt,
   }) {
     return WidgetData(
       userName: userName ?? this.userName,
@@ -200,6 +248,10 @@ class WidgetData {
       anniversary: anniversary ?? this.anniversary,
       compassBearing: compassBearing ?? this.compassBearing,
       compassMiles: compassMiles ?? this.compassMiles,
+      partnerLocationSharing:
+          partnerLocationSharing ?? this.partnerLocationSharing,
+      partnerLocationUpdatedAt:
+          partnerLocationUpdatedAt ?? this.partnerLocationUpdatedAt,
     );
   }
 }

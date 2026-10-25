@@ -15,6 +15,7 @@ class KissSummaryController extends GetxController {
   void onInit() {
     super.onInit();
     _data = Get.find<WidgetDataService>();
+    _data.refreshFromBackend();
   }
 
   String get partnerName => _data.data.value.partnerName;
@@ -30,10 +31,11 @@ class KissSummaryController extends GetxController {
     if (!PartnerGuard.ensurePaired()) return;
     KissSendDialog.show(
       partnerName: partnerName,
-      onSend: () {
-        _data.sendKiss();
+      onSend: (count) {
+        _data.sendKiss(count: count);
+        final label = count == 1 ? 'Kiss sent 💋' : '$count Kisses sent 💋';
         Get.snackbar(
-          'Kiss sent 💋',
+          label,
           'Your partner will feel the love.',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: AppColor.primaryLight,

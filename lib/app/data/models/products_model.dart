@@ -2,8 +2,6 @@
 //
 //     final productsModel = productsModelFromJson(jsonString);
 
-import 'dart:convert';
-
 class ProductsModel {
   List<Product>? products;
   int? total;

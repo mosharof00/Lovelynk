@@ -17,7 +17,9 @@ import 'local_store_service.dart';
 import '../utils/helper_utils.dart';
 import '../utils/logger.dart';
 import '../widgets/widget_sync_service.dart';
+import 'push_notification_service.dart';
 import 'subscription_service.dart';
+import 'widget_data_service.dart';
 
 enum CoupleEvent { paired, left }
 
@@ -49,7 +51,13 @@ class SessionService extends GetxService with WidgetsBindingObserver {
   CoupleSummary? get couple => bootstrap.value?.couple;
   PartnerSummary? get partner => couple?.partner;
   AccessStatus? get access => bootstrap.value?.access;
+  PartnerLiveSnapshot? get partnerLive => bootstrap.value?.partnerLive;
   bool get isPaired => couple != null;
+  bool get isLocationSharingEnabled =>
+      bootstrap.value?.user.locationSharingEnabled ?? true;
+  bool get isPartnerLocationSharingEnabled =>
+      bootstrap.value?.partnerLive?.locationSharingEnabled ??
+      (bootstrap.value?.couple?.partner.locationSharingEnabled ?? true);
 
   static const _recoveryPendingKey = 'password_recovery_pending';
 
@@ -132,6 +140,15 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     if (wasPaired != null && wasPaired != data.isPaired) {
       _coupleEvents.add(data.isPaired ? CoupleEvent.paired : CoupleEvent.left);
     }
+
+    if (Get.isRegistered<SubscriptionService>()) {
+      Get.find<SubscriptionService>().applyFromAccess(data.access);
+      Get.find<SubscriptionService>().logInUser(data.user.id);
+    }
+
+    if (data.isPaired) {
+      _checkAndRefreshWeather(data.partnerLive?.weather);
+    }
   }
 
   /// Reports app version + timezone; the server throttles `last_seen_at`.
@@ -185,7 +202,10 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     setRecoveryPending(false);
     AvatarUrlCache.clear();
     if (Get.isRegistered<SubscriptionService>()) {
-      Get.find<SubscriptionService>().clear();
+      await Get.find<SubscriptionService>().logOutUser();
+    }
+    if (Get.isRegistered<PushNotificationService>()) {
+      await Get.find<PushNotificationService>().unregisterDevice();
     }
     if (Get.isRegistered<WidgetSyncService>()) {
       await Get.find<WidgetSyncService>().clearUserData();
@@ -216,9 +236,82 @@ class SessionService extends GetxService with WidgetsBindingObserver {
           event: SupabaseRealtime.coupleUpdated,
           callback: (_) => refresh(),
         )
+        .onBroadcast(
+          event: SupabaseRealtime.partnerLocation,
+          callback: (_) => refreshPartnerSnapshot(),
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.partnerWeather,
+          callback: (_) => refreshPartnerSnapshot(),
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.notificationNew,
+          callback: (payload) {
+            if (Get.isRegistered<PushNotificationService>()) {
+              Get.find<PushNotificationService>().handleRealtimeNotification(
+                Map<String, dynamic>.from(payload),
+              );
+            }
+          },
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.interactionNew,
+          callback: (payload) {
+            if (Get.isRegistered<WidgetDataService>()) {
+              Get.find<WidgetDataService>().handleIncomingInteraction(
+                Map<String, dynamic>.from(payload),
+              );
+            }
+          },
+        )
+        .onBroadcast(
+          event: SupabaseRealtime.accessChanged,
+          callback: (_) {
+            Log.i('[Realtime] access.changed event received — refreshing session');
+            refresh();
+          },
+        )
         .subscribe((status, error) {
           Log.i('[Realtime] user channel: $status ${error ?? ''}');
         });
+  }
+
+  /// Lightweight refresh of partner snapshot only (called on partner.location / partner.weather).
+  Future<void> refreshPartnerSnapshot() async {
+    if (!hasSession || !isPaired) return;
+    try {
+      final snap = await _userRepo.getPartnerSnapshot();
+      if (snap != null && bootstrap.value != null) {
+        final current = bootstrap.value!;
+        bootstrap.value = SessionBootstrap(
+          user: current.user,
+          couple: current.couple,
+          access: current.access,
+          partnerLive: snap,
+        );
+      }
+    } catch (e) {
+      Log.w('refreshPartnerSnapshot failed: $e');
+    }
+  }
+
+  void _checkAndRefreshWeather(PartnerLiveWeather? weather) {
+    final partnerId = partner?.id;
+    if (partnerId == null) return;
+
+    final fetched = weather?.fetchedAt;
+    final isStale = fetched == null ||
+        DateTime.now().difference(fetched).inMinutes >= 30;
+
+    if (isStale) {
+      unawaited(_userRepo.refreshWeather(userId: partnerId).then((w) {
+        if (w != null) {
+          refreshPartnerSnapshot();
+        }
+      }).catchError((e) {
+        Log.w('Background partner weather refresh failed: $e');
+      }));
+    }
   }
 
   Future<void> _unsubscribeRealtime() async {
@@ -253,7 +346,8 @@ class SessionService extends GetxService with WidgetsBindingObserver {
     if (bootstrap.value == null) return;
     switch (state) {
       case AppLifecycleState.resumed:
-        // Catches anything missed while in the background.
+        // Catches anything missed while in the background and resubscribes.
+        _subscribeRealtime();
         refresh();
         break;
       case AppLifecycleState.paused:

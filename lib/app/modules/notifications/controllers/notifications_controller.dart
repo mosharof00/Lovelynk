@@ -1,69 +1,150 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/push_notification_service.dart';
+import '../../../core/utils/logger.dart';
 import '../../../data/models/notification_models/app_notification.dart';
+import '../../../data/repositories/notification_repository.dart';
+import '../../../routes/app_pages.dart';
 
 class NotificationsController extends GetxController {
+  final INotificationRepository _repo = Get.find<INotificationRepository>();
+
+  static const int pageSize = 20;
+  final scrollController = ScrollController();
+
   final items = <AppNotification>[].obs;
+  final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final hasMore = true.obs;
 
   int get unreadCount => items.where((e) => !e.isRead).length;
 
   @override
   void onInit() {
     super.onInit();
-    _seed();
+    scrollController.addListener(_onScroll);
+    loadNotifications(refresh: true);
   }
 
-  void _seed() {
-    final now = DateTime.now();
-    items.assignAll([
-      AppNotification(
-        id: '1',
-        title: 'Next visit updated',
-        body: 'Milla changed your next visit date to Oct 12.',
-        category: NotificationCategory.relationship,
-        at: now.subtract(const Duration(minutes: 18)),
-      ),
-      AppNotification(
-        id: '2',
-        title: 'Anniversary reminder',
-        body: 'Your anniversary is in 12 days. Plan something special!',
-        category: NotificationCategory.relationship,
-        at: now.subtract(const Duration(hours: 2)),
-      ),
-      AppNotification(
-        id: '3',
-        title: 'Subscription renews soon',
-        body: 'Your Lovelynk Plus plan renews in 3 days.',
-        category: NotificationCategory.subscription,
-        at: now.subtract(const Duration(hours: 5)),
-        isRead: true,
-      ),
-      AppNotification(
-        id: '4',
-        title: 'Setup guide shared',
-        body: 'You asked Milla to add the Heartbeat widget.',
-        category: NotificationCategory.relationship,
-        at: now.subtract(const Duration(days: 1)),
-        isRead: true,
-      ),
-      AppNotification(
-        id: '5',
-        title: 'Welcome to Lovelynk',
-        body: 'Finish connecting with your partner to unlock all widgets.',
-        category: NotificationCategory.account,
-        at: now.subtract(const Duration(days: 2)),
-        isRead: true,
-      ),
-      AppNotification(
-        id: '6',
-        title: 'Privacy update',
-        body: 'We’ve updated our Privacy Policy. Tap to review.',
-        category: NotificationCategory.system,
-        at: now.subtract(const Duration(days: 4)),
-        isRead: true,
-      ),
-    ]);
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  void _onScroll() {
+    if (scrollController.hasClients &&
+        scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 200) {
+      loadMore();
+    }
+  }
+
+  Future<void> loadNotifications({bool refresh = false}) async {
+    if (refresh) {
+      isLoading.value = true;
+      hasMore.value = true;
+    }
+    try {
+      final list = await _repo.getNotifications(limit: pageSize, offset: 0);
+      items.assignAll(list);
+      hasMore.value = list.length >= pageSize;
+      if (Get.isRegistered<PushNotificationService>()) {
+        PushNotificationService.to.refreshUnreadCount();
+      }
+    } catch (e) {
+      Log.w('Failed to load notifications: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (!hasMore.value || isLoadingMore.value || isLoading.value) return;
+    isLoadingMore.value = true;
+    try {
+      final list = await _repo.getNotifications(
+        limit: pageSize,
+        offset: items.length,
+      );
+      items.addAll(list);
+      hasMore.value = list.length >= pageSize;
+    } catch (e) {
+      Log.w('Failed to load more notifications: $e');
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> refreshNotifications() async {
+    await loadNotifications(refresh: false);
+  }
+
+  Future<void> markRead(String id) async {
+    final idx = items.indexWhere((e) => e.id == id);
+    if (idx < 0 || items[idx].isRead) return;
+
+    items[idx] = items[idx].copyWith(isRead: true);
+    try {
+      await _repo.markRead([id]);
+      if (Get.isRegistered<PushNotificationService>()) {
+        PushNotificationService.to.refreshUnreadCount();
+      }
+    } catch (e) {
+      Log.w('Failed to mark notification read: $e');
+    }
+  }
+
+  Future<void> markAllRead() async {
+    if (items.isEmpty || unreadCount == 0) return;
+
+    final updated = items.map((e) => e.copyWith(isRead: true)).toList();
+    items.assignAll(updated);
+    if (Get.isRegistered<PushNotificationService>()) {
+      PushNotificationService.to.unreadCount.value = 0;
+    }
+
+    try {
+      await _repo.markAllRead();
+      if (Get.isRegistered<PushNotificationService>()) {
+        PushNotificationService.to.refreshUnreadCount();
+      }
+    } catch (e) {
+      Log.w('Failed to mark all notifications read: $e');
+    }
+  }
+
+  Future<void> deleteItem(String id) async {
+    final idx = items.indexWhere((e) => e.id == id);
+    if (idx < 0) return;
+
+    final removed = items.removeAt(idx);
+    try {
+      await _repo.deleteNotification(id);
+      if (Get.isRegistered<PushNotificationService>()) {
+        PushNotificationService.to.refreshUnreadCount();
+      }
+    } catch (e) {
+      Log.w('Failed to delete notification: $e');
+      items.insert(idx, removed);
+    }
+  }
+
+  void onTapNotification(AppNotification n) {
+    if (!n.isRead) {
+      markRead(n.id);
+    }
+
+    final route = n.route;
+    if (route != null && route.isNotEmpty && route != Routes.NOTIFICATIONS) {
+      try {
+        Get.toNamed(route);
+      } catch (e) {
+        Log.w('Deep link to $route failed: $e');
+      }
+    }
   }
 
   String timeLabel(DateTime at) {
@@ -76,31 +157,5 @@ class NotificationsController extends GetxController {
     return DateFormat('MMM d').format(at);
   }
 
-  String categoryLabel(NotificationCategory c) {
-    switch (c) {
-      case NotificationCategory.relationship:
-        return 'Relationship';
-      case NotificationCategory.account:
-        return 'Account';
-      case NotificationCategory.subscription:
-        return 'Subscription';
-      case NotificationCategory.system:
-        return 'System';
-    }
-  }
-
-  void markRead(String id) {
-    final i = items.indexWhere((e) => e.id == id);
-    if (i < 0 || items[i].isRead) return;
-    items[i] = items[i].copyWith(isRead: true);
-  }
-
-  void markAllRead() {
-    items.assignAll(items.map((e) => e.copyWith(isRead: true)));
-  }
-
-  void onTapNotification(AppNotification n) {
-    markRead(n.id);
-    // TODO(Supabase): deep-link by category / payload.
-  }
+  String categoryLabel(NotificationCategory c) => c.label;
 }

@@ -21,6 +21,8 @@ class InteractiveSendDialog extends StatefulWidget {
     required this.message,
     required this.sendLabel,
     required this.onSend,
+    this.onSendWithCount,
+    this.enableMultiCount = false,
     required this.hero,
     required this.partnerName,
     required this.widgetLabel,
@@ -32,6 +34,8 @@ class InteractiveSendDialog extends StatefulWidget {
   final String message;
   final String sendLabel;
   final VoidCallback onSend;
+  final ValueChanged<int>? onSendWithCount;
+  final bool enableMultiCount;
 
   /// Center image / emoji (rings + floating hearts wrap this).
   final Widget hero;
@@ -53,6 +57,8 @@ class InteractiveSendDialog extends StatefulWidget {
     required String message,
     required String sendLabel,
     required VoidCallback onSend,
+    ValueChanged<int>? onSendWithCount,
+    bool enableMultiCount = false,
     required Widget hero,
     required String partnerName,
     required String widgetLabel,
@@ -65,6 +71,8 @@ class InteractiveSendDialog extends StatefulWidget {
         message: message,
         sendLabel: sendLabel,
         onSend: onSend,
+        onSendWithCount: onSendWithCount,
+        enableMultiCount: enableMultiCount,
         hero: hero,
         partnerName: partnerName,
         widgetLabel: widgetLabel,
@@ -83,10 +91,13 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
   bool _showTip = true;
+  int _count = 1;
+  late final TextEditingController _countController;
 
   @override
   void initState() {
     super.initState();
+    _countController = TextEditingController(text: '1');
     _pulse = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2400),
@@ -95,8 +106,35 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
 
   @override
   void dispose() {
+    _countController.dispose();
     _pulse.dispose();
     super.dispose();
+  }
+
+  void _updateCount(int newCount) {
+    final clamped = newCount.clamp(1, 100);
+    setState(() {
+      _count = clamped;
+      _countController.text = '$clamped';
+    });
+  }
+
+  String get _buttonText {
+    if (!widget.enableMultiCount || _count == 1) {
+      return widget.sendLabel;
+    }
+    final plural = widget.widgetLabel == 'Kiss'
+        ? 'Kisses 💋'
+        : (widget.widgetLabel == 'Heartbeat' ? 'Heartbeats 💗' : widget.widgetLabel);
+    return 'Send $_count $plural';
+  }
+
+  void _handleSend() {
+    if (widget.enableMultiCount && widget.onSendWithCount != null) {
+      widget.onSendWithCount!(_count);
+    } else {
+      widget.onSend();
+    }
   }
 
   String get _partnerFirst {
@@ -188,6 +226,14 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
                                 height: 1.35,
                               ),
                             ),
+                            if (widget.enableMultiCount) ...[
+                              14.verticalSpace,
+                              _CountSelector(
+                                count: _count,
+                                controller: _countController,
+                                onChanged: _updateCount,
+                              ),
+                            ],
                             if (widget.belowHero != null) ...[
                               16.verticalSpace,
                               widget.belowHero!,
@@ -215,7 +261,7 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
                       ),
                     ),
                     18.verticalSpace,
-                    GlobalButton(onTap: widget.onSend, text: widget.sendLabel),
+                    GlobalButton(onTap: _handleSend, text: _buttonText),
                   ],
                 ),
               ),
@@ -443,3 +489,165 @@ class _FloatingLove extends StatelessWidget {
     );
   }
 }
+
+class _CountSelector extends StatelessWidget {
+  const _CountSelector({
+    required this.count,
+    required this.controller,
+    required this.onChanged,
+  });
+
+  final int count;
+  final TextEditingController controller;
+  final ValueChanged<int> onChanged;
+
+  static const _presets = [1, 5, 10, 25, 50, 99];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Stepper: [-]  [ Input ]  [+]
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _StepButton(
+              icon: Icons.remove_rounded,
+              enabled: count > 1,
+              onTap: () => onChanged(count - 1),
+            ),
+            12.horizontalSpace,
+            Container(
+              width: 84.w,
+              height: 40.h,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: AppColor.primary.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.primary.withValues(alpha: 0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppColor.primary,
+                ),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
+                ),
+                onChanged: (val) {
+                  final parsed = int.tryParse(val);
+                  if (parsed != null && parsed >= 1 && parsed <= 100) {
+                    onChanged(parsed);
+                  }
+                },
+              ),
+            ),
+            12.horizontalSpace,
+            _StepButton(
+              icon: Icons.add_rounded,
+              enabled: count < 100,
+              onTap: () => onChanged(count + 1),
+            ),
+          ],
+        ),
+        10.verticalSpace,
+        // Quick Presets
+        Wrap(
+          spacing: 6.w,
+          runSpacing: 6.h,
+          alignment: WrapAlignment.center,
+          children: [
+            for (final preset in _presets)
+              InkWell(
+                onTap: () => onChanged(preset),
+                borderRadius: BorderRadius.circular(16.r),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: count == preset
+                        ? AppColor.primary
+                        : Colors.white.withAlpha(220),
+                    borderRadius: BorderRadius.circular(16.r),
+                    border: Border.all(
+                      color: count == preset
+                          ? AppColor.primary
+                          : AppColor.inputBorder.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  child: Text(
+                    '+$preset',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight:
+                          count == preset ? FontWeight.w700 : FontWeight.w600,
+                      color:
+                          count == preset ? Colors.white : AppColor.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StepButton extends StatelessWidget {
+  const _StepButton({
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: enabled ? Colors.white : Colors.white.withAlpha(120),
+      borderRadius: BorderRadius.circular(12.r),
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          width: 38.w,
+          height: 38.w,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color:
+                  AppColor.inputBorder.withValues(alpha: enabled ? 0.8 : 0.3),
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 20.sp,
+            color: enabled ? AppColor.textPrimary : AppColor.hintText,
+          ),
+        ),
+      ),
+    );
+  }
+}
+

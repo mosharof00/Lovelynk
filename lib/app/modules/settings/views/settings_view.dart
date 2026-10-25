@@ -10,6 +10,7 @@ import '../../../global/widgets/app_text.dart';
 import '../../../global/widgets/custom_appbar.dart';
 import '../../../global/widgets/global_button.dart';
 import '../../profile/widgets/profile_menu_section.dart';
+import '../../../data/models/notification_models/app_notification.dart';
 import '../controllers/settings_controller.dart';
 
 class SettingsView extends GetView<SettingsController> {
@@ -39,6 +40,45 @@ class SettingsView extends GetView<SettingsController> {
                     label: 'Distance unit',
                     value: controller.distanceUnit.value.label,
                     onTap: () => _showUnitSheet(),
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.thermostat_rounded,
+                    label: 'Temperature unit',
+                    value: controller.temperatureUnit.value.label,
+                    onTap: () => _showTempUnitSheet(),
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.location_on_outlined,
+                    label: 'Share location with partner',
+                    hideChevron: true,
+                    trailing: Transform.scale(
+                      scale: 0.85,
+                      child: Switch.adaptive(
+                        value: controller.isLocationSharing.value,
+                        activeThumbColor: AppColor.primary,
+                        activeTrackColor: AppColor.primary.withValues(alpha: 0.5),
+                        onChanged: (val) => controller.toggleLocationSharing(val),
+                      ),
+                    ),
+                  ),
+                  ProfileMenuItemData(
+                    icon: controller.isLocationAlways
+                        ? Icons.location_on_rounded
+                        : Icons.location_on_outlined,
+                    label: 'Location permission',
+                    value: controller.locationPermissionLabel,
+                    valueColor: controller.isLocationAlways
+                        ? AppColor.primary
+                        : (controller.hasLocationPermission
+                            ? AppColor.secondary
+                            : AppColor.error),
+                    onTap: () => _showLocationPermissionSheet(context),
+                  ),
+                  ProfileMenuItemData(
+                    icon: Icons.notifications_none_rounded,
+                    label: 'Push notifications',
+                    value: controller.notifPrefsSummary,
+                    onTap: () => _showNotificationPreferencesSheet(context),
                   ),
                 ],
               ),
@@ -99,6 +139,111 @@ class SettingsView extends GetView<SettingsController> {
     );
   }
 
+  void _showLocationPermissionSheet(BuildContext context) {
+    final isAlways = controller.isLocationAlways;
+    final hasPerm = controller.hasLocationPermission;
+
+    _openSheet(
+      title: 'Location Permission',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40.w,
+                height: 40.w,
+                decoration: BoxDecoration(
+                  color: (isAlways ? AppColor.primary : AppColor.secondary)
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  isAlways
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.location_on_outlined,
+                  size: 22.sp,
+                  color: isAlways ? AppColor.primary : AppColor.secondary,
+                ),
+              ),
+              12.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      isAlways
+                          ? 'Always (Optimal)'
+                          : (hasPerm ? 'While Using the App' : 'Permission Needed'),
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColor.textPrimary,
+                      ),
+                    ),
+                    2.verticalSpace,
+                    AppText(
+                      isAlways
+                          ? 'Widgets update live in background'
+                          : 'Set to "Always" for background updates',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: AppColor.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          16.verticalSpace,
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F8FA),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: AppText(
+              isAlways
+                  ? 'Your location access is fully set up. Partner Distance & Love Compass widgets can update automatically even when LoveLynk is closed.'
+                  : 'To show live distance and compass direction on your Home Screen when LoveLynk is closed, Apple requires setting Location to "Always" in iOS Settings.',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: AppColor.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ),
+          20.verticalSpace,
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              controller.openLocationPermissionSettings();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: EdgeInsets.symmetric(vertical: 13.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+            ),
+            child: AppText(
+              'Open iOS Settings',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showUnitSheet() {
     _openSheet(
       title: 'Distance unit',
@@ -122,6 +267,38 @@ class SettingsView extends GetView<SettingsController> {
                   ),
                 ),
                 trailing: controller.distanceUnit.value == unit
+                    ? Icon(Icons.check_rounded, color: AppColor.primary)
+                    : null,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTempUnitSheet() {
+    _openSheet(
+      title: 'Temperature unit',
+      child: Obx(
+        () => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final unit in TemperatureUnit.values)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                onTap: () {
+                  controller.setTemperatureUnit(unit);
+                  Get.back();
+                },
+                title: AppText(
+                  '${unit.label} (${unit.symbol})',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.textPrimary,
+                  ),
+                ),
+                trailing: controller.temperatureUnit.value == unit
                     ? Icon(Icons.check_rounded, color: AppColor.primary)
                     : null,
               ),
@@ -239,13 +416,13 @@ class SettingsView extends GetView<SettingsController> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: Container(
-            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 24.h),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-            ),
-            child: SafeArea(
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+            clipBehavior: Clip.antiAlias,
+            child: Container(
+              padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 24.h),
+              child: SafeArea(
               top: false,
               child: SingleChildScrollView(
                 child: Column(
@@ -269,7 +446,281 @@ class SettingsView extends GetView<SettingsController> {
           ),
         ),
       ),
-      isScrollControlled: true,
+    ),
+    isScrollControlled: true,
+  );
+  }
+
+  void _showNotificationPreferencesSheet(BuildContext context) {
+    _openSheet(
+      title: 'Notification preferences',
+      child: Obx(() {
+        if (controller.isLoadingNotifPrefs.value &&
+            controller.notifPrefs.value == null) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 32.h),
+            child: const Center(
+              child: CircularProgressIndicator.adaptive(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColor.primary),
+              ),
+            ),
+          );
+        }
+
+        final p =
+            controller.notifPrefs.value ?? const NotificationPreferences();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppText(
+              'Notification Categories',
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColor.textSecondary,
+              ),
+            ),
+            10.verticalSpace,
+            _buildPrefSwitch(
+              label: 'Heartbeat touches',
+              subtitle: 'When your partner sends you a heartbeat vibration',
+              value: p.pushHeartbeat,
+              onChanged: (val) =>
+                  controller.updatePreference(pushHeartbeat: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Kisses sent',
+              subtitle: 'When your partner blows you a kiss',
+              value: p.pushKiss,
+              onChanged: (val) => controller.updatePreference(pushKiss: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Emoji reactions',
+              subtitle: 'When your partner sends you reaction emojis',
+              value: p.pushEmoji,
+              onChanged: (val) => controller.updatePreference(pushEmoji: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Relationship updates',
+              subtitle: 'Anniversaries, visit reminders, and milestones',
+              value: p.pushRelationship,
+              onChanged: (val) =>
+                  controller.updatePreference(pushRelationship: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Subscriptions & billing',
+              subtitle: 'Trial alerts, renewal reminders, and receipts',
+              value: p.pushSubscription,
+              onChanged: (val) =>
+                  controller.updatePreference(pushSubscription: val),
+            ),
+            _buildPrefSwitch(
+              label: 'Announcements & tips',
+              subtitle: 'Feature updates and relationship tips',
+              value: p.pushAnnouncements,
+              onChanged: (val) =>
+                  controller.updatePreference(pushAnnouncements: val),
+            ),
+            14.verticalSpace,
+            const Divider(),
+            12.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(
+                        'Quiet Hours',
+                        style: TextStyle(
+                          fontSize: 14.5.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColor.textPrimary,
+                        ),
+                      ),
+                      3.verticalSpace,
+                      AppText(
+                        'Silently refresh widgets without alert banners or sound.',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: AppColor.textSecondary,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                12.horizontalSpace,
+                Transform.scale(
+                  scale: 0.85,
+                  child: Switch.adaptive(
+                    value: p.hasQuietHours,
+                    activeThumbColor: AppColor.primary,
+                    activeTrackColor: AppColor.primary.withValues(alpha: 0.5),
+                    onChanged: (val) {
+                      if (val) {
+                        controller.updatePreference(
+                          quietHoursStart: '22:00',
+                          quietHoursEnd: '07:00',
+                        );
+                      } else {
+                        controller.updatePreference(clearQuietHours: true);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+            if (p.hasQuietHours) ...[
+              12.verticalSpace,
+              Container(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: AppColor.background,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: AppColor.inputBorder.withValues(alpha: 0.7),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildTimePickerButton(
+                      context: context,
+                      label: 'Start time',
+                      timeStr: p.quietHoursStart ?? '22:00',
+                      onTimePicked: (newTime) {
+                        controller.updatePreference(
+                            quietHoursStart: newTime);
+                      },
+                    ),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16.sp,
+                      color: AppColor.hintText,
+                    ),
+                    _buildTimePickerButton(
+                      context: context,
+                      label: 'End time',
+                      timeStr: p.quietHoursEnd ?? '07:00',
+                      onTimePicked: (newTime) {
+                        controller.updatePreference(quietHoursEnd: newTime);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            16.verticalSpace,
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildPrefSwitch({
+    required String label,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 6.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.textPrimary,
+                  ),
+                ),
+                2.verticalSpace,
+                AppText(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11.5.sp,
+                    color: AppColor.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          8.horizontalSpace,
+          Transform.scale(
+            scale: 0.85,
+            child: Switch.adaptive(
+              value: value,
+              activeThumbColor: AppColor.primary,
+              activeTrackColor: AppColor.primary.withValues(alpha: 0.5),
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimePickerButton({
+    required BuildContext context,
+    required String label,
+    required String timeStr,
+    required ValueChanged<String> onTimePicked,
+  }) {
+    final parts = timeStr.split(':');
+    final initialTime = TimeOfDay(
+      hour: int.tryParse(parts[0]) ?? 0,
+      minute: parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0,
+    );
+
+    return InkWell(
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: initialTime,
+        );
+        if (picked != null) {
+          final hh = picked.hour.toString().padLeft(2, '0');
+          final mm = picked.minute.toString().padLeft(2, '0');
+          onTimePicked('$hh:$mm');
+        }
+      },
+      borderRadius: BorderRadius.circular(8.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppText(
+              label,
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w500,
+                color: AppColor.textSecondary,
+              ),
+            ),
+            2.verticalSpace,
+            AppText(
+              timeStr,
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColor.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
+

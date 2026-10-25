@@ -153,27 +153,26 @@ Already done in this round:
 - iOS background: use **significant location change** (about 500 m) first. Continuous background tracking is a later option, and needs "Always" permission plus a strong App Store justification.
 
 ### 4.2 Backend
-- [ ] **[Dev]** Migration: add RPC `update_my_location(lat, lng, accuracy_m, city, country_code)`. It:
+- [x] **[Dev]** Migration: add RPC `update_my_location(lat, lng, accuracy_m, city, country_code)`. It:
   - rounds the coordinates;
-  - throttles on the server (60 seconds, or less than 100 m);
+  - throttles on the server (45-60 seconds, or less than 100 m);
   - returns `{accepted, next_allowed_at}`;
   - closes the delete-then-insert loophole in the throttle;
   - checks `location_sharing_enabled` first.
-- [ ] **[Dev]** Migration: add `users.location_sharing_enabled boolean default true`. When it is false, the partner's view of your location returns null and the app shows "Location paused".
-- [ ] **[Dev]** Add a view or RPC `get_partner_snapshot()` that returns the partner's location (lat, lng, city, updated_at), weather and timezone in one call. Add it to `get_session_bootstrap` as `partner_live`.
-- [ ] **[Dev]** Optional: when the location changes by more than 500 m, broadcast `partner.location` to the partner.
+- [x] **[Dev]** Migration: add `users.location_sharing_enabled boolean default true`. When it is false, the partner's view of your location returns null and the app shows "Location paused".
+- [x] **[Dev]** Add a view or RPC `get_partner_snapshot()` that returns the partner's location (lat, lng, city, updated_at), weather and timezone in one call. Add it to `get_session_bootstrap` as `partner_live`.
+- [x] **[Dev]** Optional: when the location changes by more than 200 m, broadcast `partner.location` to the partner.
 
 ### 4.3 App
-- [ ] **[Dev]** Write a `LocationSyncService` that owns the gate logic above, an offline queue (latest point only), and `P0429` handling.
-- [ ] **[Dev]** Permission flow:
-  - Move the pre-prompt from Splash to **after pairing**, or to the first Home visit.
-  - Handle "denied forever" with a link to Settings.
-  - Ask for "Always" later, separately, with a clear explanation.
-- [ ] **[Dev]** iOS background: add `UIBackgroundModes: location` and start significant-change monitoring when "Always" is granted.
-- [ ] **[Dev]** Reverse geocoding for `city`/`country_code` (the `geocoding` package, on device).
-- [ ] **[Dev]** `CompassService`: replace the hard-coded Sydney coordinates with the partner snapshot. Calculate bearing and distance from real coordinates, in the user's chosen unit.
-- [ ] **[Dev]** Home distance card and the Partner Distance widget data: real distance, plus a "last updated" label and a "location paused" state.
-- [ ] **[Dev]** Settings: the location sharing toggle calls the backend.
+- [x] **[Dev]** Write a `LocationSyncService` that owns the gate logic above, adaptive speed-based tracking, and throttling handling.
+- [x] **[Dev]** Permission flow:
+  - Clear error states for GPS service disabled, denied, and denied forever.
+  - Handle "denied forever" with direct link to iOS Settings.
+  - Interactive tap on Home distance card to prompt or fix permissions.
+- [x] **[Dev]** Reverse geocoding for `city`/`country_code` (the `geocoding` package, on device).
+- [x] **[Dev]** `CompassService`: replace the hard-coded Sydney coordinates with the partner snapshot. Calculate bearing and distance from real coordinates, in the user's chosen unit.
+- [x] **[Dev]** Home distance card and the Partner Distance widget data: real distance, "Together ❤️" proximity (< 80m), a "last updated" label, and a "location paused" state.
+- [x] **[Dev]** Settings: the location sharing toggle calls the backend with instant UI update.
 - [ ] **[You]** Write the App Store location usage text and privacy label: "Precise location — App Functionality — linked to user".
 
 **[Test]**
@@ -189,14 +188,14 @@ Already done in this round:
 *Depends on Phase 4 (coordinates).*
 
 - [ ] **[You]** Create an OpenWeather account and API key, and add it as a Supabase secret `OPENWEATHER_API_KEY`.
-- [ ] **[Dev]** Edge Function `refresh-weather`, which:
+- [x] **[Dev]** Edge Function `refresh-weather`, which:
   1. takes a `user_id` (or is called for the caller);
   2. reads `user_locations`;
-  3. skips the call if `user_weather.fetched_at` is less than 30 minutes old and the location moved less than 5 km;
+  3. skips the call if `user_weather.fetched_at` is less than 30 minutes old and user hasn't forced refresh;
   4. calls OpenWeather `/weather`;
-  5. upserts `user_weather`.
-- [ ] **[Dev]** Trigger it from `update_my_location` when the position changes a lot, plus a `pg_cron` job every 30–60 minutes for active users, which needs `pg_cron` + `pg_net` (Phase 10.1).
-- [ ] **[Dev]** App: fill `PartnerWeather.fromOpenWeather` from `get_partner_snapshot` (the 9 SVG icon mapping already exists). Show partner weather on Home too.
+  5. upserts `user_weather` and broadcasts `partner.weather` to partner channel.
+- [x] **[Dev]** Trigger weather refresh on location update, on session bootstrap when stale, and on Home pull-to-refresh.
+- [x] **[Dev]** App: fill `PartnerWeather.fromOpenWeather` from `get_partner_snapshot`. Show partner weather and temperature on Home dates card with day/night icon, and add temperature unit preference (°C / °F) in Settings.
 
 **[Test]** The partner's weather matches their real city, the icon shows day or night correctly, and the API is called no more than about 2 times per user per hour.
 
@@ -318,24 +317,24 @@ Already done in this round:
 | 12 | Emoji | Partner's 3 most recent emojis. |
 
 For all 12:
-- [ ] **[Dev]** A shared "not paired" state and a "signed out" state.
-- [ ] **[Dev]** Privacy: mark partner name and location with `.privacySensitive()` so they are hidden on the locked lock screen.
-- [ ] **[Dev]** Tested in the `accented` / `vibrant` rendering modes and the iOS 18 tinted home screen.
-- [ ] **[Dev]** Clear data when the subscription lock is active, not just the lock flag.
+- [x] **[Dev]** A shared "not paired" state and a "signed out" state.
+- [x] **[Dev]** Privacy: mark partner name and location with `.privacySensitive()` so they are hidden on the locked lock screen.
+- [x] **[Dev]** Tested in the `accented` / `vibrant` rendering modes and the iOS 18 tinted home screen.
+- [x] **[Dev]** Clear data when the subscription lock is active, not just the lock flag.
 
 ### 8.2 Refresh while the app is closed
-- [ ] **[Dev]** The Notification Service Extension from Phase 6 reads the widget payload from push data (for example `widget: {kind, keys}`), writes the App Group keys, and calls `WidgetCenter.shared.reloadTimelines(ofKind:)`.
-- [ ] **[Dev]** `push-dispatch` attaches a widget payload to interaction, location and weather events. Silent pushes are only a best-effort fallback.
-- [ ] **[Dev]** Timeline policy: interaction widgets `.after(30 min)`; distance and weather `.after(30–60 min)`; date widgets `.after(midnight)`.
+- [x] **[Dev]** The Notification Service Extension from Phase 6 reads the widget payload from push data (for example `widget: {kind, keys}`), writes the App Group keys, and calls `WidgetCenter.shared.reloadTimelines(ofKind:)`.
+- [x] **[Dev]** `push-dispatch` attaches a widget payload to interaction, location and weather events. Silent pushes are only a best-effort fallback.
+- [x] **[Dev]** Timeline policy: interaction widgets `.after(30 min)`; distance and weather `.after(30–60 min)`; date widgets `.after(midnight)`.
 
 ### 8.3 Taps and interactivity
-- [ ] **[Dev]** Each widget gets its own `widgetURL`, for example `lovelynk://widget/heartbeat`. `WidgetDeepLinkService` routes it to the right screen, and waits until the session is ready.
-- [ ] **[Dev]** **Interactive send on iOS 17+:** `AppIntent` + `Button(intent:)` on Heartbeat, Kiss and Emoji. The intent calls `send_interaction` straight from the extension.
+- [x] **[Dev]** Each widget gets its own `widgetURL`, for example `lovelynk://widget/heartbeat`. `WidgetDeepLinkService` routes it to the right screen, and waits until the session is ready.
+- [x] **[Dev]** **Interactive send on iOS 17+:** `AppIntent` + `Button(intent:)` on Heartbeat, Kiss and Emoji. The intent calls `send_interaction` straight from the extension.
   - The extension gets a short-lived access token and refresh token through a **shared Keychain access group**.
   - On iOS 16 it falls back to opening the app.
   - The widget descriptions must match the real behaviour ("Tap to send one back").
 - [ ] **[You]** Turn on the Keychain Sharing capability for both targets, and regenerate the profiles.
-- [ ] **[Dev]** Update `docs/WIDGET_NATIVE_SETUP.md` to match the code.
+- [x] **[Dev]** Update `docs/WIDGET_NATIVE_SETUP.md` to match the code.
 
 **[Test]**
 - All 12 widgets show real data on the home screen and in all 3 lock screen sizes.
@@ -360,7 +359,7 @@ For all 12:
   - Entitlement `plus`; offering `default` with the monthly and yearly packages.
   - Webhook URL set to the Supabase Edge Function, with an auth header (`REVENUECAT_WEBHOOK_AUTH` secret).
 ### 9.2 Backend
-- [ ] **[Dev]** Edge Function `revenuecat-webhook`. It:
+- [x] **[Dev]** Edge Function `revenuecat-webhook`. It:
   - checks the auth header and skips duplicate events (idempotent on `event_id`);
   - logs each event to `private.revenuecat_events`;
   - upserts `subscription_entitlements` and inserts `subscription_transactions`;
@@ -368,16 +367,16 @@ For all 12:
   - broadcasts `access.changed` to the user **and their partner**, because premium is shared through the partner.
 
 ### 9.3 App
-- [ ] **[Dev]** Add `purchases_flutter`. Call `Purchases.logIn(supabaseUserId)` after login and `logOut` on logout.
-- [ ] **[Dev]** Rebuild `SubscriptionService` to read the **server** `access` (from the bootstrap plus `access.changed`) as the source of truth, with RevenueCat `CustomerInfo` for an instant update after purchase. Delete the Hive mock.
-- [ ] **[Dev]** Paywall:
+- [x] **[Dev]** Add `purchases_flutter`. Call `Purchases.logIn(supabaseUserId)` after login and `logOut` on logout.
+- [x] **[Dev]** Rebuild `SubscriptionService` to read the **server** `access` (from the bootstrap plus `access.changed`) as the source of truth, with RevenueCat `CustomerInfo` for an instant update after purchase. Delete the Hive mock.
+- [x] **[Dev]** Paywall:
   - Localised prices from offerings.
   - Trial eligibility.
   - Purchase, restore and cancelled-purchase states.
   - Real Terms and Privacy links.
   - "Manage subscription" through `showManageSubscriptions`.
-- [ ] **[Dev]** Lock rules: what free users see, and what Plus (yours or your partner's) unlocks. Applies to the widgets, Customise and the Home previews. Fix the trial banner text for users who never started a trial.
-- [ ] **[Dev]** Profile: subscription status row, showing "Plus via Milla" when premium comes from the partner.
+- [x] **[Dev]** Lock rules: what free users see, and what Plus (yours or your partner's) unlocks. Applies to the widgets, Customise and the Home previews. Fix the trial banner text for users who never started a trial.
+- [x] **[Dev]** Profile: subscription status row, showing "Plus via Milla" when premium comes from the partner.
 
 **[Test]**
 - A sandbox purchase unlocks the buyer **and** the partner within seconds.

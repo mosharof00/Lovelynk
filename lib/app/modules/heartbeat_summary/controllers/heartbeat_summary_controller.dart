@@ -15,6 +15,7 @@ class HeartbeatSummaryController extends GetxController {
   void onInit() {
     super.onInit();
     _data = Get.find<WidgetDataService>();
+    _data.refreshFromBackend();
   }
 
   String get partnerName => _data.data.value.partnerName;
@@ -31,10 +32,11 @@ class HeartbeatSummaryController extends GetxController {
     if (!PartnerGuard.ensurePaired()) return;
     HeartbeatSendDialog.show(
       partnerName: partnerName,
-      onSend: () {
-        _data.sendHeartbeat();
+      onSend: (count) {
+        _data.sendHeartbeat(count: count);
+        final label = count == 1 ? 'Heartbeat sent 💗' : '$count Heartbeats sent 💗';
         Get.snackbar(
-          'Heartbeat sent 💗',
+          label,
           'Let them know you\'re thinking of them.',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: AppColor.primaryLight,
