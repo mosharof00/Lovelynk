@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -95,8 +96,12 @@ class PushNotificationService extends GetxService {
   final FlutterLocalNotificationsPlugin _localNotifs =
       FlutterLocalNotificationsPlugin();
 
+  static const MethodChannel _badgeChannel =
+      MethodChannel('com.lovelynk.app/badge');
+
   StreamSubscription<String>? _tokenRefreshSub;
   Worker? _sessionWorker;
+  Worker? _badgeWorker;
 
   INotificationRepository get _repo {
     if (!Get.isRegistered<INotificationRepository>()) {
@@ -130,15 +135,35 @@ class PushNotificationService extends GetxService {
     await _initLocalNotifications();
     await _initMessaging();
     _bindSessionListener();
+    _bindBadgeListener();
 
     return this;
+  }
+
+  void _bindBadgeListener() {
+    // Immediately sync app badge on start and on every count update
+    _badgeWorker = ever<int>(unreadCount, (count) {
+      updateAppBadge(count);
+    });
+  }
+
+  /// Sets the native app icon badge count via MethodChannel on iOS
+  Future<void> updateAppBadge(int count) async {
+    if (!Platform.isIOS) return;
+    try {
+      await _badgeChannel.invokeMethod('setBadge', count);
+      Log.i('[Badge] Synced native app badge to: $count');
+    } catch (e) {
+      Log.w('[Badge] Failed to sync native app badge: $e');
+    }
   }
 
   Future<void> _initLocalNotifications() async {
     const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
-      requestBadgePermission: false,
+      requestBadgePermission: true,
       requestSoundPermission: false,
+      defaultPresentBadge: true,
     );
 
     const initSettings = InitializationSettings(
@@ -426,6 +451,7 @@ class PushNotificationService extends GetxService {
   void onClose() {
     _tokenRefreshSub?.cancel();
     _sessionWorker?.dispose();
+    _badgeWorker?.dispose();
     super.onClose();
   }
 }
