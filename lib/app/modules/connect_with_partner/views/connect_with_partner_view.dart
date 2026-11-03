@@ -410,6 +410,14 @@ class _ConnectCodeStep extends GetView<ConnectWithPartnerController> {
                 isLoading: controller.isConnecting.value,
               ),
             ),
+            if (controller.isFromSignup) ...[
+              12.height,
+              GlobalButton(
+                text: 'Go to Home',
+                isOutlined: true,
+                onTap: controller.goToHome,
+              ),
+            ],
             24.verticalSpace,
           ],
         ),

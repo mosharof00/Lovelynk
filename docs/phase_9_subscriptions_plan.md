@@ -7,8 +7,8 @@
 
 | Plan | Product ID | Duration | Price (GBP) | Free Trial | Auto-Converts Currencies? |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Monthly** | `lovelynk_monthly` | 1 Month | **£6.99 / month** | **7 Days** | Yes (Apple auto-converts to USD, EUR, etc.) |
-| **Yearly (Best Value)** | `lovelynk_yearly` | 1 Year | **£29.99 / year** | **7 Days** | Yes (Apple auto-converts to USD, EUR, etc.) |
+| **Monthly** | `lovelynk_monthly` | 1 Month | **£4.99 / month** | **7 Days** | Yes (Apple auto-converts to USD, EUR, etc.) |
+| **Yearly (Best Value)** | `lovelynk_yearly` | 1 Year | **£19.99 / year** | **7 Days** | Yes (Apple auto-converts to USD, EUR, etc.) |
 
 > [!IMPORTANT]
 > **Couple-Shared Subscription Rule**:
@@ -47,7 +47,7 @@ You already created the Subscription Group: **LoveLynk Plus**. Click into **Love
 5. Set **Subscription Prices**:
    - Click **Add Pricing**.
    - Base Currency: Select **United Kingdom (GBP £)**.
-   - Price: Select **`£6.99`**.
+   - Price: Select **`£4.99`**.
    - Apple will automatically calculate equivalent prices across all 175 countries/currencies. Click **Next** $\rightarrow$ **Save**.
 6. Set **Introductory Offer (7-Day Free Trial)**:
    - Scroll to **Introductory Offers** $\rightarrow$ Click **`+`** (or Add Introductory Offer).
@@ -59,7 +59,7 @@ You already created the Subscription Group: **LoveLynk Plus**. Click into **Love
 7. Set **App Store Localization**:
    - Under **Subscription Display Name**:
      - **Display Name**: `LoveLynk Plus Monthly`
-     - **Description**: `Unlock all widgets, rich interactions, and custom styles for you and your partner.`
+     - **Description**: `Unlock widgets & styles for you and your partner.` (49 chars)
    - Click **Save**.
 
 ---
@@ -74,7 +74,7 @@ You already created the Subscription Group: **LoveLynk Plus**. Click into **Love
 5. Set **Subscription Prices**:
    - Click **Add Pricing**.
    - Base Currency: Select **United Kingdom (GBP £)**.
-   - Price: Select **`£29.99`**.
+   - Price: Select **`£19.99`**.
    - Apple automatically populates all currencies. Click **Next** $\rightarrow$ **Save**.
 6. Set **Introductory Offer (7-Day Free Trial)**:
    - Scroll to **Introductory Offers** $\rightarrow$ Click **`+`**.
@@ -86,7 +86,7 @@ You already created the Subscription Group: **LoveLynk Plus**. Click into **Love
 7. Set **App Store Localization**:
    - Under **Subscription Display Name**:
      - **Display Name**: `LoveLynk Plus Yearly`
-     - **Description**: `Unlock all widgets, rich interactions, and custom styles for you and your partner with the best annual value.`
+     - **Description**: `Unlock all widgets and styles. Best annual value.` (49 chars)
    - Click **Save**.
 
 ---

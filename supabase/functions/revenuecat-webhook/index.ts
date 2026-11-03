@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
 
   const entitlementPayload: Record<string, any> = {
     user_id: resolvedUserId,
-    entitlement_id: 'premium',
+    entitlement_id: event.entitlement_id ?? event.entitlement_ids?.[0] ?? 'premium',
     status: entitlementStatus,
     period_type: periodType,
     plan,

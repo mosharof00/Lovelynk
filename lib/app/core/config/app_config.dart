@@ -26,13 +26,18 @@ class AppConfig {
   /// Can be provided via `--dart-define=REVENUECAT_APPLE_KEY=appl_xxx`.
   static const revenueCatAppleApiKey = String.fromEnvironment(
     'REVENUECAT_APPLE_KEY',
-    defaultValue: 'appl_placeholder_key',
+    defaultValue: 'appl_FPgCFyerXpNHVRjiESclqZspvVW',
   );
 
   /// Main entitlement identifier configured in RevenueCat dashboard.
-  static const entitlementPlus = 'premium';
+  static const entitlementPlus = 'plus';
 
   /// Store product identifiers.
   static const productMonthly = 'lovelynk_monthly';
   static const productYearly = 'lovelynk_yearly';
+
+  // ── Legal & Support URLs ────────────────────────────────────────────────
+  static const privacyPolicyUrl = "https://lovelynk.io/privacy-policy";
+  static const termsOfServiceUrl = "https://lovelynk.io/terms-of-service";
+  static const supportEmail = "info@lovelynk.io";
 }

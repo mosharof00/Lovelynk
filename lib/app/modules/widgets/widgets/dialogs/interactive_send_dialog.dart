@@ -125,7 +125,9 @@ class _InteractiveSendDialogState extends State<InteractiveSendDialog>
     }
     final plural = widget.widgetLabel == 'Kiss'
         ? 'Kisses 💋'
-        : (widget.widgetLabel == 'Heartbeat' ? 'Heartbeats 💗' : widget.widgetLabel);
+        : (widget.widgetLabel == 'Heartbeat'
+              ? 'Heartbeats 💗'
+              : widget.widgetLabel);
     return 'Send $_count $plural';
   }
 
@@ -580,7 +582,10 @@ class _CountSelector extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16.r),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 4.h,
+                  ),
                   decoration: BoxDecoration(
                     color: count == preset
                         ? AppColor.primary
@@ -596,10 +601,12 @@ class _CountSelector extends StatelessWidget {
                     '+$preset',
                     style: TextStyle(
                       fontSize: 11.sp,
-                      fontWeight:
-                          count == preset ? FontWeight.w700 : FontWeight.w600,
-                      color:
-                          count == preset ? Colors.white : AppColor.textSecondary,
+                      fontWeight: count == preset
+                          ? FontWeight.w700
+                          : FontWeight.w600,
+                      color: count == preset
+                          ? Colors.white
+                          : AppColor.textSecondary,
                     ),
                   ),
                 ),
@@ -636,8 +643,9 @@ class _StepButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color:
-                  AppColor.inputBorder.withValues(alpha: enabled ? 0.8 : 0.3),
+              color: AppColor.inputBorder.withValues(
+                alpha: enabled ? 0.8 : 0.3,
+              ),
             ),
           ),
           child: Icon(
@@ -650,4 +658,3 @@ class _StepButton extends StatelessWidget {
     );
   }
 }
-
