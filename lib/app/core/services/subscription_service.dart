@@ -258,7 +258,10 @@ class SubscriptionService extends GetxService {
   }
 
   void _applyFromCustomerInfo(CustomerInfo customerInfo) {
-    final entitlement = customerInfo.entitlements.all[AppConfig.entitlementPlus];
+    final entitlement = customerInfo.entitlements.all[AppConfig.entitlementPlus] ??
+        customerInfo.entitlements.all['plus'] ??
+        customerInfo.entitlements.all['premium'] ??
+        customerInfo.entitlements.active.values.firstOrNull;
     final isActive = entitlement?.isActive ?? false;
 
     if (isActive) {

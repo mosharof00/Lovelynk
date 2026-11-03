@@ -47,10 +47,10 @@ class SubscriptionsController extends GetxController {
       _subscription.offerings.value?.current?.annual;
 
   String get monthlyPriceString =>
-      monthlyPackage?.storeProduct.priceString ?? '£6.99';
+      monthlyPackage?.storeProduct.priceString ?? '£4.99';
 
   String get yearlyPriceString =>
-      annualPackage?.storeProduct.priceString ?? '£29.99';
+      annualPackage?.storeProduct.priceString ?? '£19.99';
 
   void selectPlan(SubscriptionPlanId plan) => selectedPlan.value = plan;
 

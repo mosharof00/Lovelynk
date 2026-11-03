@@ -277,6 +277,7 @@ Deno.serve(async (req) => {
           'content-available': 1,
           'mutable-content': 1,
           category: category,
+          badge: isCategoryDisabled ? undefined : badge,
         },
         kind: dataPayload.kind || category,
         total: dataPayload.total != null ? String(dataPayload.total) : '',

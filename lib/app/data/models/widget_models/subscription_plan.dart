@@ -29,21 +29,21 @@ class SubscriptionPlan {
   static const monthly = SubscriptionPlan(
     id: SubscriptionPlanId.monthly,
     title: 'Monthly',
-    price: 699,
-    billingLine: '£6.99 / month for 2 users',
-    perUserLine: '£3.50 / user / month',
-    thenPriceLine: '£6.99/month',
+    price: 499,
+    billingLine: '£4.99 / month for 2 users',
+    perUserLine: '£2.50 / user / month',
+    thenPriceLine: '£4.99/month',
   );
 
   static const yearly = SubscriptionPlan(
     id: SubscriptionPlanId.yearly,
     title: 'Yearly',
-    price: 2999,
-    billingLine: '£29.99 / year for 2 users',
-    perUserLine: '£1.25 / user / month',
-    thenPriceLine: '£29.99/year',
+    price: 1999,
+    billingLine: '£19.99 / year for 2 users',
+    perUserLine: '£0.83 / user / month',
+    thenPriceLine: '£19.99/year',
     badge: 'Best value',
-    savingsLabel: 'Save 64%',
+    savingsLabel: 'Save 67%',
   );
 
   static const all = [monthly, yearly];

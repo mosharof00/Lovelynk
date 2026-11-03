@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../global/widgets/global_snackbar.dart';
+import '../config/app_config.dart';
 import '../network/supabase/supabase_endpoints.dart';
 import '../utils/logger.dart';
 import '../utils/url_launcher.dart';
@@ -13,9 +14,9 @@ class AppSettingsService extends GetxService {
 
   final _values = <String, dynamic>{}.obs;
 
-  String? get termsUrl => _string('terms_url');
-  String? get privacyUrl => _string('privacy_url');
-  String? get supportEmail => _string('support_email');
+  String get termsUrl => _string('terms_url') ?? AppConfig.termsOfServiceUrl;
+  String get privacyUrl => _string('privacy_url') ?? AppConfig.privacyPolicyUrl;
+  String get supportEmail => _string('support_email') ?? AppConfig.supportEmail;
   String? get appStoreId => _string('app_store_id');
 
   AppSettingsService init() {
