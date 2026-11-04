@@ -286,14 +286,22 @@ class SubscriptionService extends GetxService {
       );
       if (isTrial) hasUsedTrial.value = true;
     } else {
-      // If server access gave us partner-shared access, do not downgrade just because
-      // self doesn't have an active personal Apple receipt.
-      if (!state.value.isPartnerShared) {
-        state.value = const SubscriptionState(
-          status: SubscriptionStatus.expired,
-          accessSource: AccessSource.none,
+      // If server access (Supabase) already confirmed that the user is premium or on trial
+      // (whether through an admin grant, promotional code, webhook sync, or couple sharing),
+      // DO NOT downgrade them just because RevenueCat hasn't synced or device has no direct StoreKit receipt.
+      // Supabase is the single master authority for entitlements.
+      if (state.value.isWidgetsUnlocked) {
+        Log.i(
+          '[Subscription] Retaining server-granted active status despite empty RevenueCat entitlements '
+          '(source=${state.value.accessSource.name}, status=${state.value.status.name})',
         );
+        return;
       }
+
+      state.value = const SubscriptionState(
+        status: SubscriptionStatus.expired,
+        accessSource: AccessSource.none,
+      );
     }
 
     _persist();

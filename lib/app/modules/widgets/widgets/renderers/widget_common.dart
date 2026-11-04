@@ -5,7 +5,11 @@ import '../../../../core/theme/app_color.dart';
 import '../../../../global/widgets/app_text.dart';
 import 'widget_accent_scope.dart';
 
-/// A D : H : M : S countdown/counter row (Together Counter + Next Visit).
+/// A 2-row D : H / M : S countdown/counter grid (Together Counter + Next Visit),
+/// styled to match the Home and Lock Screen widgets.
+///
+/// Upper row: Day & Hour
+/// Lower row: Min & Sec
 ///
 /// Pass the already-computed [duration]; negative values clamp to zero. Only
 /// the caller decides when to rebuild (wrap in a small Obx over `now`).
@@ -29,18 +33,50 @@ class CountdownRow extends StatelessWidget {
         return FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.center,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _Unit(value: days, label: 'DAY', color: valueColor),
-              _Colon(color: valueColor),
-              _Unit(value: hours, label: 'HOUR', color: valueColor),
-              _Colon(color: valueColor),
-              _Unit(value: minutes, label: 'MIN', color: valueColor),
-              _Colon(color: valueColor),
-              _Unit(value: seconds, label: 'SEC', color: valueColor),
+              // Upper row: Day & Hour
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Unit(
+                    value: days,
+                    label: 'DAY',
+                    color: valueColor,
+                    pad: false,
+                  ),
+                  _Colon(color: valueColor),
+                  _Unit(
+                    value: hours,
+                    label: 'HOUR',
+                    color: valueColor,
+                  ),
+                ],
+              ),
+              6.verticalSpace,
+              // Lower row: Min & Sec
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Unit(
+                    value: minutes,
+                    label: 'MIN',
+                    color: valueColor,
+                  ),
+                  _Colon(color: valueColor),
+                  _Unit(
+                    value: seconds,
+                    label: 'SEC',
+                    color: valueColor,
+                  ),
+                ],
+              ),
             ],
           ),
         );
@@ -50,36 +86,45 @@ class CountdownRow extends StatelessWidget {
 }
 
 class _Unit extends StatelessWidget {
-  const _Unit({required this.value, required this.label, required this.color});
+  const _Unit({
+    required this.value,
+    required this.label,
+    required this.color,
+    this.pad = true,
+  });
 
   final int value;
   final String label;
   final Color color;
+  final bool pad;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 1.w),
+    final text = pad ? value.toString().padLeft(2, '0') : value.toString();
+    return SizedBox(
+      width: 48.w,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           AppText(
-            value.toString().padLeft(2, '0'),
+            text,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 15.sp,
+              fontSize: 22.sp,
               fontWeight: FontWeight.w700,
               color: color,
               height: 1.0,
             ),
           ),
-          2.verticalSpace,
+          3.verticalSpace,
           AppText(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 7.sp,
+              fontSize: 8.sp,
               fontWeight: FontWeight.w600,
               color: AppColor.textSecondary,
-              letterSpacing: 0.2,
+              letterSpacing: 0.3,
             ),
           ),
         ],
@@ -95,15 +140,19 @@ class _Colon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 1.w),
-      child: AppText(
-        ':',
-        style: TextStyle(
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w700,
-          color: color,
-          height: 1.0,
+    return SizedBox(
+      width: 14.w,
+      height: 22.sp,
+      child: Center(
+        child: AppText(
+          ':',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w700,
+            color: color,
+            height: 1.0,
+          ),
         ),
       ),
     );

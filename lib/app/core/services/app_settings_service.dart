@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../global/widgets/global_snackbar.dart';
 import '../config/app_config.dart';
 import '../network/supabase/supabase_endpoints.dart';
 import '../utils/logger.dart';
@@ -38,25 +37,18 @@ class AppSettingsService extends GetxService {
     }
   }
 
-  Future<void> openTerms() => _open(termsUrl, 'Terms of Use');
+  Future<void> openTerms() => _open(termsUrl);
 
-  Future<void> openPrivacy() => _open(privacyUrl, 'Privacy Policy');
+  Future<void> openPrivacy() => _open(privacyUrl);
 
   Future<void> contactSupport() async {
-    final email = supportEmail;
-    if (email == null) return _notAvailable('Contact Us');
-    await UrlLauncher.url('mailto:$email?subject=LoveLynk%20support');
+    await UrlLauncher.url('mailto:$supportEmail?subject=LoveLynk%20support');
   }
 
-  Future<void> _open(String? url, String label) async {
-    if (url == null) return _notAvailable(label);
+  Future<void> _open(String url) async {
     await UrlLauncher.url(url);
   }
 
-  void _notAvailable(String label) {
-    load();
-    globalSnackBar(title: label, message: 'Not available yet. Please try again later.');
-  }
 
   String? _string(String key) {
     final value = _values[key];
