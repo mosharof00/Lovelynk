@@ -7,6 +7,7 @@ import '../../data/models/widget_models/widget_style.dart';
 import '../services/compass_service.dart';
 import '../services/session_service.dart';
 import '../services/subscription_service.dart';
+import '../services/user_prefs_service.dart';
 import '../services/widget_data_service.dart';
 import '../utils/logger.dart';
 import '../utils/weather_icon_mapper.dart';
@@ -210,13 +211,36 @@ class WidgetSyncService extends GetxService {
         break;
 
       case AppWidgetType.partnerDistance:
+        final distUnit = Get.isRegistered<UserPrefsService>()
+            ? UserPrefsService.to.distanceUnit.value
+            : DistanceUnit.miles;
+        final compass =
+            Get.isRegistered<CompassService>() ? CompassService.to : null;
+        final meters = compass?.partnerDistanceMeters.value;
+        final partnerLive = SessionService.to.partnerLive;
+
+        int displayDistance;
+        if (meters != null) {
+          final dist = distUnit == DistanceUnit.miles
+              ? meters / 1609.344
+              : meters / 1000.0;
+          displayDistance = dist.round();
+        } else if (partnerLive?.distanceKm != null) {
+          final km = partnerLive!.distanceKm!;
+          displayDistance = distUnit.fromKilometers(km).round();
+        } else {
+          displayDistance = distUnit == DistanceUnit.miles
+              ? d.distanceMiles
+              : distUnit.fromMiles(d.distanceMiles.toDouble()).round();
+        }
+
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerDistanceMiles,
-          '${d.distanceMiles}',
+          '$displayDistance',
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerDistanceUnit,
-          'mi',
+          distUnit.shortLabel,
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerDistanceUser,
@@ -289,9 +313,18 @@ class WidgetSyncService extends GetxService {
 
       case AppWidgetType.partnerWeather:
         final weather = d.partnerWeather;
+        final tempUnit = Get.isRegistered<UserPrefsService>()
+            ? UserPrefsService.to.temperatureUnit.value
+            : TemperatureUnit.celsius;
+        final rawLiveTempC =
+            SessionService.to.partnerLive?.weather?.temperatureC;
+        final int displayTemp = rawLiveTempC != null
+            ? tempUnit.fromCelsius(rawLiveTempC)
+            : weather.temperature;
+
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerWeatherTemperature,
-          '${weather.temperature}',
+          '$displayTemp',
         );
         await HomeWidget.saveWidgetData<String>(
           WidgetAppGroup.partnerWeatherCondition,

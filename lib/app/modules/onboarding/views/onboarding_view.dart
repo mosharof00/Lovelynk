@@ -24,17 +24,25 @@ class OnboardingView extends GetView<OnboardingController> {
           child: Column(
             children: [
               Stack(
+                alignment: Alignment.topCenter,
                 children: [
                   Image.asset(AppConfig.appLogo, width: 180.w),
                   Positioned(
                     top: 120.h,
-                    left: 50.w,
-                    right: 50.w,
-                    child: AppText(
-                      AppConfig.appName,
-                      style: context.titleLarge.copyWith(
-                        color: AppColor.textPrimary,
-                        fontWeight: FontWeight.w700,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: AppText(
+                          AppConfig.appName,
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                          style: context.titleLarge.copyWith(
+                            color: AppColor.textPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
                   ),

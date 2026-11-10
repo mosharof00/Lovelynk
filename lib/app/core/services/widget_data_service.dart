@@ -11,6 +11,7 @@ import '../theme/app_color.dart';
 import '../utils/logger.dart';
 import '../widgets/widget_sync_service.dart';
 import 'session_service.dart';
+import 'user_prefs_service.dart';
 
 /// Central source of live widget data for the whole app.
 ///
@@ -73,6 +74,9 @@ class WidgetDataService extends GetxService {
   IInteractionRepository get _interactionRepo =>
       Get.find<IInteractionRepository>();
 
+  Worker? _distanceWorker;
+  Worker? _tempWorker;
+
   WidgetDataService init() {
     _ticker = Timer.periodic(
       const Duration(seconds: 1),
@@ -80,7 +84,24 @@ class WidgetDataService extends GetxService {
     );
     _applySession(SessionService.to.bootstrap.value);
     ever<SessionBootstrap?>(SessionService.to.bootstrap, _applySession);
+
+    if (Get.isRegistered<UserPrefsService>()) {
+      _distanceWorker = ever<DistanceUnit>(
+        UserPrefsService.to.distanceUnit,
+        (_) => reapplySession(),
+      );
+      _tempWorker = ever<TemperatureUnit>(
+        UserPrefsService.to.temperatureUnit,
+        (_) => reapplySession(),
+      );
+    }
     return this;
+  }
+
+  /// Forces re-evaluation of widget data and triggers a full native widget sync
+  /// (e.g. when temperature or distance units change in settings).
+  void reapplySession() {
+    _applySession(SessionService.to.bootstrap.value);
   }
 
   String? _coupleId;
@@ -126,6 +147,8 @@ class WidgetDataService extends GetxService {
     _ticker?.cancel();
     _heartbeatDebounceTimer?.cancel();
     _kissDebounceTimer?.cancel();
+    _distanceWorker?.dispose();
+    _tempWorker?.dispose();
     super.onClose();
   }
 

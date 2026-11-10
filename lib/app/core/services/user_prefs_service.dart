@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 
+import '../widgets/widget_sync_service.dart';
 import 'local_store_service.dart';
+import 'widget_data_service.dart';
 
 enum DistanceUnit {
   miles('mi', 'Miles'),
@@ -63,10 +65,20 @@ class UserPrefsService extends GetxService {
   void setDistanceUnit(DistanceUnit unit) {
     distanceUnit.value = unit;
     HiveService.write(_unitKey, unit.name);
+    _syncWidgets();
   }
 
   void setTemperatureUnit(TemperatureUnit unit) {
     temperatureUnit.value = unit;
     HiveService.write(_tempKey, unit.name);
+    _syncWidgets();
+  }
+
+  void _syncWidgets() {
+    if (Get.isRegistered<WidgetDataService>()) {
+      Get.find<WidgetDataService>().reapplySession();
+    } else if (Get.isRegistered<WidgetSyncService>()) {
+      Get.find<WidgetSyncService>().syncAll();
+    }
   }
 }

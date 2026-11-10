@@ -19,9 +19,8 @@ class NotificationService: UNNotificationServiceExtension {
     ) {
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
-        if let badge = request.content.badge {
-            bestAttemptContent?.badge = badge
-        }
+        // Keep app icon badge at 0 (disabled for now per user instruction)
+        bestAttemptContent?.badge = 0
 
         defer {
             if let bestAttemptContent = bestAttemptContent {

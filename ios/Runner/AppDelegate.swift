@@ -25,8 +25,8 @@ import flutter_local_notifications
       )
       badgeChannel.setMethodCallHandler { (call: FlutterMethodCall, callback: @escaping FlutterResult) in
         if call.method == "setBadge" {
-          let count = (call.arguments as? Int) ?? 0
-          AppDelegate.applyBadgeCount(count)
+          // Keep app icon badge at 0 per user requirement (icon badge disabled)
+          AppDelegate.applyBadgeCount(0)
           callback(true)
         } else {
           callback(FlutterMethodNotImplemented)
@@ -34,7 +34,14 @@ import flutter_local_notifications
       }
     }
 
+    AppDelegate.applyBadgeCount(0)
+
     return result
+  }
+
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    AppDelegate.applyBadgeCount(0)
   }
 
   static func applyBadgeCount(_ count: Int) {

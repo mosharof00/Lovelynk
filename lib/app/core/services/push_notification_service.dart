@@ -137,22 +137,26 @@ class PushNotificationService extends GetxService {
     _bindSessionListener();
     _bindBadgeListener();
 
+    // Ensure native app icon badge is cleared on startup
+    await updateAppBadge(0);
+
     return this;
   }
 
   void _bindBadgeListener() {
-    // Immediately sync app badge on start and on every count update
-    _badgeWorker = ever<int>(unreadCount, (count) {
-      updateAppBadge(count);
+    // Keep app icon badge cleared to 0 while maintaining in-app unread count
+    _badgeWorker = ever<int>(unreadCount, (_) {
+      updateAppBadge(0);
     });
   }
 
-  /// Sets the native app icon badge count via MethodChannel on iOS
+  /// Sets the native app icon badge count via MethodChannel on iOS.
+  /// Currently forced to 0 per user requirement (icon badge counts disabled).
   Future<void> updateAppBadge(int count) async {
     if (!Platform.isIOS) return;
     try {
-      await _badgeChannel.invokeMethod('setBadge', count);
-      Log.i('[Badge] Synced native app badge to: $count');
+      await _badgeChannel.invokeMethod('setBadge', 0);
+      Log.i('[Badge] Native app icon badge cleared to 0 (icon badges disabled)');
     } catch (e) {
       Log.w('[Badge] Failed to sync native app badge: $e');
     }
@@ -161,9 +165,9 @@ class PushNotificationService extends GetxService {
   Future<void> _initLocalNotifications() async {
     const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
-      requestBadgePermission: true,
+      requestBadgePermission: false,
       requestSoundPermission: false,
-      defaultPresentBadge: true,
+      defaultPresentBadge: false,
     );
 
     const initSettings = InitializationSettings(
@@ -345,9 +349,9 @@ class PushNotificationService extends GetxService {
         notificationDetails: NotificationDetails(
           iOS: DarwinNotificationDetails(
             presentAlert: true,
-            presentBadge: true,
+            presentBadge: false,
             presentSound: true,
-            badgeNumber: unreadCount.value,
+            badgeNumber: 0,
           ),
         ),
         payload: route,
