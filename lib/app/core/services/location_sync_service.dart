@@ -7,9 +7,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 import '../../data/models/user_models/session_bootstrap.dart';
+import '../../data/models/widget_models/app_widget_type.dart';
 import '../../data/repositories/user_repository.dart';
 import '../network/api_exception.dart';
 import '../utils/logger.dart';
+import '../widgets/widget_sync_service.dart';
+import 'compass_service.dart';
 import 'session_service.dart';
 
 /// Central service responsible for:
@@ -259,19 +262,33 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /// Adaptive foreground stream based on movement speed.
+  /// Adaptive stream based on movement speed (supports iOS background if 'Always' is granted).
   void _startAdaptiveStream() {
     _positionSub?.cancel();
     _heartbeatTimer?.cancel();
 
     if (!isReady) return;
 
-    // Stream with medium accuracy and 50m filter
-    _positionSub = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
+    final LocationSettings locationSettings;
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      locationSettings = AppleSettings(
         accuracy: LocationAccuracy.medium,
         distanceFilter: 50,
-      ),
+        pauseLocationUpdatesAutomatically: true,
+        showBackgroundLocationIndicator: false,
+        allowBackgroundLocationUpdates:
+            permission.value == LocationPermission.always,
+      );
+    } else {
+      locationSettings = const LocationSettings(
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: 50,
+      );
+    }
+
+    // Stream with medium accuracy and 50m filter
+    _positionSub = Geolocator.getPositionStream(
+      locationSettings: locationSettings,
     ).listen(
       _onPositionUpdate,
       onError: (Object error) {
@@ -375,6 +392,14 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
           Log.w('Background weather refresh on location update failed: $e');
           return null;
         }));
+
+        // Immediately update widgets with new location
+        if (Get.isRegistered<CompassService>()) {
+          CompassService.to.requestAndStartLocation();
+        } else if (Get.isRegistered<WidgetSyncService>()) {
+          unawaited(Get.find<WidgetSyncService>().syncWidget(AppWidgetType.partnerDistance));
+          unawaited(Get.find<WidgetSyncService>().syncWidget(AppWidgetType.loveCompass));
+        }
       }
     } on ApiException catch (e) {
       Log.w('Location upload API exception: ${e.message}');
@@ -402,7 +427,10 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
         });
         break;
       case AppLifecycleState.paused:
-        _stopStream();
+        // If user granted 'Always allow', keep background stream active; otherwise pause it
+        if (permission.value != LocationPermission.always) {
+          _stopStream();
+        }
         break;
       default:
         break;

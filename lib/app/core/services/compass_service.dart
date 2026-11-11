@@ -169,18 +169,19 @@ class CompassService extends GetxService {
     partnerMiles.value = (meters / 1609.344).round();
     isTogether.value = meters < 80;
 
-    _scheduleLoveCompassWidgetSync();
+    _scheduleDistanceAndCompassWidgetSync();
   }
 
-  /// Push live compass data to the native Love Compass widget (debounced).
-  void _scheduleLoveCompassWidgetSync() {
+  /// Push live distance and compass data to the native widgets (debounced).
+  void _scheduleDistanceAndCompassWidgetSync() {
     _compassWidgetSyncDebounce?.cancel();
     _compassWidgetSyncDebounce = Timer(const Duration(seconds: 2), () async {
       if (!Get.isRegistered<WidgetSyncService>()) return;
+      await Get.find<WidgetSyncService>().syncWidget(AppWidgetType.partnerDistance);
       await Get.find<WidgetSyncService>().syncWidget(AppWidgetType.loveCompass);
       if (kDebugMode) {
         debugPrint(
-          'CompassService: synced Love Compass widget — '
+          'CompassService: synced Partner Distance & Love Compass widgets — '
           '${partnerMiles.value} mi, bearing ${partnerBearing.value.toStringAsFixed(0)}°',
         );
       }
