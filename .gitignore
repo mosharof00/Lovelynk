@@ -46,3 +46,7 @@ app.*.map.json
 
 # Admin Dashboard (Separate Git Repository)
 /lovelynk_dashboard/
+
+
+# Website (Separate Git Repository)
+/loveLynk_website

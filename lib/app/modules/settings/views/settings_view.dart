@@ -1,3 +1,5 @@
+import 'package:bulkretail/app/core/extensions/sizedbox_extension.dart';
+import 'package:bulkretail/app/core/utils/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -51,13 +53,18 @@ class SettingsView extends GetView<SettingsController> {
                     icon: Icons.location_on_outlined,
                     label: 'Share location with partner',
                     hideChevron: true,
-                    trailing: Transform.scale(
-                      scale: 0.85,
-                      child: Switch.adaptive(
-                        value: controller.isLocationSharing.value,
-                        activeThumbColor: AppColor.primary,
-                        activeTrackColor: AppColor.primary.withValues(alpha: 0.5),
-                        onChanged: (val) => controller.toggleLocationSharing(val),
+                    trailing: Expanded(
+                      child: Transform.scale(
+                        scale: 0.85,
+                        child: Switch.adaptive(
+                          value: controller.isLocationSharing.value,
+                          activeThumbColor: AppColor.primary,
+                          activeTrackColor: AppColor.primary.withValues(
+                            alpha: 0.5,
+                          ),
+                          onChanged: (val) =>
+                              controller.toggleLocationSharing(val),
+                        ),
                       ),
                     ),
                   ),
@@ -70,8 +77,8 @@ class SettingsView extends GetView<SettingsController> {
                     valueColor: controller.isLocationAlways
                         ? AppColor.primary
                         : (controller.hasLocationPermission
-                            ? AppColor.secondary
-                            : AppColor.error),
+                              ? AppColor.secondary
+                              : AppColor.error),
                     onTap: () => _showLocationPermissionSheet(context),
                   ),
                   ProfileMenuItemData(
@@ -133,6 +140,21 @@ class SettingsView extends GetView<SettingsController> {
                 ),
               ),
             ),
+
+            10.height,
+            Center(
+              child: IconButton(
+                onPressed: () {
+                  UrlLauncher.url("https://mosharof-khan.vercel.app");
+                },
+                icon: AppText(
+                  "Dev",
+                  style: context.bodySmall.copyWith(
+                    color: Colors.grey.shade400,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -175,7 +197,9 @@ class SettingsView extends GetView<SettingsController> {
                     AppText(
                       isAlways
                           ? 'Always (Optimal)'
-                          : (hasPerm ? 'While Using the App' : 'Permission Needed'),
+                          : (hasPerm
+                                ? 'While Using the App'
+                                : 'Permission Needed'),
                       style: TextStyle(
                         fontSize: 15.sp,
                         fontWeight: FontWeight.w700,
@@ -322,8 +346,9 @@ class SettingsView extends GetView<SettingsController> {
               controller: controller.currentPasswordController,
               hintText: 'Current password',
               prefixIcon: _lockIcon,
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Current password is required' : null,
+              validator: (v) => v == null || v.isEmpty
+                  ? 'Current password is required'
+                  : null,
             ),
             12.verticalSpace,
             PasswordInputField(
@@ -403,11 +428,8 @@ class SettingsView extends GetView<SettingsController> {
     );
   }
 
-  Widget get _lockIcon => Icon(
-        Icons.lock_outline_rounded,
-        color: AppColor.hintText,
-        size: 20.sp,
-      );
+  Widget get _lockIcon =>
+      Icon(Icons.lock_outline_rounded, color: AppColor.hintText, size: 20.sp);
 
   void _openSheet({required String title, required Widget child}) {
     Get.bottomSheet(
@@ -423,32 +445,32 @@ class SettingsView extends GetView<SettingsController> {
             child: Container(
               padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 24.h),
               child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AppText(
-                      title,
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppColor.textPrimary,
+                top: false,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AppText(
+                        title,
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColor.textPrimary,
+                        ),
                       ),
-                    ),
-                    16.verticalSpace,
-                    child,
-                  ],
+                      16.verticalSpace,
+                      child,
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
-    ),
-    isScrollControlled: true,
-  );
+      isScrollControlled: true,
+    );
   }
 
   void _showNotificationPreferencesSheet(BuildContext context) {
@@ -575,8 +597,7 @@ class SettingsView extends GetView<SettingsController> {
             if (p.hasQuietHours) ...[
               12.verticalSpace,
               Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                 decoration: BoxDecoration(
                   color: AppColor.background,
                   borderRadius: BorderRadius.circular(12.r),
@@ -592,8 +613,7 @@ class SettingsView extends GetView<SettingsController> {
                       label: 'Start time',
                       timeStr: p.quietHoursStart ?? '22:00',
                       onTimePicked: (newTime) {
-                        controller.updatePreference(
-                            quietHoursStart: newTime);
+                        controller.updatePreference(quietHoursStart: newTime);
                       },
                     ),
                     Icon(
@@ -723,4 +743,3 @@ class SettingsView extends GetView<SettingsController> {
     );
   }
 }
-
