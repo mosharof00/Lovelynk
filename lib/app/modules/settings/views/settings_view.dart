@@ -53,18 +53,16 @@ class SettingsView extends GetView<SettingsController> {
                     icon: Icons.location_on_outlined,
                     label: 'Share location with partner',
                     hideChevron: true,
-                    trailing: Expanded(
-                      child: Transform.scale(
-                        scale: 0.85,
-                        child: Switch.adaptive(
-                          value: controller.isLocationSharing.value,
-                          activeThumbColor: AppColor.primary,
-                          activeTrackColor: AppColor.primary.withValues(
-                            alpha: 0.5,
-                          ),
-                          onChanged: (val) =>
-                              controller.toggleLocationSharing(val),
+                    trailing: Transform.scale(
+                      scale: 0.85,
+                      child: Switch.adaptive(
+                        value: controller.isLocationSharing.value,
+                        activeThumbColor: AppColor.primary,
+                        activeTrackColor: AppColor.primary.withValues(
+                          alpha: 0.5,
                         ),
+                        onChanged: (val) =>
+                            controller.toggleLocationSharing(val),
                       ),
                     ),
                   ),

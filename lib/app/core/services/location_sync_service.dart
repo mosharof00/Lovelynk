@@ -273,8 +273,8 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       locationSettings = AppleSettings(
         accuracy: LocationAccuracy.medium,
-        distanceFilter: 50,
-        pauseLocationUpdatesAutomatically: true,
+        distanceFilter: 25,
+        pauseLocationUpdatesAutomatically: false,
         showBackgroundLocationIndicator: false,
         allowBackgroundLocationUpdates:
             permission.value == LocationPermission.always,
@@ -282,7 +282,7 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
     } else {
       locationSettings = const LocationSettings(
         accuracy: LocationAccuracy.medium,
-        distanceFilter: 50,
+        distanceFilter: 25,
       );
     }
 
@@ -345,8 +345,10 @@ class LocationSyncService extends GetxService with WidgetsBindingObserver {
         shouldUpload = true;
       }
     } else {
-      // Walking / moving locally: min 1 minute and at least 150m
-      if (elapsedSeconds >= 60 && distanceMeters >= 150) {
+      // Walking / moving locally or periodic keepalive:
+      // Upload if moved 100m (after 45s) OR periodically every 15 minutes to keep timestamp fresh!
+      if ((elapsedSeconds >= 45 && distanceMeters >= 100) ||
+          elapsedSeconds >= 900) {
         shouldUpload = true;
       }
     }

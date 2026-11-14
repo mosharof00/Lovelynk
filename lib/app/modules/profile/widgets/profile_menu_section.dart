@@ -110,22 +110,25 @@ class _ProfileMenuTile extends StatelessWidget {
               ),
             ),
             14.horizontalSpace,
-            AppText(
-              item.label,
-              maxLines: 1,
-              style: context.bodyLarge.copyWith(
-                color: AppColor.textPrimary,
-                fontWeight: FontWeight.w600,
-                fontSize: 14.sp,
+            Expanded(
+              child: AppText(
+                item.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: context.bodyLarge.copyWith(
+                  color: AppColor.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.sp,
+                ),
               ),
             ),
             if (item.value != null) ...[
               10.horizontalSpace,
-              Expanded(
+              Flexible(
                 child: AppText(
                   item.value!,
                   textAlign: TextAlign.end,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: context.bodyMedium.copyWith(
                     color: item.valueColor ?? AppColor.textSecondary,
@@ -146,8 +149,7 @@ class _ProfileMenuTile extends StatelessWidget {
                 ),
               ],
               6.horizontalSpace,
-            ] else
-              const Spacer(),
+            ],
             if (item.trailing != null)
               item.trailing!
             else if (!item.hideChevron)

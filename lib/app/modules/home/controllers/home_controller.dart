@@ -387,6 +387,18 @@ class HomeController extends GetxController {
       );
       return;
     }
+
+    // Both partners have sharing active: trigger an instant refresh
+    Get.snackbar(
+      'Syncing Distance',
+      'Updating your location and checking for partner updates...',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColor.blackText.withValues(alpha: 0.85),
+      colorText: AppColor.white,
+      margin: EdgeInsets.all(16.w),
+      duration: const Duration(seconds: 2),
+    );
+    await onRefresh();
   }
 
   /// Day counts, partner clock and greeting; re-run every 30s so they roll

@@ -556,10 +556,12 @@ class _BottomCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activePrice = priceString ?? plan.thenPriceLine;
+    final activePrice = priceString ??
+        (plan.id == SubscriptionPlanId.yearly ? '£19.99' : '£4.99');
+    final period = plan.id == SubscriptionPlanId.yearly ? 'year' : 'month';
     final thenLine = canStartTrial
-        ? 'Then $activePrice / period. Cancel anytime.'
-        : '$activePrice. Cancel anytime.';
+        ? 'Then $activePrice / $period. Cancel anytime.'
+        : '$activePrice / $period. Cancel anytime.';
 
     return Container(
       width: double.infinity,
