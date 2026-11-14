@@ -95,6 +95,7 @@ class _ProfileMenuTile extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
               width: 36.w,
@@ -111,53 +112,69 @@ class _ProfileMenuTile extends StatelessWidget {
             ),
             14.horizontalSpace,
             Expanded(
-              child: AppText(
-                item.label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: context.bodyLarge.copyWith(
-                  color: AppColor.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14.sp,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: AppText(
+                      item.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.bodyLarge.copyWith(
+                        color: AppColor.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                  8.horizontalSpace,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (item.value != null) ...[
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 160.w),
+                          child: AppText(
+                            item.value!,
+                            textAlign: TextAlign.end,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.bodyMedium.copyWith(
+                              color: item.valueColor ?? AppColor.textSecondary,
+                              fontWeight: FontWeight.w400,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                        ),
+                        if (item.showStatusDot) ...[
+                          6.horizontalSpace,
+                          Container(
+                            width: 8.w,
+                            height: 8.w,
+                            decoration: const BoxDecoration(
+                              color: AppColor.success,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
+                      if (item.trailing != null) ...[
+                        item.trailing!,
+                      ] else if (!item.hideChevron) ...[
+                        4.horizontalSpace,
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 20.sp,
+                          color: AppColor.hintText,
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ),
             ),
-            if (item.value != null) ...[
-              10.horizontalSpace,
-              Flexible(
-                child: AppText(
-                  item.value!,
-                  textAlign: TextAlign.end,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.bodyMedium.copyWith(
-                    color: item.valueColor ?? AppColor.textSecondary,
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.sp,
-                  ),
-                ),
-              ),
-              if (item.showStatusDot) ...[
-                6.horizontalSpace,
-                Container(
-                  width: 8.w,
-                  height: 8.w,
-                  decoration: const BoxDecoration(
-                    color: AppColor.success,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-              6.horizontalSpace,
-            ],
-            if (item.trailing != null)
-              item.trailing!
-            else if (!item.hideChevron)
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 20.sp,
-                color: AppColor.hintText,
-              ),
           ],
         ),
       ),
