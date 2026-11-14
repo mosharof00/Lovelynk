@@ -14,6 +14,7 @@ import '../config/app_config.dart';
 import '../utils/logger.dart';
 import '../widgets/widget_sync_service.dart';
 import 'local_store_service.dart';
+import 'session_service.dart';
 
 /// Single source of truth for subscription / premium access across the app.
 ///
@@ -166,6 +167,9 @@ class SubscriptionService extends GetxService {
       final customerInfo = purchaseResult.customerInfo;
       _applyFromCustomerInfo(customerInfo);
       await _syncWidgets();
+      if (Get.isRegistered<SessionService>()) {
+        unawaited(SessionService.to.refresh());
+      }
       return customerInfo;
     } on PlatformException catch (e) {
       final errorCode = PurchasesErrorHelper.getErrorCode(e);
@@ -194,6 +198,9 @@ class SubscriptionService extends GetxService {
       final customerInfo = await Purchases.restorePurchases();
       _applyFromCustomerInfo(customerInfo);
       await _syncWidgets();
+      if (Get.isRegistered<SessionService>()) {
+        unawaited(SessionService.to.refresh());
+      }
       return customerInfo;
     } on PlatformException catch (e) {
       Log.e('[RevenueCat] Restore purchases error: $e');

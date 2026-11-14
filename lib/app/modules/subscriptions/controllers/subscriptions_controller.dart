@@ -152,7 +152,7 @@ class SubscriptionsController extends GetxController {
     try {
       if (_subscription.isConfigured.value) {
         await _subscription.restorePurchases();
-        if (_subscription.isPremium) {
+        if (_subscription.isWidgetsUnlocked) {
           Get.back();
           Get.snackbar(
             'Purchases Restored',

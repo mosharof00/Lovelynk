@@ -17,7 +17,7 @@ class ProfileHeader extends GetView<ProfileController> {
 
     return Obx(
       () {
-        final isPremium = subscription.state.value.isPremium;
+        final isPremium = subscription.isWidgetsUnlocked;
 
         return Material(
         color: Colors.white,

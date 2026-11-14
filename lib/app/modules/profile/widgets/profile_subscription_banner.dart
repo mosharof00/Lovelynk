@@ -20,9 +20,9 @@ class ProfileSubscriptionBanner extends StatelessWidget {
     final subscription = Get.find<SubscriptionService>();
 
     return Obx(() {
-      final isPremium = subscription.state.value.isPremium;
+      final isUnlocked = subscription.isWidgetsUnlocked;
 
-      if (isPremium) {
+      if (isUnlocked) {
         final isPartnerShared = subscription.isPartnerShared;
         final partnerName =
             SessionService.to.partner?.displayName.trim() ?? '';
@@ -30,9 +30,11 @@ class ProfileSubscriptionBanner extends StatelessWidget {
             ? (partnerName.isNotEmpty
                 ? 'Plus via $partnerName'
                 : 'Plus via Partner')
-            : (subscription.activePlan != null
-                ? '${subscription.activePlan!.title} Plan · Active'
-                : 'Active Member');
+            : (subscription.isOnTrial
+                ? '7-Day Free Trial · Active'
+                : (subscription.activePlan != null
+                    ? '${subscription.activePlan!.title} Plan · Active'
+                    : 'Active Member'));
 
         return Material(
           color: Colors.transparent,

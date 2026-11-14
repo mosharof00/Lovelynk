@@ -49,7 +49,7 @@ class SubscriptionsView extends GetView<SubscriptionsController> {
                       ),
                       10.verticalSpace,
                     ],
-                    if (state.isPremium) ...[
+                    if (state.isWidgetsUnlocked) ...[
                       8.verticalSpace,
                       GlobalButton(
                         onTap: controller.onManageTap,
@@ -60,7 +60,7 @@ class SubscriptionsView extends GetView<SubscriptionsController> {
                   ],
                 ),
               ),
-              if (!state.isPremium)
+              if (!state.isWidgetsUnlocked)
                 _BottomCta(
                   plan: selected,
                   canStartTrial: controller.canStartTrial,
